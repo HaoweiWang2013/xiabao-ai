@@ -6,7 +6,7 @@ import { bootstrapDesktopContainer, type DesktopContainer } from './adapters';
 import { setupCrashReporter } from './crash-reporter';
 import { createApplicationMenu } from './menu';
 import { createTray } from './menu/tray';
-import { setupOAuthProtocol, setupProtocolHandlers, onOpenUrl } from './protocols';
+import { setupProtocolHandlers, onOpenUrl } from './protocols';
 import { createTrpcIpcHandler, type TrpcIpcHandle } from './trpc/handler';
 import { setupAutoUpdater } from './updater';
 import { autoUpdater } from 'electron-updater';

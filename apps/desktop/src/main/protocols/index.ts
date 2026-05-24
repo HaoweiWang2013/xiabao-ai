@@ -16,6 +16,18 @@ export function registerProtocolHandler(
 export function setupProtocolHandlers(container: DesktopContainer): void {
   app.setAsDefaultProtocolClient(PROTOCOL_SCHEME);
 
+  // OAuth callback handler
+  registerProtocolHandler('oauth', (_url, query) => {
+    const code = query.code ?? '';
+    const state = query.state ?? '';
+    // Send auth code via IPC to renderer (will be set up when window exists)
+    const { BrowserWindow } = require('electron');
+    const windows = BrowserWindow.getAllWindows();
+    if (windows.length > 0) {
+      windows[0].webContents.send('oauth:callback', { code, state });
+    }
+  });
+
   container.logger.info('protocol handlers registered', { scheme: PROTOCOL_SCHEME });
 }
 
