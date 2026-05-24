@@ -1,0 +1,1 @@
+ALTER TABLE `conversations` ADD `knowledge_bases` text DEFAULT '[]' NOT NULL;

@@ -1,0 +1,13 @@
+{
+  "extends": "@xiabao/tsconfig/library.json",
+  "compilerOptions": {
+    "outDir": "../dist-server",
+    "rootDir": ".",
+    "noEmit": false,
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

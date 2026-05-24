@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+
+  /*
+   * Window Controls Overlay 避让 · Win11 titleBarOverlay 模式
+   *
+   * 主进程开了 BrowserWindow.titleBarOverlay → Windows 在右上角画 minimize/maximize/close
+   * 系统按钮（约 138 x 36px），但 webContents 没自动避让，导致顶部 header 的按钮被遮。
+   * 这里所有 features 顶部 header 加 `app-page-header` class，用 env(titlebar-area-*)
+   * 自动 reserve 系统按钮宽度；非 overlay 平台（macOS / Web）env 返回 0，无影响。
+   *
+   * 同时让 header 整个区域可拖拽（drag region），内部交互元素恢复 no-drag。
+   */
+  .app-page-header {
+    -webkit-app-region: drag;
+    /* Windows: padding-right = 100vw - titlebar-area-width = controls 宽度（~140px） */
+    /* macOS / 非 overlay：env() 返回 fallback 100vw → padding = 0 */
+    padding-right: calc(100vw - env(titlebar-area-width, 100vw)) !important;
+  }
+  .app-page-header button,
+  .app-page-header a,
+  .app-page-header input,
+  .app-page-header select,
+  .app-page-header [data-no-drag],
+  .app-page-header [role='button'],
+  .app-page-header [role='tab'] {
+    -webkit-app-region: no-drag;
+  }
+}

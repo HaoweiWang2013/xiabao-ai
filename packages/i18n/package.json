@@ -1,0 +1,31 @@
+{
+  "name": "@xiabao/i18n",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Shared locale resources for XiabaoAI",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rimraf dist .turbo *.tsbuildinfo",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@xiabao/tsconfig": "workspace:*",
+    "rimraf": "5.0.9",
+    "typescript": "5.5.4"
+  }
+}

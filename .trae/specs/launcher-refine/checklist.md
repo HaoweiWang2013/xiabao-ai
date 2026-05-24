@@ -1,0 +1,17 @@
+- [x] Launcher 图标尺寸为 64x64px (h-16 w-16)
+- [x] Launcher 图标背景为实色（bg-green-500 等，非 /10 半透明）
+- [x] Launcher 图标为白色 (text-white)
+- [x] Launcher 卡片圆角为 rounded-2xl
+- [x] 标题文字为 "应用"
+- [x] hover 时图标方块有 scale-105 放大效果
+- [x] hover 时卡片区域有背景变化 (hover:bg-secondary/50)
+- [x] apps 数组每项包含 icon/label/bg/action 四个字段
+- [x] 点击「聊天」→ 创建新对话
+- [x] 点击「知识库」→ 切换到 knowledge 导航
+- [x] 点击「模型供应商」→ 切换到 settings → models
+- [x] 点击「工具」→ 切换到 settings → tools
+- [x] 点击「外观」→ 切换到 settings → appearance
+- [x] 点击「关于」→ 切换到 settings → about
+- [x] launcher tab 在 TabBar 中显示 Sparkles 图标
+- [x] 普通对话 tab 在 TabBar 中显示 MessageSquare 图标
+- [x] pnpm typecheck 全部通过 (22/22)

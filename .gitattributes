@@ -1,0 +1,25 @@
+# enforce LF line endings
+* text=auto eol=lf
+
+# binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.node binary
+*.dmg binary
+*.exe binary
+*.dll binary
+*.zip binary
+*.tar.gz binary
+
+# generated / minified
+pnpm-lock.yaml linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true

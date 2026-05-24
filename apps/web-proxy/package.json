@@ -1,0 +1,23 @@
+{
+  "name": "@xiabao/web-proxy",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Cloudflare Worker · transparent proxy bypassing CORS for AI providers",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "echo 'Wrangler builds on deploy' && exit 0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rimraf .turbo"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20240725.0",
+    "@xiabao/tsconfig": "workspace:*",
+    "rimraf": "5.0.9",
+    "typescript": "5.5.4",
+    "wrangler": "3.65.1"
+  }
+}

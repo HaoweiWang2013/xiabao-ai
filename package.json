@@ -1,0 +1,71 @@
+{
+  "name": "xiabaoai",
+  "version": "0.0.1",
+  "private": true,
+  "description": "聚合型 AI 客户端 · 一个 App 统一接入多家 AI 服务",
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "dev:desktop": "pnpm --filter @xiabao/desktop dev",
+    "dev:web": "pnpm --filter @xiabao/web dev",
+    "dev:mobile": "pnpm --filter @xiabao/mobile start",
+    "build:desktop": "turbo run build --filter=@xiabao/desktop...",
+    "build:web": "turbo run build --filter=@xiabao/web...",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\" --ignore-path .prettierignore",
+    "clean": "turbo run clean && rimraf node_modules",
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
+    "release": "turbo run build --filter='./packages/*' && changeset publish",
+    "check-deps": "syncpack lint",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@changesets/cli": "2.27.7",
+    "@commitlint/cli": "19.3.0",
+    "@commitlint/config-conventional": "19.2.2",
+    "@eslint/js": "9.7.0",
+    "@types/node": "20.14.11",
+    "cross-env": "7.0.3",
+    "eslint": "9.7.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-react": "7.35.0",
+    "eslint-plugin-react-hooks": "5.1.0",
+    "globals": "15.8.0",
+    "husky": "9.1.4",
+    "lint-staged": "15.2.8",
+    "npm-run-all2": "6.2.2",
+    "prettier": "3.3.3",
+    "prettier-plugin-tailwindcss": "0.6.5",
+    "rimraf": "5.0.9",
+    "syncpack": "12.4.0",
+    "turbo": "2.0.6",
+    "typescript": "5.5.4",
+    "typescript-eslint": "8.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.3",
+      "@types/react-dom": "18.3.0"
+    }
+  }
+}

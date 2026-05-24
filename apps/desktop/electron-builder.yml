@@ -1,0 +1,77 @@
+appId: ai.xiabao.app
+productName: XiabaoAI
+copyright: Copyright © 2026 XiabaoAI Authors
+
+directories:
+  output: release
+  buildResources: build
+
+asar: true
+asarUnpack:
+  - '**/*.node'
+
+files:
+  - 'dist/**/*'
+  - 'package.json'
+  - '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}'
+  - '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}'
+  - '!**/node_modules/*.d.ts'
+  - '!**/node_modules/.bin'
+  - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
+
+mac:
+  category: public.app-category.developer-tools
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch: [universal]
+    - target: zip
+      arch: [universal]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+
+dmg:
+  contents:
+    - x: 140
+      y: 220
+    - x: 400
+      y: 220
+      type: link
+      path: /Applications
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: portable
+      arch: [x64]
+  artifactName: '${productName}-Setup-${version}-${arch}.${ext}'
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: XiabaoAI
+
+linux:
+  icon: build/icons
+  category: Development
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+  desktop:
+    Name: XiabaoAI
+    Comment: Aggregated AI client
+    Categories: 'Development;Utility;'
+
+publish:
+  provider: github
+  owner: xiabaoai
+  repo: xiabaoai
+  releaseType: release

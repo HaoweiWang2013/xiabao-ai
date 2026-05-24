@@ -1,0 +1,15 @@
+{
+  "extends": "../../packages/tsconfig/react.json",
+  "compilerOptions": {
+    "jsx": "react-native",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "baseUrl": ".",
+    "types": ["react-native", "node"]
+  },
+  "include": ["src", "index.js"],
+  "exclude": ["node_modules", "android", "ios"]
+}

@@ -1,0 +1,135 @@
+/**
+ * highlight.js 主题（自包含，扁平选择器，跟随 data-theme）
+ * 仅覆盖 react-markdown + rehype-highlight 的 `code.hljs` token。
+ */
+.hljs {
+  background: transparent;
+  color: inherit;
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+}
+
+/* light */
+.hljs-comment,
+.hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: #d73a49;
+}
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: #22863a;
+}
+.hljs-literal {
+  color: #005cc5;
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta-string {
+  color: #032f62;
+}
+.hljs-built_in,
+.hljs-title,
+.hljs-class .hljs-title {
+  color: #6f42c1;
+}
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: #e36209;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* dark */
+[data-theme='dark'] .hljs-comment,
+[data-theme='dark'] .hljs-quote {
+  color: #8b949e;
+}
+[data-theme='dark'] .hljs-doctag,
+[data-theme='dark'] .hljs-keyword,
+[data-theme='dark'] .hljs-formula {
+  color: #ff7b72;
+}
+[data-theme='dark'] .hljs-section,
+[data-theme='dark'] .hljs-name,
+[data-theme='dark'] .hljs-selector-tag,
+[data-theme='dark'] .hljs-deletion,
+[data-theme='dark'] .hljs-subst {
+  color: #7ee787;
+}
+[data-theme='dark'] .hljs-literal {
+  color: #79c0ff;
+}
+[data-theme='dark'] .hljs-string,
+[data-theme='dark'] .hljs-regexp,
+[data-theme='dark'] .hljs-addition,
+[data-theme='dark'] .hljs-attribute,
+[data-theme='dark'] .hljs-meta-string {
+  color: #a5d6ff;
+}
+[data-theme='dark'] .hljs-built_in,
+[data-theme='dark'] .hljs-title,
+[data-theme='dark'] .hljs-class .hljs-title {
+  color: #d2a8ff;
+}
+[data-theme='dark'] .hljs-attr,
+[data-theme='dark'] .hljs-variable,
+[data-theme='dark'] .hljs-template-variable,
+[data-theme='dark'] .hljs-type,
+[data-theme='dark'] .hljs-selector-class,
+[data-theme='dark'] .hljs-selector-attr,
+[data-theme='dark'] .hljs-selector-pseudo,
+[data-theme='dark'] .hljs-number {
+  color: #ffa657;
+}
+
+/* 系统跟随 dark */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .hljs-comment,
+  :root:not([data-theme]) .hljs-quote {
+    color: #8b949e;
+  }
+  :root:not([data-theme]) .hljs-keyword {
+    color: #ff7b72;
+  }
+  :root:not([data-theme]) .hljs-name,
+  :root:not([data-theme]) .hljs-section {
+    color: #7ee787;
+  }
+  :root:not([data-theme]) .hljs-literal {
+    color: #79c0ff;
+  }
+  :root:not([data-theme]) .hljs-string,
+  :root:not([data-theme]) .hljs-attribute {
+    color: #a5d6ff;
+  }
+  :root:not([data-theme]) .hljs-built_in {
+    color: #d2a8ff;
+  }
+  :root:not([data-theme]) .hljs-attr,
+  :root:not([data-theme]) .hljs-variable,
+  :root:not([data-theme]) .hljs-type,
+  :root:not([data-theme]) .hljs-number {
+    color: #ffa657;
+  }
+}

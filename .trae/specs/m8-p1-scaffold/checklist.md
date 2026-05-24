@@ -1,0 +1,19 @@
+- [x] apps/mobile/package.json 包含 react-native 0.74+、react 18.3、NativeWind 4.x、React Navigation 6.x
+- [x] apps/mobile/package.json scripts 不再 echo 占位
+- [x] apps/mobile/metro.config.js 存在且配置正确
+- [x] apps/mobile/babel.config.js 存在且包含 react-native/babel-preset
+- [x] apps/mobile/tsconfig.json 存在且 extends react.json
+- [x] apps/mobile/tailwind.config.js 存在且继承 @xiabao/theme
+- [x] apps/mobile/index.js 存在（registerRootComponent）
+- [x] apps/mobile/src/App.tsx 存在且包含 SafeAreaView
+- [x] apps/mobile/src/navigation/.gitkeep 存在
+- [x] apps/mobile/src/screens/.gitkeep 存在
+- [x] apps/mobile/src/adapters/.gitkeep 存在
+- [x] packages/ui-native/src/Button.tsx 存在（variant/size props）
+- [x] packages/ui-native/src/Input.tsx 存在（placeholder/secureTextEntry/multiline）
+- [x] packages/ui-native/src/Text.tsx 存在（size/weight/color）
+- [x] packages/ui-native/src/Card.tsx 存在（padding/rounded）
+- [x] packages/ui-native/src/SafeAreaView.tsx 存在
+- [x] packages/ui-native/src/index.ts 重新导出所有组件
+- [x] packages/ui-native/src/index.ts 保留原有 JSDoc 契约 + UI_NATIVE_VERSION
+- [x] pnpm typecheck (@xiabao/mobile + @xiabao/ui-native) 通过

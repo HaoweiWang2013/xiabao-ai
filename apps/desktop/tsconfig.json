@@ -1,0 +1,23 @@
+{
+  "extends": "@xiabao/tsconfig/react.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@main/*": ["src/main/*"],
+      "@preload/*": ["src/preload/*"],
+      "@renderer/*": ["src/renderer/*"]
+    },
+    "types": ["node", "react", "react-dom"]
+  },
+  "include": ["src"],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "Node",
+      "esModuleInterop": true,
+      "target": "ES2022"
+    },
+    "transpileOnly": true
+  }
+}

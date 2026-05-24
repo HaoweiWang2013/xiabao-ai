@@ -1,0 +1,87 @@
+# IDE Claw 推送通信规则
+
+## 通信方式
+
+所有**需要用户回复**的对话，都必须通过 `dialog.py` 发起，**禁止直接在聊天窗口里向用户提问**。
+当满足以下任一条件时，请调用 `dialog.py` 并等待回复，不要在聊天里写问题。
+
+`dialog.py` 一次推送会同时送达三个客户端，按延迟从低到高：
+
+1. **本地 IPC**（`http://127.0.0.1:13800`） — 同机桌面端，毫秒级
+2. **桌面端**（远程 WebSocket 通道）— 通过 Push Server 中转
+3. **手机端** — 通过 Push Server 中转
+
+任何一端先回复，其他通道自动取消。
+
+## 何时调用 dialog.py
+
+满足以下任一条件即调用（必须以 Blocking=true 方式执行）：
+
+- 需要用户先做澄清才能继续。
+- 决策点不明确 —— 需要用户从多个方案中挑一个。
+- 完成了一个里程碑或阶段，希望用户审阅后再继续。
+- 一个长任务刚执行完，需要用户确认后才能退出。
+
+不要在以下情况调用：
+
+- 单步、确定性的小操作（比如 `ls 一个目录`）。
+- 下一步动作非常明确、不需要用户参与判断时。
+
+## 调用方式
+
+```
+python "G:/W/download/ide-claw-windows/cascade/dialog.py" "你要发给用户的消息"
+```
+
+- 消息内容作为**单个加引号的参数**传入。
+- 一律使用 **Blocking=true** 调用。
+- 脚本执行流程：
+  1. 把消息推送到 IDE Claw Push Server（手机 App + 桌面 App 同时收到）。
+  2. 同时尝试本地 IPC（`127.0.0.1:13800`）直连同机桌面端。
+  3. 任一通道收到回复后写入 `G:/W/download/ide-claw-windows/data/phone_response.md`，脚本退出。
+
+## 脚本退出后
+
+1. 读取回复文件：
+   `read_file "G:/W/download/ide-claw-windows/data/phone_response.md"`
+2. 严格按用户的指示执行。
+3. 到下一个里程碑时再次调用 `dialog.py`。
+
+## 调用电脑端（IDE Claw 桌面端）
+
+桌面端 EXE 路径：`G:/W/download/ide-claw-windows/ide_claw.exe`
+
+桌面端启动后会在 `127.0.0.1:13800` 上跑一个本地 HTTP 服务，对外暴露：
+
+- `GET  /ping`     → 健康检查，返回 `{"status":"ok","has_pending":bool}`。
+- `POST /message`  → `dialog.py` 内部使用，**不要**在 Cascade 里直接调用。
+
+### 何时主动启动桌面端
+
+如果你正在电脑前工作但桌面端没运行，先启动它能让 `dialog.py` 走本地 IPC（更快、不依赖外网）：
+
+1. 检查桌面端是否已在跑：
+
+```
+curl --max-time 2 http://127.0.0.1:13800/ping
+```
+
+2. 如果命令失败或超时，启动桌面端（非阻塞）：
+
+```
+Start-Process -FilePath "G:/W/download/ide-claw-windows/ide_claw.exe"
+```
+
+3. 等 3-5 秒后再调用 `dialog.py`，让本地 IPC 来得及就绪。
+
+### 何时**不要**启动桌面端
+
+- 用户已经明确说在用手机回复 → 走 WebSocket 即可，别再开桌面端。
+- 任务是单步小操作 → 根本不需要 `dialog.py`，更不需要桌面端。
+
+## 注意事项
+
+- 这条规则在本机所有工作区都生效。
+- 如果 `push_config.json` 缺失或 Push Server 不可达，作为最后的兜底方案才在聊天里提问，并提醒用户检查 Push Server。
+- 永远不要非阻塞调用 `dialog.py` —— 只有脚本退出后，回复才可读取。
+- 启动桌面端时务必用 `Start-Process` 之类的非阻塞方式，**绝对不要**用阻塞调用，否则会卡死整个会话。

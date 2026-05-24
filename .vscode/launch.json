@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Electron · Main (attach)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/apps/desktop/dist/main/**/*.js"]
+    },
+    {
+      "name": "Electron · Renderer (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/apps/desktop/src/renderer",
+      "sourceMaps": true
+    }
+  ]
+}

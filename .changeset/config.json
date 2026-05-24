@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@xiabao/core",
+      "@xiabao/state",
+      "@xiabao/ui",
+      "@xiabao/ui-native",
+      "@xiabao/theme",
+      "@xiabao/i18n",
+      "@xiabao/crypto",
+      "@xiabao/sync",
+      "@xiabao/testing"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@xiabao/desktop", "@xiabao/web", "@xiabao/mobile", "@xiabao/web-proxy"]
+}

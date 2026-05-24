@@ -1,0 +1,98 @@
+/**
+ * AppShell · 三栏 IDE 主框架（支持左 / 顶 双导航布局，P9 · 9-4）
+ *
+ * 见 docs/12-ui-design.md §4.1 / docs/p9-cherry-ux.md §1.3。
+ *
+ * **导航位置 = `'left'`（默认）**：
+ *   - 左：IconSidebar（48px）
+ *   - 中：根据主导航变化（chat → ConversationList，其他 → null）
+ *   - 右：内容区
+ *
+ * **导航位置 = `'top'`（P9）**：
+ *   - 顶：IconTopBar（48px 横向）
+ *   - 中下：可选 middle 栏（chat）
+ *   - 主内容区
+ */
+import { useAtomValue } from 'jotai';
+import { useEffect, useState } from 'react';
+
+import { accentAtom, navBarPositionAtom, primaryNavAtom, themeAtom } from '@xiabao/state';
+import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
+
+import { IconSidebar } from './IconSidebar';
+import { IconTopBar } from './IconTopBar';
+
+import type { ReactNode } from 'react';
+
+interface Props {
+  /** 中栏（chat 的 conversation list 等） */
+  middle?: ReactNode;
+  /** 右栏正文 */
+  children: ReactNode;
+  /** 是否显示中栏（小屏可隐藏） */
+  showMiddle?: boolean;
+}
+
+export function AppShell({ middle, children, showMiddle = true }: Props) {
+  const nav = useAtomValue(primaryNavAtom);
+  const theme = useAtomValue(themeAtom);
+  const accent = useAtomValue(accentAtom) as AccentId;
+  const [systemDark, setSystemDark] = useState<boolean>(() =>
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : false,
+  );
+
+  // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'system') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', theme);
+    }
+  }, [theme]);
+
+  // 根据 accent + 当前主题写入 CSS 变量
+  useEffect(() => {
+    const root = document.documentElement;
+    const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+    const tokens = (ACCENT_HSL[accent] ?? ACCENT_HSL.green)[isDark ? 'dark' : 'light'];
+    root.style.setProperty('--primary', tokens.primary);
+    root.style.setProperty('--primary-foreground', tokens.primaryFg);
+    root.style.setProperty('--ring', tokens.ring);
+    // success 跟随 primary，保证语义色和强调色协调
+    root.style.setProperty('--success', tokens.primary);
+  }, [accent, theme, systemDark]);
+
+  const navPosition = useAtomValue(navBarPositionAtom);
+  const visibleMiddle = showMiddle && nav === 'chat' && middle;
+
+  if (navPosition === 'top') {
+    return (
+      <div className="bg-background text-foreground relative flex h-screen w-screen flex-col overflow-hidden font-sans">
+        <IconTopBar />
+        <div className="flex flex-1 overflow-hidden">
+          {visibleMiddle && middle}
+          <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-background text-foreground relative flex h-screen w-screen overflow-hidden font-sans">
+      <IconSidebar />
+      {visibleMiddle && middle}
+      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+    </div>
+  );
+}

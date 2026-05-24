@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/build
+**/release
+**/coverage
+**/.next
+**/.turbo
+**/pnpm-lock.yaml
+**/*.min.js
+**/*.min.css
+packages/*/dist
+apps/*/dist
+apps/*/release
+apps/desktop/src/renderer/assets/generated

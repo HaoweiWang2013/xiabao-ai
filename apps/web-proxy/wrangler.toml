@@ -1,0 +1,15 @@
+name = "xiabaoai-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[vars]
+ALLOWED_UPSTREAMS = "api.openai.com,api.anthropic.com,generativelanguage.googleapis.com,api.deepseek.com,openrouter.ai,api.mistral.ai,api.groq.com,api.x.ai,api.cohere.com"
+
+# 部署到自定义域名（生产）：取消下方注释后部署
+# [[routes]]
+# pattern = "proxy.xiabao.ai/*"
+# zone_name = "xiabao.ai"

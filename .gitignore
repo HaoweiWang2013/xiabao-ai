@@ -1,0 +1,101 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+build/
+release/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# 例外：electron-builder 资源目录（图标等）
+!apps/desktop/build/
+!apps/desktop/build/**
+
+# coverage
+coverage/
+
+# environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# electron
+apps/desktop/release/
+apps/desktop/dist/
+apps/desktop/out/
+apps/desktop/.vite/
+
+# platform-specific build artifacts
+apps/mobile/android/app/build/
+apps/mobile/android/.gradle/
+apps/mobile/ios/build/
+apps/mobile/ios/Pods/
+
+# macos
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+
+# windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# secrets / signing
+*.p12
+*.pfx
+*.keystore
+*.jks
+!build/*.keystore.example
+
+# test
+test-results/
+playwright-report/
+playwright/.cache/
+
+# runtime data
+*.sqlite
+*.sqlite3
+*.db
+.xiabao/
+dist-server/
+
+# typescript cache
+.tsbuildinfo
+
+# misc
+.cache/
+.temp/
+.tmp/
+
+# mobile dev tools (large directories, should be installed locally)
+apps/mobile/android/ndk/
+apps/mobile/android/sdk/
