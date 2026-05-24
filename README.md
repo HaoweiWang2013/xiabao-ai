@@ -118,7 +118,11 @@
 
 ## 快速开始
 
-> 当前阶段：**设计定稿中**。代码尚未落地，以下命令为规划中的最终形态。
+> 当前阶段：**代码已落地，核心功能可用**。
+>
+> 已完成：M0–M2（工程地基 + Provider + 聊天 MVP）+ M4（知识库 RAG 全部交付）
+> 进行中：M3（打磨与打包）
+> 待开发：M5（图像 + 语音）、M6（MCP + Agent）、M7（Agent 画布）、M8（Android）
 
 ### 环境要求
 
@@ -169,17 +173,17 @@ pnpm build:mobile
 
 ## 项目状态
 
-当前版本：`0.0.1-design`
+当前版本：`0.0.1`
 
 里程碑进度见 [`docs/10-roadmap.md`](./docs/10-roadmap.md)。
 
 - [x] 架构设计定稿
 - [x] UI/UX 规格定稿
-- [ ] M0 工程地基（pnpm/Turbo/Webpack 空白窗口）
-- [ ] M1 Provider + IPC（OpenAI + Anthropic，流式 subscription）
-- [ ] M2 聊天 MVP（IDE Tab + 会话 + 提示词库 + 搜索 + 设置）
+- [x] M0 工程地基（pnpm/Turbo/Webpack 空白窗口）
+- [x] M1 Provider + IPC（OpenAI + Anthropic + Google + Ollama，流式 subscription）
+- [x] M2 聊天 MVP（IDE Tab + 会话 + 提示词库 + 搜索 + 设置）
 - [ ] M3 打磨与打包（主题/快捷键/@/#命令/三端出包）
-- [ ] M4 知识库 RAG
+- [x] M4 知识库 RAG（M4-A/B/C/D/E 全部交付 + 长尾 Phase 1–8）
 - [ ] M5 图像 + 语音
 - [ ] M6 MCP + Agent 卡片/分屏
 - [ ] M7 Agent 画布 + Web 端完整版
