@@ -3,7 +3,7 @@
 > 本文基于 `docs/` 全部文档与实际代码交叉比对，列出所有**已规划但尚未交付**的功能、模块与工程项。
 > 状态截至 2026-05-24。
 >
-> 已完成项（M0–M2 核心、M4 含长尾 Phase 1–8）详见各里程碑文档。
+> 已完成项（M0–M2 核心、M4 含长尾 Phase 1–8、M3 核心模块）详见各里程碑文档。
 
 ---
 
@@ -13,31 +13,44 @@
 | -------------------------- | ---------- | ----------------------------- |
 | 里程碑级功能（整块未启动） | 3 大块     | M5(部分) / M6 / M7(部分) / M8 |
 | M4 长尾残留                | 2 项       | M4 长尾                       |
-| M3 打磨与打包              | ~8 项      | M3                            |
-| M2 遗留                    | ~4 项      | M2                            |
+| M3 打磨与打包              | ~3 项      | M3                            |
+| M2 遗留                    | ~3 项      | M2                            |
 | M5 图像生成（功能缺口）    | ~6 项      | M5                            |
-| 基础设施 / 工程化          | ~14 项     | 跨里程碑                      |
+| 基础设施 / 工程化          | ~10 项     | 跨里程碑                      |
 | 开放问题（待决策）         | 12 项      | 全局                          |
 | 文档 / 许可                | 2 项       | 全局                          |
 
 ---
 
-## 1 · M3 · 打磨与打包（进行中，预估 4 周）
+## 1 · M3 · 打磨与打包（核心已交付，剩余签名证书）
 
 > 参考：`docs/10-roadmap.md` §5
 >
-> **现状**：M0–M2 核心已交付，M4 RAG 全量交付。M3 交互完善项（@/#命令、输出格式切换、i18n 基础）已部分落地，缺口集中在**打包/签名/自动更新/崩溃上报**。
+> **现状**：M3 核心模块已全部交付——`menu/`（应用菜单+托盘）、`protocols/`（URL scheme + OAuth）、`updater/`（electron-updater + 更新通道）、`crash-reporter`（@sentry/electron opt-in）、隐私设置 UI、更新设置 UI、macOS entitlements、electron-builder 签名配置均已落地。剩余项仅为**实际证书配置**（Developer ID / EV 证书），无需额外编码。
 
-| #   | 未完成项                  | 说明                                                                                                                                                       | 代码现状                                                   |
-| --- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 1   | **macOS 公证 + 代码签名** | `electron-builder.yml` 已配置签名参数，CI 预留 secrets，但未实际配置 Developer ID 证书和 notarization。                                                    | `electron-builder.yml` 有签名占位                          |
-| 2   | **Windows 代码签名**      | EV / standard 证书未配置                                                                                                                                   | 同上                                                       |
-| 3   | **electron-updater**      | `electron-updater` 未加入 `package.json`；`apps/desktop/src/main/updater/` 目录不存在；`docs/09-build-release.md` §8 有完整 `autoUpdater` 代码但尚未移植。 | package.json 无依赖，updater/ 目录不存在                   |
-| 4   | **`protocols/` 模块**     | 自定义 URL scheme（OAuth 回调）；`apps/desktop/src/main/protocols/` 目录不存在                                                                             | 目录不存在                                                 |
-| 5   | **`menu/` 模块**          | 应用菜单 + 托盘；`apps/desktop/src/main/menu/` 目录不存在；当前 `index.ts` 第 135 行有 `// placeholder` 占位                                               | 目录不存在，代码中 placeholder                             |
-| 6   | **崩溃上报（Sentry）**    | `@sentry/electron` 未集成；`docs/08-security.md` §8 设计了 opt-in 自托管 Sentry + 脱敏规则                                                                 | 无依赖                                                     |
-| 7   | **首次启动引导完善**      | `Onboarding` 组件已存在但较基础，需完善 Provider → Key → 主题 → 完成的完整流程                                                                             | `packages/app-ui/src/features/onboarding/index.tsx` 已存在 |
-| 8   | **更新通道 stable/beta**  | electron-updater 未集成，更新通道无从谈起                                                                                                                  | 依赖 #3                                                    |
+### 1.1 已完成项
+
+- [x] `menu/index.ts` — 应用菜单（macOS/Win/Linux 差异化菜单 + 快捷键）
+- [x] `menu/tray.ts` — 系统托盘（显示/隐藏窗口 + 退出）
+- [x] `protocols/index.ts` — 自定义 URL scheme 注册（`xiabaoai://`）
+- [x] `protocols/oauth.ts` — OAuth 回调 handler
+- [x] `updater/index.ts` — 自动更新（`autoUpdater` 事件监听 + IPC 通道）
+- [x] `updater/channel.ts` — 更新通道切换（stable / beta）
+- [x] `crash-reporter.ts` — @sentry/electron 崩溃上报（opt-in + 脱敏）
+- [x] `PrivacySettings.tsx` — 隐私设置面板（崩溃上报开关）
+- [x] `UpdateSettings.tsx` — 更新设置面板（通道选择 + 手动检查）
+- [x] `entitlements.mac.plist` — macOS entitlements（摄像头/麦克风/网络/文件）
+- [x] `electron-builder.yml` — macOS notarization + Windows 签名配置
+- [x] `@xiabao/state` — `crashReportingEnabledAtom` 状态管理
+- [x] 主进程 `index.ts` 集成所有模块
+
+### 1.2 未完成项（仅证书配置）
+
+| #   | 未完成项                  | 说明                                                                                                                                | 代码现状                                                   |
+| --- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | **macOS 公证证书**        | 配置需 Developer ID Application 证书 + Apple ID API key for notarization；`electron-builder.yml` 和 `entitlements.mac.plist` 已就绪 | 配置已就绪，缺实际证书                                     |
+| 2   | **Windows 代码签名证书**  | 需 EV / standard 证书（.pfx）；`electron-builder.yml` 已配置 `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` 环境变量                       | 配置已就绪，缺实际证书                                     |
+| 3   | **Onboarding 多步骤引导** | 当前仅基础欢迎页；需完善 Provider → Key → 主题 → 完成的完整流程                                                                     | `packages/app-ui/src/features/onboarding/index.tsx` 已存在 |
 
 ---
 
@@ -219,8 +232,7 @@
 | --- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | 1   | **FTS5 全文搜索**              | `docs/04-data-model.md` §8 设计了 `messages_fts` 虚拟表 + 触发器 + `body_plain` 冗余列；`search` tRPC 路由（`search.query` / `search.reindex`）未实现；`SearchService` 不存在                   | tRPC routers 中无 `search.ts`；DB schema 无 FTS 虚拟表  |
 | 2   | **消息分叉树 UI（‹2/3›切换）** | `listSiblings` / `chooseBranch` tRPC 路由已实现；`message.variantCount` / `variantIndex` 字段已存在；`AssistantWithSiblings` / `UserBubbleWithSiblings` 组件已搭建，但 ‹2/3› 切换按钮 UI 未实装 | tRPC 路由存在，UI 切换组件未完整落地                    |
-| 3   | **`menu/` 模块**               | 应用菜单 + 托盘；`apps/desktop/src/main/menu/` 目录不存在；`index.ts` 第 135 行 `// placeholder` 占位                                                                                           | 目录不存在                                              |
-| 4   | **部分设置页**                 | 开发者设置、数据设置等设置页存在但功能不完整                                                                                                                                                    | `packages/app-ui/src/features/settings/` 已存在但需完善 |
+| 3   | **部分设置页**                 | 开发者设置、数据设置等设置页存在但功能不完整                                                                                                                                                    | `packages/app-ui/src/features/settings/` 已存在但需完善 |
 
 ---
 
@@ -234,47 +246,37 @@
 | 2   | **`packages/sync` 实装**    | 1 文件（`index.ts`），仅类型定义 + 版本常量 | 需实现 libsql 同步引擎 + LWW 冲突解决 + 端到端加密写入                                                    | M4+ / M8   |
 | 3   | **`packages/testing` 实装** | 1 文件（`index.ts`），仅版本常量            | 需实现 mock Port（`InMemoryStoragePort` / `FakeHttpPort` 等）+ fixtures；当前测试中的 mock 散落在各包内部 | M1+        |
 
-### 10.2 桌面端缺失模块
-
-| #   | 未完成项              | 说明                                                                                | 关联里程碑 |
-| --- | --------------------- | ----------------------------------------------------------------------------------- | ---------- |
-| 4   | **`updater/` 模块**   | `electron-updater` 未加入 package.json；`apps/desktop/src/main/updater/` 目录不存在 | M3         |
-| 5   | **`menu/` 模块**      | 应用菜单 + 托盘；目录不存在；`index.ts` 第 135 行 `// placeholder` 占位             | M2         |
-| 6   | **`protocols/` 模块** | 自定义 URL scheme（OAuth 回调）；目录不存在                                         | M3         |
-
-### 10.3 Web 端缺失
+### 10.2 Web 端缺失
 
 | #   | 未完成项                       | 说明                                                                                                                         | 关联里程碑 |
 | --- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 7   | **PWA Service Worker**         | `vite-plugin-pwa` 配置 + Workbox 离线缓存策略；`apps/web` 无任何 PWA 代码：无 `manifest.webmanifest`、无 `service-worker.ts` | M7         |
-| 8   | **Web-specific Adapters**      | Dexie StoragePort / Web Crypto SecretPort / OPFS FilePort；当前 Web 端直接复用 server 端 Fastify + tRPC                      | M7         |
-| 9   | **Web 端 LibsqlVecStore 启用** | 当前仅 desktop bootstrap 注入 `LibsqlVecStore`；Web server 仍走默认 `MemoryVectorStore`                                      | M7         |
-| 10  | **`<768px` 移动布局降级**      | 底部 Tab + 左抽屉的移动布局；响应式断点未实现                                                                                | M7         |
+| 4   | **PWA Service Worker**         | `vite-plugin-pwa` 配置 + Workbox 离线缓存策略；`apps/web` 无任何 PWA 代码：无 `manifest.webmanifest`、无 `service-worker.ts` | M7         |
+| 5   | **Web-specific Adapters**      | Dexie StoragePort / Web Crypto SecretPort / OPFS FilePort；当前 Web 端直接复用 server 端 Fastify + tRPC                      | M7         |
+| 6   | **Web 端 LibsqlVecStore 启用** | 当前仅 desktop bootstrap 注入 `LibsqlVecStore`；Web server 仍走默认 `MemoryVectorStore`                                      | M7         |
+| 7   | **`<768px` 移动布局降级**      | 底部 Tab + 左抽屉的移动布局；响应式断点未实现                                                                                | M7         |
 
-### 10.4 测试与质量
+### 10.3 测试与质量
 
 | #   | 未完成项                | 说明                                                                               | 关联里程碑 |
 | --- | ----------------------- | ---------------------------------------------------------------------------------- | ---------- |
-| 11  | **UI 组件测试**         | `packages/ui` + `packages/app-ui` 零 `.test.tsx` 文件（共 ~54 个组件源文件无测试） | M2+        |
-| 12  | **E2E Playwright 测试** | 无 `playwright.config.ts`、无 `.e2e.ts` 文件在 `apps/desktop/e2e/`                 | M2+        |
+| 8   | **UI 组件测试**         | `packages/ui` + `packages/app-ui` 零 `.test.tsx` 文件（共 ~54 个组件源文件无测试） | M2+        |
+| 9   | **E2E Playwright 测试** | 无 `playwright.config.ts`、无 `.e2e.ts` 文件在 `apps/desktop/e2e/`                 | M2+        |
 
-### 10.5 工程化与合规
+### 10.4 工程化与合规
 
 | #   | 未完成项             | 说明                                                                                                              | 关联里程碑 |
 | --- | -------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------- |
-| 13  | **`tools/` 目录**    | `tools/scripts/`（release.ts / check-deps.ts / bump-electron.ts）+ `tools/generators/`（plop 脚手架），实际不存在 | M0         |
-| 14  | **`examples/` 目录** | `examples/custom-provider/`，实际不存在                                                                           | 可选       |
+| 10  | **`tools/` 目录**    | `tools/scripts/`（release.ts / check-deps.ts / bump-electron.ts）+ `tools/generators/`（plop 脚手架），实际不存在 | M0         |
+| 11  | **`examples/` 目录** | `examples/custom-provider/`，实际不存在                                                                           | 可选       |
 
-### 10.6 功能级基础设施
+### 10.5 功能级基础设施
 
 | #   | 未完成项                       | 说明                                                                                                               | 关联里程碑   |
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------ |
-| 15  | **自动备份**                   | `docs/04-data-model.md` §12 设计了每日自动备份（`userData/backups/xiabaoai-YYYYMMDD.json.enc`，保留 7 份）；未实现 | M3+          |
-| 16  | **代码签名**                   | macOS Developer ID + notarize / Windows EV 证书 / Linux GPG；`electron-builder.yml` 已配签名参数但未实际配置证书   | M3           |
-| 17  | **崩溃上报（Sentry）**         | opt-in 自托管 Sentry + 脱敏规则；未集成 `@sentry/electron`                                                         | M3           |
-| 18  | **P9-Pro 多分屏**              | `docs/p9-cherry-ux.md` 9-5 拆出到 P9-Pro 单独排期；需 `panesAtom` + CSS Grid 二分 + `react-resizable-panels`       | P9-Pro       |
-| 19  | **主密码加密整个本地 DB**      | SQLCipher 或 libsql encryption                                                                                     | M4+          |
-| 20  | **Web onnxruntime-web Worker** | LocalEmbedder 浏览器端推理；明确推迟到 Phase 5-Pro+                                                                | Phase 5-Pro+ |
+| 12  | **自动备份**                   | `docs/04-data-model.md` §12 设计了每日自动备份（`userData/backups/xiabaoai-YYYYMMDD.json.enc`，保留 7 份）；未实现 | M3+          |
+| 13  | **P9-Pro 多分屏**              | `docs/p9-cherry-ux.md` 9-5 拆出到 P9-Pro 单独排期；需 `panesAtom` + CSS Grid 二分 + `react-resizable-panels`       | P9-Pro       |
+| 14  | **主密码加密整个本地 DB**      | SQLCipher 或 libsql encryption                                                                                     | M4+          |
+| 15  | **Web onnxruntime-web Worker** | LocalEmbedder 浏览器端推理；明确推迟到 Phase 5-Pro+                                                                | Phase 5-Pro+ |
 
 ---
 
@@ -319,8 +321,8 @@
 | ----------------------- | -------- | -------- | ------------------------------------------------------------------------- |
 | **M0 工程地基**         | 2 周     | **~95%** | 缺 `tools/` / `examples/` / `packages/testing` 实装                       |
 | **M1 Provider + IPC**   | 3 周     | **~90%** | 部分 Provider（groq/mistral/xai/cohere）未实装                            |
-| **M2 聊天 MVP**         | 6 周     | **~85%** | 缺 FTS5 全局搜索 / 消息分叉树 UI / 桌面 `menu/` 模块                      |
-| **M3 打磨与打包**       | 4 周     | **~40%** | 缺签名打包 / 自动更新 / 崩溃上报 / `protocols/` / 首次引导完善            |
+| **M2 聊天 MVP**         | 6 周     | **~88%** | 缺 FTS5 全局搜索 / 消息分叉树 UI 切换                                     |
+| **M3 打磨与打包**       | 4 周     | **~85%** | 仅缺实际签名证书配置 / Onboarding 完善                                    |
 | **M4 知识库 RAG**       | 8 周     | **~95%** | 缺 Git 仓库源 / 表格结构化查询                                            |
 | **M5 图像生成**         | 6 周     | **~55%** | UI+DB+Service+tRPC 骨架完整；缺 Provider image 实装 / 参数面板 / 收藏导出 |
 | **M5 语音 + 翻译**      | —        | **0%**   | 整块未启动                                                                |
@@ -328,7 +330,7 @@
 | **M7 Agent 画布 + Web** | 8 周     | **~15%** | Web SPA+Server 已有，缺 PWA / Agent 画布 / Web Adapters / 移动布局降级    |
 | **M8 Android RN**       | 8 周     | **~2%**  | 仅 Hello World + 依赖安装 + 契约文档                                      |
 
-**总体进度**：约 **55–60%**（按功能完整度加权）。核心聊天 + RAG 管线已闭环（M0–M4），图像生成骨架已搭建但功能未完成（M5），语音/翻译/MCP/Agent/移动端三大块尚未启动。
+**总体进度**：约 **60–65%**（按功能完整度加权）。核心聊天 + RAG 管线已闭环（M0–M4），M3 核心模块（菜单/托盘/协议/自动更新/崩溃上报/设置 UI）已交付，图像生成骨架已搭建但功能未完成（M5），语音/翻译/MCP/Agent/移动端三大块尚未启动。
 
 ### 13.1 已交付代码量统计
 
@@ -337,7 +339,7 @@
 | `packages/core`      | 37       | 27         | Port 定义 + Provider 实现（OpenAI/Anthropic/Google/Ollama/LocalEmbedder）+ 文本/向量/嵌入工具               |
 | `packages/server`    | 56       | 16         | tRPC 路由（chat/image/knowledge/prompt/provider/system/tool/local-embedder）+ Drizzle DB + Services + Repos |
 | `packages/ui`        | 16       | 0          | shadcn 风格基础组件                                                                                         |
-| `packages/app-ui`    | 38       | 0          | 业务面板（Chat/Knowledge/Image/Settings/Onboarding/Prompt/ToolSettings/ProviderSettings）                   |
+| `packages/app-ui`    | 40       | 0          | 业务面板（Chat/Knowledge/Image/Settings/Onboarding/Prompt/ToolSettings/ProviderSettings/Privacy/Update）    |
 | `packages/state`     | 2        | 0          | Jotai atoms + 可注入持久化                                                                                  |
 | `packages/theme`     | 5        | 0          | 设计令牌 + Tailwind preset                                                                                  |
 | `packages/i18n`      | 3        | 0          | zh-CN + en-US + 自定义 t()                                                                                  |
@@ -345,7 +347,7 @@
 | `packages/sync`      | 1        | 0          | **仅类型占位**                                                                                              |
 | `packages/testing`   | 1        | 0          | **仅版本常量**                                                                                              |
 | `packages/ui-native` | 8        | 0          | 5 原子组件 + 8 JSDoc 契约                                                                                   |
-| `apps/desktop`       | ~15      | 3          | Electron 主/预/渲 + adapters + local-embedder                                                               |
+| `apps/desktop`       | ~25      | 3          | Electron 主/预/渲 + adapters + local-embedder + menu/protocols/updater/crash-reporter                       |
 | `apps/web`           | ~8       | 0          | SPA + Fastify server + adapters                                                                             |
 | `apps/web-proxy`     | 1        | 0          | Cloudflare Worker                                                                                           |
 | `apps/mobile`        | 1        | 0          | Hello World                                                                                                 |
@@ -356,7 +358,7 @@
 
 按依赖关系与价值排序：
 
-1. **M3 补齐**（签名打包 + 自动更新 + `menu/` `protocols/`）—— 让桌面端可分发
+1. **M3 剩余项**（Onboarding 完善）—— 提升首次使用体验
 2. **M5 图像 Provider 实装**（Dall-E 3 优先）—— 骨架已全，接 Provider 即可用
 3. **FTS5 全局搜索**—— M2 遗留高频功能，体验提升明显
 4. **M6 MCP + Agent**—— 差异化竞争力
