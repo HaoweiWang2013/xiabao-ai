@@ -12,7 +12,16 @@
  * - 关于 → 版本 / 许可
  */
 import { useAtom } from 'jotai';
-import { Cpu, Database, Info, Keyboard, Palette, TerminalSquare, Wrench } from 'lucide-react';
+import {
+  Cpu,
+  Database,
+  Info,
+  Keyboard,
+  Palette,
+  Shield,
+  TerminalSquare,
+  Wrench,
+} from 'lucide-react';
 
 import { settingsSectionAtom, type SettingsSection } from '@xiabao/state';
 import { ScrollArea, cn } from '@xiabao/ui';
@@ -24,7 +33,9 @@ import { AboutSettings } from './AboutSettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { DataSettings } from './DataSettings';
 import { DeveloperSettings } from './DeveloperSettings';
+import { PrivacySettings } from './PrivacySettings';
 import { ShortcutsSettings } from './ShortcutsSettings';
+import { UpdateSettings } from './UpdateSettings';
 
 import type { ReactNode } from 'react';
 
@@ -40,6 +51,7 @@ const NAV: NavItem[] = [
   { id: 'appearance', label: '外观', icon: <Palette className="h-3.5 w-3.5" /> },
   { id: 'shortcuts', label: '快捷键', icon: <Keyboard className="h-3.5 w-3.5" /> },
   { id: 'data', label: '数据', icon: <Database className="h-3.5 w-3.5" /> },
+  { id: 'privacy', label: '隐私', icon: <Shield className="h-3.5 w-3.5" /> },
   { id: 'developer', label: '开发者', icon: <TerminalSquare className="h-3.5 w-3.5" /> },
   { id: 'about', label: '关于', icon: <Info className="h-3.5 w-3.5" /> },
 ];
@@ -81,6 +93,8 @@ export function SettingsPage() {
           <ShortcutsSettings />
         ) : section === 'data' ? (
           <DataSettings />
+        ) : section === 'privacy' ? (
+          <PrivacySettings />
         ) : section === 'developer' ? (
           <DeveloperSettings />
         ) : section === 'about' ? (

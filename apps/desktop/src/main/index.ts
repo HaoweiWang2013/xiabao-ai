@@ -3,7 +3,13 @@ import path from 'node:path';
 import { app, BrowserWindow, shell } from 'electron';
 
 import { bootstrapDesktopContainer, type DesktopContainer } from './adapters';
+import { setupCrashReporter } from './crash-reporter';
+import { createApplicationMenu } from './menu';
+import { createTray } from './menu/tray';
+import { setupOAuthProtocol, setupProtocolHandlers, onOpenUrl } from './protocols';
 import { createTrpcIpcHandler, type TrpcIpcHandle } from './trpc/handler';
+import { setupAutoUpdater } from './updater';
+import { autoUpdater } from 'electron-updater';
 
 declare const __DEV__: boolean;
 declare const __BUILD_HASH__: string;
@@ -100,6 +106,12 @@ void app.whenReady().then(async () => {
     container.logger.info('container ready', {
       userData: app.getPath('userData'),
     });
+
+    setupCrashReporter(container);
+
+    setupProtocolHandlers(container);
+    setupOAuthProtocol();
+
     trpcHandle = createTrpcIpcHandler(container.services);
   } catch (err) {
     console.error('[xiabao] bootstrap failed', err);
@@ -108,10 +120,24 @@ void app.whenReady().then(async () => {
   mainWindow = createMainWindow();
   if (trpcHandle && mainWindow) trpcHandle.attachWindow(mainWindow);
 
+  createApplicationMenu({ isDev, mainWindow });
+  createTray(mainWindow);
+
+  setTimeout(() => {
+    if (mainWindow && !isDev) {
+      setupAutoUpdater();
+      void autoUpdater.checkForUpdates().catch((err: unknown) => {
+        container?.logger.error('updater check failed', { error: (err as Error).message });
+      });
+    }
+  }, 3000);
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createMainWindow();
       if (trpcHandle && mainWindow) trpcHandle.attachWindow(mainWindow);
+      createApplicationMenu({ isDev, mainWindow });
+      createTray(mainWindow);
     }
   });
 });
@@ -139,3 +165,12 @@ app.on('browser-window-focus', () => {
 
 // 调试：启动时打印构建信息
 console.info(`[xiabao] main starting · build=${__BUILD_HASH__} · dev=${String(isDev)}`);
+
+app.on('open-url', (_e, url) => {
+  onOpenUrl(url);
+});
+
+app.on('second-instance', (_e, argv) => {
+  const url = argv.find((a) => a.startsWith('xiabaoai://'));
+  if (url) onOpenUrl(url);
+});

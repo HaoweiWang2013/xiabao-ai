@@ -56,6 +56,12 @@ export const localeAtom = createPersistedAtom<'zh-CN' | 'en-US'>('ui.locale', 'z
 /** Onboarding 是否完成（首次启动引导） */
 export const onboardingDoneAtom = createPersistedAtom<boolean>('ui.onboardingDone', false);
 
+/** 崩溃上报开关（opt-in） */
+export const crashReportingEnabledAtom = createPersistedAtom<boolean>(
+  'ui.crashReportingEnabled',
+  false,
+);
+
 /**
  * 全局快捷键动作 ID
  *
@@ -156,5 +162,7 @@ export type SettingsSection =
   | 'mcp'
   | 'tools'
   | 'developer'
+  | 'updates'
+  | 'privacy'
   | 'about';
 export const settingsSectionAtom = atom<SettingsSection>('models');

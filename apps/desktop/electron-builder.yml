@@ -29,6 +29,9 @@ mac:
       arch: [universal]
   hardenedRuntime: true
   gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true
 
 dmg:
   contents:
@@ -47,6 +50,10 @@ win:
     - target: portable
       arch: [x64]
   artifactName: '${productName}-Setup-${version}-${arch}.${ext}'
+  certificateFile: '${env.WIN_CSC_LINK}'
+  certificatePassword: '${env.WIN_CSC_KEY_PASSWORD}'
+  signingHashAlgorithms: [sha256]
+  signDlls: true
 
 nsis:
   oneClick: false
