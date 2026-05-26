@@ -20,6 +20,10 @@ import type {
   ImageGenerateResult,
   ProviderFactory,
   ProviderFactoryDeps,
+  SttOptions,
+  SttResult,
+  TtsOptions,
+  TtsResult,
 } from '../types.js';
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
@@ -186,6 +190,8 @@ class OpenAiProvider implements ChatProvider {
         choice.delta.reasoning_content.length > 0
       ) {
         chunk.reasoningDelta = choice.delta.reasoning_content;
+      } else if (typeof (choice.delta as Record<string, unknown>).reasoning === 'string') {
+        chunk.reasoningDelta = (choice.delta as Record<string, string>).reasoning;
       }
 
       if (choice.delta.tool_calls) {
@@ -322,6 +328,87 @@ class OpenAiProvider implements ChatProvider {
     };
   }
 
+  async stt(audioBytes: Uint8Array, options: SttOptions): Promise<SttResult> {
+    const boundary = `xiabao-audio-${Date.now()}`;
+    const header = `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: audio/webm\r\n\r\n`;
+    const mid = `\r\n--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\n${options.model}`;
+    const lang = options.language
+      ? `\r\n--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\n${options.language}`
+      : '';
+    const footer = `\r\n--${boundary}--`;
+
+    const headerBytes = new TextEncoder().encode(header);
+    const midBytes = new TextEncoder().encode(mid);
+    const langBytes = lang ? new TextEncoder().encode(lang) : new Uint8Array(0);
+    const footerBytes = new TextEncoder().encode(footer);
+
+    const bodyBytes = new Uint8Array(
+      headerBytes.length +
+        audioBytes.length +
+        midBytes.length +
+        langBytes.length +
+        footerBytes.length,
+    );
+    let offset = 0;
+    bodyBytes.set(headerBytes, offset);
+    offset += headerBytes.length;
+    bodyBytes.set(audioBytes, offset);
+    offset += audioBytes.length;
+    bodyBytes.set(midBytes, offset);
+    offset += midBytes.length;
+    if (langBytes.length > 0) {
+      bodyBytes.set(langBytes, offset);
+      offset += langBytes.length;
+    }
+    bodyBytes.set(footerBytes, offset);
+
+    const res = await this.http.fetch(`${this.baseUrl}/audio/transcriptions`, {
+      method: 'POST',
+      headers: {
+        ...this.authHeaders(),
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      },
+      body: bodyBytes,
+      signal: options.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`OpenAI STT failed: ${res.status} ${await res.text()}`);
+    }
+    const json = await res.json<{ text: string; language?: string; duration?: number }>();
+    if (!json || typeof json.text !== 'string') {
+      throw new Error('OpenAI STT: missing text in response');
+    }
+    return {
+      text: json.text,
+      language: json.language,
+      durationMs: json.duration ? json.duration * 1000 : undefined,
+    };
+  }
+
+  async tts(options: TtsOptions): Promise<TtsResult> {
+    const res = await this.http.fetch(`${this.baseUrl}/audio/speech`, {
+      method: 'POST',
+      headers: {
+        ...this.authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: options.model,
+        input: options.text,
+        voice: options.voice ?? 'alloy',
+        speed: options.speed ?? 1,
+        response_format: options.format ?? 'mp3',
+      }),
+      signal: options.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`OpenAI TTS failed: ${res.status} ${await res.text()}`);
+    }
+    const audioBytes = await res.bytes();
+    const durationMs = audioBytes.length > 0 ? undefined : 0;
+    return { audioBytes, format: options.format ?? 'mp3', durationMs };
+  }
+
   private authHeaders(): Record<string, string> {
     const h: Record<string, string> = { ...this.extraHeaders };
     if (this.apiKey) h.Authorization = `Bearer ${this.apiKey}`;
@@ -386,8 +473,11 @@ function turnToOpenAi(turn: ChatTurn): Record<string, unknown>[] {
 
   const base: Record<string, unknown> = { role: turn.role };
 
-  // 明确过滤掉 reasoning 类型的 part，不将深度思考内容回传给 API
-  // DeepSeek 等模型不接收 reasoning_content 作为输入消息，会报 400 错误
+  // 提取 reasoning part（仅 assistant 角色需要回传 reasoning_content）
+  const reasoningParts = turn.parts.filter((p) => p.kind === 'reasoning') as {
+    kind: 'reasoning';
+    text: string;
+  }[];
   const textParts = turn.parts.filter((p) => p.kind === 'text') as { kind: 'text'; text: string }[];
   const imageParts = turn.parts.filter((p) => p.kind === 'image') as {
     kind: 'image';
@@ -400,6 +490,12 @@ function turnToOpenAi(turn: ChatTurn): Record<string, unknown>[] {
     toolCallId: string;
     argsJson: string;
   }[];
+
+  // assistant 角色且有 reasoning content 时，需要回传给 API 以维持思维链
+  if (turn.role === 'assistant' && reasoningParts.length > 0) {
+    const reasoningText = reasoningParts.map((p) => p.text).join('');
+    if (reasoningText) base.reasoning_content = reasoningText;
+  }
 
   // 提升兼容性：若无图片，优先使用字符串 content。
   // 许多 Provider (如 DeepSeek) 不支持 assistant 消息的 content 为数组（即便只含文本）。

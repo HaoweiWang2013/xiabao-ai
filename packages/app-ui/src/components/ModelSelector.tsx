@@ -13,6 +13,7 @@ export interface ModelOption {
   providerName: string;
   modelId: string;
   modelDisplay: string;
+  contextTokens?: number;
   capabilities?: string[];
 }
 

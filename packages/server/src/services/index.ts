@@ -13,12 +13,18 @@ import type {
   VectorStore,
 } from '@xiabao/core';
 
+import type { Client } from '@libsql/client';
+
+import { createAgentService, type AgentService } from './agent.service';
 import { createChatService, type ChatService } from './chat.service';
 import { createImageService, type ImageService } from './image.service';
 import { createKnowledgeService, type KnowledgeService } from './knowledge.service';
 import { createLocalEmbedderService, type LocalEmbedderService } from './local-embedder.service';
+import { createMcpService, type McpService } from './mcp.service';
+import { createVoiceService, type VoiceService } from './voice.service';
 import { createPromptService, type PromptService } from './prompt.service';
 import { createProviderService, type ProviderService } from './provider.service';
+import { createSearchService, type SearchService } from './search.service';
 import {
   createSystemService,
   type SystemAppInfo,
@@ -36,12 +42,13 @@ export interface Services {
   tool: ToolService;
   system: SystemService;
   knowledge: KnowledgeService;
-  /** M4 长尾 Phase 5-Pro：本地 embedder 模型管理服务 */
   localEmbedder: LocalEmbedderService;
-  /** M2 · 提示词库服务 */
   prompt: PromptService;
-  /** M5 · 图像生成服务 */
   image: ImageService;
+  search: SearchService;
+  mcp: McpService;
+  agent: AgentService;
+  voice: VoiceService;
 }
 
 export interface ServicesDeps {
@@ -53,6 +60,8 @@ export interface ServicesDeps {
   repos: Repos;
   /** 透出给 system.service 用的应用 / 文件路径信息 */
   db: AppDb;
+  /** 原始 libsql client，供 FTS5 等需要直接执行 SQL 的服务使用 */
+  client: Client;
   paths?: SystemPaths;
   app?: SystemAppInfo;
   /**
@@ -78,6 +87,7 @@ export function createServices(deps: ServicesDeps): Services {
   const tool = createToolService({
     logger: deps.logger,
     http: deps.http,
+    settings: deps.repos.settings as { get: <K extends string>(key: K) => Promise<unknown> },
   });
 
   const knowledge = createKnowledgeService({
@@ -126,7 +136,49 @@ export function createServices(deps: ServicesDeps): Services {
     repos: { images: deps.repos.images },
   });
 
-  return { provider, chat, tool, system, knowledge, localEmbedder, prompt, image };
+  const search = createSearchService({
+    logger: deps.logger,
+    client: deps.client,
+    messages: deps.repos.messages,
+  });
+
+  const mcp = createMcpService({
+    logger: deps.logger,
+    http: deps.http,
+    repos: { mcp: deps.repos.mcp },
+  });
+
+  const agent = createAgentService({
+    logger: deps.logger,
+    clock: deps.clock,
+    providerService: provider,
+    toolService: tool,
+    mcpService: mcp,
+    repos: { agents: deps.repos.agents, models: deps.repos.models, audit: deps.repos.audit },
+  });
+
+  const voice = createVoiceService({
+    logger: deps.logger,
+    clock: deps.clock,
+    file: deps.file,
+    providerService: provider,
+    repos: { voice: deps.repos.voice },
+  });
+
+  return {
+    provider,
+    chat,
+    tool,
+    system,
+    knowledge,
+    localEmbedder,
+    prompt,
+    image,
+    search,
+    mcp,
+    agent,
+    voice,
+  };
 }
 
 export type {
@@ -145,15 +197,20 @@ export type {
   IngestQueueOptions,
 } from './ingest-queue';
 export type {
-  ProviderService,
+  AgentService,
   ChatService,
-  SystemService,
+  ImageService,
   KnowledgeService,
   LocalEmbedderService,
+  McpService,
+  VoiceService,
   PromptService,
-  ImageService,
+  ProviderService,
+  SearchService,
+  SystemService,
 };
 export type { ImageGenEvent, ImageGenerateInput, ImageListInput } from './image.service';
+export type { SearchQueryInput, SearchResult } from './search.service';
 export type { DevInfo, SystemPaths, SystemAppInfo } from './system.service';
 export {
   BUILTIN_LOCAL_EMBEDDER_MODELS,

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "XiabaoAI Mobile (React Native, Android first)",
-  "license": "AGPL-3.0-or-later",
+  "license": "CC-BY-NC-SA-4.0",
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",

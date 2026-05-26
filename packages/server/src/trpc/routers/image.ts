@@ -18,6 +18,13 @@ export const imageRouter = router({
         prompt: z.string().min(1),
         modelId: z.string().min(1),
         convId: z.string().optional(),
+        size: z.string().optional(),
+        quality: z.string().optional(),
+        n: z.number().int().min(1).max(10).optional(),
+        negative: z.string().optional(),
+        steps: z.number().int().min(1).max(150).optional(),
+        seed: z.number().int().optional(),
+        guidance: z.number().min(0).max(20).optional(),
       }),
     )
     .subscription(({ ctx, input }) => {
@@ -30,6 +37,13 @@ export const imageRouter = router({
               prompt: input.prompt,
               modelId: input.modelId,
               convId: input.convId,
+              size: input.size,
+              quality: input.quality,
+              n: input.n,
+              negative: input.negative,
+              steps: input.steps,
+              seed: input.seed,
+              guidance: input.guidance,
             });
 
             for await (const evt of ctx.services.image.streamStatus(id)) {

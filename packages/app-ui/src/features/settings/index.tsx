@@ -15,9 +15,11 @@ import { useAtom } from 'jotai';
 import {
   Cpu,
   Database,
+  Globe,
   Info,
   Keyboard,
   Palette,
+  Plug,
   Shield,
   TerminalSquare,
   Wrench,
@@ -26,6 +28,7 @@ import {
 import { settingsSectionAtom, type SettingsSection } from '@xiabao/state';
 import { ScrollArea, cn } from '@xiabao/ui';
 
+import { McpSettings } from '../mcp-settings';
 import { ProviderSettings } from '../provider-settings';
 import { ToolSettings } from '../tool-settings';
 
@@ -36,6 +39,7 @@ import { DeveloperSettings } from './DeveloperSettings';
 import { PrivacySettings } from './PrivacySettings';
 import { ShortcutsSettings } from './ShortcutsSettings';
 import { UpdateSettings } from './UpdateSettings';
+import { WebSearchSettings } from './WebSearchSettings';
 
 import type { ReactNode } from 'react';
 
@@ -48,6 +52,8 @@ interface NavItem {
 const NAV: NavItem[] = [
   { id: 'models', label: '模型供应商', icon: <Cpu className="h-3.5 w-3.5" /> },
   { id: 'tools', label: '工具', icon: <Wrench className="h-3.5 w-3.5" /> },
+  { id: 'mcp', label: 'MCP', icon: <Plug className="h-3.5 w-3.5" /> },
+  { id: 'webSearch', label: '联网搜索', icon: <Globe className="h-3.5 w-3.5" /> },
   { id: 'appearance', label: '外观', icon: <Palette className="h-3.5 w-3.5" /> },
   { id: 'shortcuts', label: '快捷键', icon: <Keyboard className="h-3.5 w-3.5" /> },
   { id: 'data', label: '数据', icon: <Database className="h-3.5 w-3.5" /> },
@@ -87,6 +93,10 @@ export function SettingsPage() {
           <ProviderSettings />
         ) : section === 'tools' ? (
           <ToolSettings />
+        ) : section === 'mcp' ? (
+          <McpSettings />
+        ) : section === 'webSearch' ? (
+          <WebSearchSettings />
         ) : section === 'appearance' ? (
           <AppearanceSettings />
         ) : section === 'shortcuts' ? (

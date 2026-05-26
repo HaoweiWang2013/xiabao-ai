@@ -21,7 +21,7 @@ import { createServices, type IngestProgress } from '..';
 import * as schema from '../../db/schema';
 import { createRepos } from '../../repos';
 
-import { createFakeClock, createFakeSecret, createSilentLogger } from './fakes';
+import { createFakeClock, createFakeFile, createFakeSecret, createSilentLogger } from './fakes';
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../db/migrations');
 
@@ -83,7 +83,16 @@ async function setupWithOpenAi() {
   const secret = createFakeSecret();
   const http = createEmbedHttp();
   const repos = createRepos({ db, clock });
-  const services = createServices({ http, secret, logger, clock, repos, db });
+  const services = createServices({
+    http,
+    secret,
+    logger,
+    clock,
+    repos,
+    db,
+    client,
+    file: createFakeFile(),
+  });
   await services.provider.create({
     name: 'fake-openai',
     kind: 'openai',
@@ -211,6 +220,8 @@ describe('M4 长尾 Phase 3 · IngestQueue e2e', () => {
       clock,
       repos,
       db,
+      client,
+      file: createFakeFile(),
       binaryExtractor: failingExtractor,
     });
     await services.provider.create({

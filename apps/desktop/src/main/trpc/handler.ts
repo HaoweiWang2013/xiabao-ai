@@ -6,7 +6,7 @@
  */
 import { createIPCHandler } from 'electron-trpc/main';
 
-import { appRouter, createContextFactory, type Services } from '@xiabao/server';
+import { appRouter, createContextFactory, type Repos, type Services } from '@xiabao/server';
 
 import type { BrowserWindow } from 'electron';
 
@@ -14,11 +14,11 @@ export interface TrpcIpcHandle {
   attachWindow: (win: BrowserWindow) => void;
 }
 
-export function createTrpcIpcHandler(services: Services): TrpcIpcHandle {
+export function createTrpcIpcHandler(services: Services, repos: Repos): TrpcIpcHandle {
   const handler = createIPCHandler({
     router: appRouter,
     windows: [],
-    createContext: createContextFactory({ services }),
+    createContext: createContextFactory({ services, repos }),
   });
 
   return {

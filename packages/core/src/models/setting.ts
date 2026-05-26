@@ -25,6 +25,16 @@ export const SettingsSchema = {
   'chat.streamFlush': z.boolean().default(true),
   'ui.sidebarCollapsed': z.boolean().default(false),
   'ui.commandPalette.recentCommands': z.array(z.string()).default([]),
+  'webSearch.enabled': z.boolean().default(true),
+  'webSearch.provider': z
+    .enum(['tavily', 'searxng', 'exa', 'bing', 'baidu', 'google', 'duckduckgo'])
+    .default('baidu'),
+  'webSearch.tavilyApiKey': z.string().nullable().default(null),
+  'webSearch.searxngEndpoint': z.string().nullable().default(null),
+  'webSearch.exaApiKey': z.string().nullable().default(null),
+  'webSearch.googleApiKey': z.string().nullable().default(null),
+  'webSearch.googleCx': z.string().nullable().default(null),
+  'webSearch.maxContentLength': z.number().int().min(500).max(10000).default(3000),
 } as const;
 
 export type SettingsKey = keyof typeof SettingsSchema;

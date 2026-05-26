@@ -89,6 +89,33 @@ export interface ImageGenerateResult {
   count: number;
 }
 
+export interface SttOptions {
+  model: string;
+  language?: string;
+  signal?: AbortSignal;
+}
+
+export interface SttResult {
+  text: string;
+  language?: string;
+  durationMs?: number;
+}
+
+export interface TtsOptions {
+  model: string;
+  text: string;
+  voice?: string;
+  speed?: number;
+  format?: string;
+  signal?: AbortSignal;
+}
+
+export interface TtsResult {
+  audioBytes: Uint8Array;
+  format: string;
+  durationMs?: number;
+}
+
 export interface ChatProvider {
   /** Provider 配置的稳定 ID（例 'openai' | 'custom-abc'） */
   readonly id: string;
@@ -115,6 +142,18 @@ export interface ChatProvider {
    * 调用方应先 `typeof provider.image === 'function'` 判断。
    */
   image?(options: ImageGenerateOptions): Promise<ImageGenerateResult>;
+
+  /**
+   * 语音转文本。可选 —— 不支持的 Provider 不实现此方法。
+   * 调用方应先 `typeof provider.stt === 'function'` 判断。
+   */
+  stt?(audioBytes: Uint8Array, options: SttOptions): Promise<SttResult>;
+
+  /**
+   * 文本转语音。可选 —— 不支持的 Provider 不实现此方法。
+   * 调用方应先 `typeof provider.tts === 'function'` 判断。
+   */
+  tts?(options: TtsOptions): Promise<TtsResult>;
 }
 
 /**

@@ -107,7 +107,6 @@ export async function bootstrapDesktopContainer(
   const secret = createSecretAdapter();
   const file = createFileAdapter();
   const clock = createClockAdapter();
-  const crypto = createCryptoAdapter();
 
   const repos = createRepos({ db, clock });
 
@@ -130,10 +129,12 @@ export async function bootstrapDesktopContainer(
   const services = createServices({
     http,
     secret,
+    file,
     logger,
     clock,
     repos,
     db,
+    client: storage.client,
     vectorStore,
     paths: {
       userDataPath: electronApp.getPath('userData'),

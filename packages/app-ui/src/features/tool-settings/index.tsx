@@ -6,10 +6,13 @@
  *
  * Tavily key、allowedReadDir、per-tool toggle 等高级设置由 SettingsPage 提供。
  */
-import { Wrench } from 'lucide-react';
+import { useAtom } from 'jotai';
+import { ArrowRight, Globe, Wrench } from 'lucide-react';
 
+import { settingsSectionAtom } from '@xiabao/state';
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -24,6 +27,7 @@ import { trpc } from '../../lib/trpc';
 export function ToolSettings() {
   const toolsQ = trpc.tool.list.useQuery();
   const tools = toolsQ.data ?? [];
+  const [, setSection] = useAtom(settingsSectionAtom);
 
   return (
     <div className="flex h-full flex-col">
@@ -38,6 +42,28 @@ export function ToolSettings() {
 
       <ScrollArea className="scroll-thin flex-1">
         <div className="mx-auto w-full max-w-3xl px-6 py-6">
+          {/* 联网搜索快捷入口 */}
+          <Card className="border-primary/20 bg-primary/[0.03] mb-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="text-primary h-4 w-4" />
+                联网搜索
+              </CardTitle>
+              <CardDescription>配置 Tavily API Key，让模型可以实时获取最新信息</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSection('webSearch')}
+                className="group"
+              >
+                前往设置
+                <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            </CardContent>
+          </Card>
+
           {toolsQ.isLoading ? (
             <div className="flex flex-col gap-3">
               <Skeleton className="h-24 w-full" />

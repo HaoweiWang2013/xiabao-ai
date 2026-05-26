@@ -10,6 +10,7 @@ import type {
   ClockPort,
   FetchInit,
   FetchResponse,
+  FilePort,
   HttpPort,
   LoggerPort,
   SecretPort,
@@ -117,5 +118,15 @@ export function createFakeClock(start = 1_700_000_000_000): ClockPort {
       t += 1;
       return t;
     },
+  };
+}
+
+export function createFakeFile(): FilePort {
+  return {
+    readFile: () => Promise.reject(new Error('fakeFile: readFile not implemented')),
+    writeFile: () => Promise.resolve(),
+    deleteFile: () => Promise.resolve(),
+    exists: () => Promise.resolve(false),
+    getUserDataPath: () => Promise.resolve('/tmp/fake-userdata'),
   };
 }

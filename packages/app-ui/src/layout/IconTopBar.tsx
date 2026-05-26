@@ -9,6 +9,7 @@
 import { useAtom } from 'jotai';
 import {
   BookOpen,
+  Brain,
   MessageSquare,
   Settings,
   Sliders,
@@ -32,6 +33,7 @@ const TOP_ITEMS: NavItem[] = [
   { id: 'chat', label: '聊天', icon: <MessageSquare className="h-[18px] w-[18px]" /> },
   { id: 'knowledge', label: '知识库', icon: <BookOpen className="h-[18px] w-[18px]" /> },
   { id: 'prompt', label: '提示词库', icon: <Lightbulb className="h-[18px] w-[18px]" /> },
+  { id: 'agent', label: 'Agent', icon: <Brain className="h-[18px] w-[18px]" /> },
   { id: 'providers', label: '模型供应商', icon: <Sliders className="h-[18px] w-[18px]" /> },
   { id: 'tools', label: '工具', icon: <Wrench className="h-[18px] w-[18px]" /> },
 ];

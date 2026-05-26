@@ -84,6 +84,8 @@ export const ModelCapabilitySchema = z
     pdfInput: z.boolean().default(false),
     jsonMode: z.boolean().default(false),
     reasoning: z.boolean().default(false),
+    stt: z.boolean().default(false),
+    tts: z.boolean().default(false),
   })
   .partial();
 export type ModelCapability = z.infer<typeof ModelCapabilitySchema>;

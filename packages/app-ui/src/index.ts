@@ -16,6 +16,8 @@ export { ProviderSettings } from './features/provider-settings/index';
 export { ToolSettings } from './features/tool-settings/index';
 export { SettingsPage } from './features/settings/index';
 export { ImageWorkspace } from './features/image/index';
+export { AgentWorkspace } from './features/agent/index';
+export { McpSettings } from './features/mcp-settings/index';
 export { TrpcProvider } from './lib/trpc-provider';
 export { trpc, setTrpcClientFactory } from './lib/trpc';
 export { useAppShortcuts } from './lib/useShortcuts';

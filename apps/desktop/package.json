@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "XiabaoAI Desktop (Electron)",
-  "license": "AGPL-3.0-or-later",
+  "license": "CC-BY-NC-SA-4.0",
   "main": "dist/main/index.js",
   "author": {
     "name": "XiabaoAI Authors",

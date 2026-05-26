@@ -5,12 +5,18 @@
  */
 import { router } from '../trpc';
 
+import { agentRouter } from './agent';
+import { auditRouter } from './audit';
+import { voiceRouter } from './voice';
 import { chatRouter } from './chat';
 import { imageRouter } from './image';
 import { knowledgeRouter } from './knowledge';
 import { localEmbedderRouter } from './local-embedder';
+import { mcpRouter } from './mcp';
 import { promptRouter } from './prompt';
 import { providerRouter } from './provider';
+import { searchRouter } from './search';
+import { settingsRouter } from './settings';
 import { systemRouter } from './system';
 import { toolRouter } from './tool';
 
@@ -22,8 +28,13 @@ export const appRouter = router({
   system: systemRouter,
   knowledge: knowledgeRouter,
   localEmbedder: localEmbedderRouter,
-  /** M2 · 提示词库 */
   prompt: promptRouter,
+  search: searchRouter,
+  settings: settingsRouter,
+  mcp: mcpRouter,
+  agent: agentRouter,
+  audit: auditRouter,
+  voice: voiceRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -137,6 +137,7 @@ export const ChatTurnSchema = z.object({
   parts: z.array(
     z.discriminatedUnion('kind', [
       z.object({ kind: z.literal('text'), text: z.string() }),
+      z.object({ kind: z.literal('reasoning'), text: z.string() }),
       z.object({
         kind: z.literal('image'),
         mime: z.string(),

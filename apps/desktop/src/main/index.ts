@@ -110,9 +110,8 @@ void app.whenReady().then(async () => {
     setupCrashReporter(container);
 
     setupProtocolHandlers(container);
-    setupOAuthProtocol();
 
-    trpcHandle = createTrpcIpcHandler(container.services);
+    trpcHandle = createTrpcIpcHandler(container.services, container.repos);
   } catch (err) {
     console.error('[xiabao] bootstrap failed', err);
   }

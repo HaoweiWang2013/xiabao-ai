@@ -2,6 +2,7 @@ import { useAtom } from 'jotai';
 import { useEffect } from 'react';
 
 import {
+  AgentWorkspace,
   AppShell,
   ChatPanel,
   CommandPalette,
@@ -88,6 +89,8 @@ export function App() {
           <PromptPanel />
         ) : nav === 'image' ? (
           <ImageWorkspace />
+        ) : nav === 'agent' ? (
+          <AgentWorkspace />
         ) : (
           <SettingsPage />
         )}

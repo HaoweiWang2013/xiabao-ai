@@ -21,7 +21,13 @@ import { createServices, type ChatStreamEvent } from '..';
 import * as schema from '../../db/schema';
 import { createRepos } from '../../repos';
 
-import { createFakeClock, createFakeHttp, createFakeSecret, createSilentLogger } from './fakes';
+import {
+  createFakeClock,
+  createFakeFile,
+  createFakeHttp,
+  createFakeSecret,
+  createSilentLogger,
+} from './fakes';
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../db/migrations');
 
@@ -61,7 +67,16 @@ async function setup() {
   ]);
 
   const repos = createRepos({ db, clock });
-  const services = createServices({ http, secret, logger, clock, repos, db });
+  const services = createServices({
+    http,
+    secret,
+    logger,
+    clock,
+    repos,
+    db,
+    client,
+    file: createFakeFile(),
+  });
 
   return { client, repos, services, secret };
 }
@@ -316,7 +331,16 @@ describe('M1-F e2e', () => {
     const logger = createSilentLogger();
     const secret = createFakeSecret();
     const repos = createRepos({ db, clock });
-    const services = createServices({ http, secret, logger, clock, repos, db });
+    const services = createServices({
+      http,
+      secret,
+      logger,
+      clock,
+      repos,
+      db,
+      client,
+      file: createFakeFile(),
+    });
 
     const provider = await services.provider.create({
       name: 'OpenAI Fake',

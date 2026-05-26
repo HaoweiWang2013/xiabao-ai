@@ -37,6 +37,10 @@ export interface ImageGenerateInput {
   size?: string;
   quality?: string;
   n?: number;
+  negative?: string;
+  steps?: number;
+  seed?: number;
+  guidance?: number;
 }
 
 export interface ImageListInput {
@@ -160,6 +164,10 @@ export function createImageService(deps: ImageServiceDeps) {
         modelId: input.modelId,
         convId: input.convId,
         status: 'queued',
+        negative: input.negative,
+        steps: input.steps,
+        seed: input.seed,
+        guidance: input.guidance,
       });
 
       log.info('image generation queued', { id: created.id, modelId: input.modelId });

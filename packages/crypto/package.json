@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "End-to-end encryption utilities (AES-GCM + Argon2id / HKDF)",
-  "license": "AGPL-3.0-or-later",
+  "license": "CC-BY-NC-SA-4.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

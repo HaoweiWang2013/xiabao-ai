@@ -21,6 +21,7 @@ import { createRepos } from '../../repos';
 
 import {
   createFakeClock,
+  createFakeFile,
   createFakeHttp,
   createFakeSecret,
   createSilentLogger,
@@ -40,7 +41,16 @@ async function setupWithRoutes(routes: FakeHttpRoute[] = []) {
   const http = createFakeHttp(routes);
 
   const repos = createRepos({ db, clock });
-  const services = createServices({ http, secret, logger, clock, repos, db });
+  const services = createServices({
+    http,
+    secret,
+    logger,
+    clock,
+    repos,
+    db,
+    client,
+    file: createFakeFile(),
+  });
 
   return { repos, services };
 }

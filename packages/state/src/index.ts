@@ -56,6 +56,19 @@ export const localeAtom = createPersistedAtom<'zh-CN' | 'en-US'>('ui.locale', 'z
 /** Onboarding 是否完成（首次启动引导） */
 export const onboardingDoneAtom = createPersistedAtom<boolean>('ui.onboardingDone', false);
 
+/** Onboarding 当前步骤（1-5） */
+export const onboardingStepAtom = atom<number>(1);
+
+/** Onboarding Provider 选择（'openai' | 'anthropic' | 'google' | 'deepseek' | 'openrouter' | 'ollama'） */
+export type OnboardingProviderKind =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'deepseek'
+  | 'openrouter'
+  | 'ollama';
+export const onboardingProviderKindAtom = atom<OnboardingProviderKind>('openai');
+
 /** 崩溃上报开关（opt-in） */
 export const crashReportingEnabledAtom = createPersistedAtom<boolean>(
   'ui.crashReportingEnabled',
@@ -102,7 +115,6 @@ export const SETTINGS_STORAGE_KEYS = [
   'ui.shortcuts',
 ] as const;
 
-/** 当前主导航：chat / knowledge / providers / tools / settings / image */
 export type PrimaryNav =
   | 'chat'
   | 'knowledge'
@@ -110,7 +122,8 @@ export type PrimaryNav =
   | 'providers'
   | 'tools'
   | 'settings'
-  | 'image';
+  | 'image'
+  | 'agent';
 export const primaryNavAtom = atom<PrimaryNav>('chat');
 
 /** 图像生成记录（对齐 docs/04-data-model.md §6 image_generations 表） */
@@ -164,5 +177,78 @@ export type SettingsSection =
   | 'developer'
   | 'updates'
   | 'privacy'
-  | 'about';
+  | 'about'
+  | 'webSearch';
 export const settingsSectionAtom = atom<SettingsSection>('models');
+
+// ── Agent ──
+
+export type AgentRunStatus = 'queued' | 'running' | 'paused' | 'done' | 'error' | 'aborted';
+export type AgentStepKind = 'think' | 'tool' | 'observe' | 'respond';
+
+export interface AgentRunState {
+  id: string;
+  convId: string | null;
+  goal: string | null;
+  status: AgentRunStatus;
+  stepsCount: number;
+  tokensTotal: number | null;
+  createdAt: number;
+  endedAt: number | null;
+}
+
+export interface AgentStepState {
+  id: string;
+  runId: string;
+  seq: number;
+  kind: AgentStepKind;
+  content: string | null;
+  toolName: string | null;
+  toolArgs: string | null;
+  toolResult: string | null;
+  durationMs: number | null;
+  tokensIn: number | null;
+  tokensOut: number | null;
+  createdAt: number;
+}
+
+export const activeAgentRunIdAtom = atom<string | null>(null);
+
+export const agentStepsAtom = atom<AgentStepState[]>([]);
+
+export type AgentPanelMode = 'cards' | 'split' | 'canvas';
+export const agentPanelModeAtom = createPersistedAtom<AgentPanelMode>('agent.panelMode', 'cards');
+
+// ── MCP ──
+
+export interface McpServerState {
+  id: string;
+  name: string;
+  command: string | null;
+  args: string | null;
+  url: string | null;
+  transport: 'stdio' | 'http' | 'sse';
+  enabled: boolean;
+  capabilities: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface McpToolState {
+  id: string;
+  serverId: string;
+  name: string;
+  description: string | null;
+  inputSchema: Record<string, unknown>;
+  authorized: boolean;
+  lastUsed: number | null;
+}
+
+export const mcpServersAtom = atom<McpServerState[]>([]);
+export const mcpToolsAtom = atom<McpToolState[]>([]);
+
+export const sttModelIdAtom = createPersistedAtom<string>('voice.sttModelId', 'whisper-1');
+export const ttsModelIdAtom = createPersistedAtom<string>('voice.ttsModelId', 'tts-1');
+export const ttsVoiceAtom = createPersistedAtom<string>('voice.ttsVoice', 'alloy');
+export const ttsSpeedAtom = createPersistedAtom<number>('voice.ttsSpeed', 1);
+export const voiceAutoSendAtom = createPersistedAtom<boolean>('voice.autoSend', true);

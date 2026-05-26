@@ -268,6 +268,7 @@ export function createChatService(deps: ChatServiceDeps) {
     const startedAt = clock.now();
     const tools = toolService.list();
     let currentTurns = opts.turns;
+
     let currentAssistantId = opts.assistantMessageId;
     let totalTokensIn = 0;
     let totalTokensOut = 0;
@@ -414,11 +415,12 @@ export function createChatService(deps: ChatServiceDeps) {
             const assistantTurn: ChatTurn = {
               role: 'assistant',
               parts: [
+                ...(reasoningBuffer ? [{ kind: 'reasoning' as const, text: reasoningBuffer }] : []),
                 ...(buffer ? [{ kind: 'text' as const, text: buffer }] : []),
-                ...Array.from(toolCalls.values()).map((tc) => ({
+                ...Array.from(toolCalls.entries()).map(([tcId, tc]) => ({
                   kind: 'tool-call' as const,
                   toolName: tc.toolName,
-                  toolCallId: '',
+                  toolCallId: tcId,
                   argsJson: tc.argsJson,
                 })),
               ],
@@ -1080,8 +1082,9 @@ function partToTurnPart(part: MessagePart): ChatTurn['parts'][number] | null {
         resultJson: part.resultJson,
       };
     case 'reasoning':
+      return { kind: 'reasoning', text: part.text };
     case 'file':
-      // reasoning 不回传给 Provider；file 暂不支持
+      // file 暂不支持
       return null;
     default: {
       const _exhaustive: never = part;

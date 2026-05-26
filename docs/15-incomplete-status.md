@@ -1,9 +1,17 @@
 # 15 · 项目未完成项清单
 
 > 本文基于 `docs/` 全部文档与实际代码交叉比对，列出所有**已规划但尚未交付**的功能、模块与工程项。
-> 状态截至 2026-05-24。
+> 状态截至 2026-05-26。
 >
 > 已完成项（M0–M2 核心、M4 含长尾 Phase 1–8、M3 核心模块）详见各里程碑文档。
+>
+> 最近新增完成项（2026-05-24 ~ 2026-05-26）：
+>
+> - M2 FTS5 全局搜索已完成
+> - M6 Web Search 工具增强（多搜索引擎支持：Baidu、Bing、DuckDuckGo、Tavily、Google、Exa、SearXNG）
+> - M6 `fetch_page_with_content` 工具实现（智能提取网页正文，Readability 风格）
+> - 上下文百分比显示功能（Composer 输入框显示剩余上下文百分比）
+> - 内容长度限制设置（`webSearch.maxContentLength` 配置）
 
 ---
 
@@ -14,8 +22,9 @@
 | 里程碑级功能（整块未启动） | 3 大块     | M5(部分) / M6 / M7(部分) / M8 |
 | M4 长尾残留                | 2 项       | M4 长尾                       |
 | M3 打磨与打包              | ~3 项      | M3                            |
-| M2 遗留                    | ~3 项      | M2                            |
-| M5 图像生成（功能缺口）    | ~6 项      | M5                            |
+| M2 遗留                    | ~2 项      | M2                            |
+| M5 图像生成（功能缺口）    | ~7 项      | M5                            |
+| M5 语音/翻译（整块未启动） | 10 项      | M5                            |
 | 基础设施 / 工程化          | ~10 项     | 跨里程碑                      |
 | 开放问题（待决策）         | 12 项      | 全局                          |
 | 文档 / 许可                | 2 项       | 全局                          |
@@ -69,6 +78,7 @@
 - [x] `ImageRepo` — create/getById/list/updateStatus/count
 - [x] `ImageService` — generate/runBackgroundTask/streamStatus/list/getById；HTTP 下载 + 本地文件保存
 - [x] `imageRouter` tRPC — `generate` subscription + `list` query + `getById` query
+- [x] `WebSearchSettings.tsx` — Web Search 工具设置（最大内容长度、搜索引擎选择）
 
 ### 2.2 未完成项（功能缺口）
 
@@ -88,59 +98,61 @@
 
 > 参考：`docs/10-roadmap.md` §7
 
-| #   | 未完成项                        | 说明                                   |
-| --- | ------------------------------- | -------------------------------------- |
-| 1   | STT：OpenAI Whisper 云接入      | `ChatProvider.stt()` 接口未定义/未实装 |
-| 2   | STT：whisper.cpp 本地 fallback  | 桌面端本地推理                         |
-| 3   | TTS：OpenAI TTS 接入            | `ChatProvider.tts()` 接口未定义/未实装 |
-| 4   | TTS：Azure / ElevenLabs / Piper | 多 TTS 引擎适配                        |
-| 5   | "按住说话" UI                   | Telegram 式录音交互                    |
-| 6   | 实时语音对话模式                | ChatGPT Voice 风格 + 波形可视化        |
-| 7   | 自动语言检测                    | STT 侧自动识别语种                     |
+| #   | 未完成项                        | 说明                                   | 优先级 |
+| --- | ------------------------------- | -------------------------------------- | ------ |
+| 1   | STT：OpenAI Whisper 云接入      | `ChatProvider.stt()` 接口未定义/未实装 | P1     |
+| 2   | STT：whisper.cpp 本地 fallback  | 桌面端本地推理                         | P1     |
+| 3   | TTS：OpenAI TTS 接入            | `ChatProvider.tts()` 接口未定义/未实装 | P1     |
+| 4   | TTS：Azure / ElevenLabs / Piper | 多 TTS 引擎适配                        | P2     |
+| 5   | "按住说话" UI                   | Telegram 式录音交互                    | P1     |
+| 6   | 实时语音对话模式                | ChatGPT Voice 风格 + 波形可视化        | P2     |
+| 7   | 自动语言检测                    | STT 侧自动识别语种                     | P2     |
 
 ---
 
 ## 4 · M5 · 翻译（整块未启动）
 
-| #   | 未完成项                                      | 说明                                                                                           |
-| --- | --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | `translate` tRPC 路由                         | `translate.translate` subscription + `translate.history`；`docs/05-ipc-api.md` §3.4 已定义接口 |
-| 2   | 翻译工作区 UI                                 | `docs/12-ui-design.md` 的 IconBar 🌐 入口对应的完整翻译页面                                    |
-| 3   | `translate_history` + `translate_glossary` 表 | `docs/04-data-model.md` §4 已设计，未建表迁移                                                  |
+| #   | 未完成项                                      | 说明                                                                                           | 优先级 |
+| --- | --------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------ |
+| 1   | `translate` tRPC 路由                         | `translate.translate` subscription + `translate.history`；`docs/05-ipc-api.md` §3.4 已定义接口 | P1     |
+| 2   | 翻译工作区 UI                                 | `docs/12-ui-design.md` 的 IconBar 🌐 入口对应的完整翻译页面                                    | P1     |
+| 3   | `translate_history` + `translate_glossary` 表 | `docs/04-data-model.md` §4 已设计，未建表迁移                                                  | P1     |
 
 ---
 
-## 5 · M6 · MCP + Agent 卡片（整块未启动，预估 8 周）
+## 5 · M6 · MCP + Agent 卡片（核心已交付，剩余高级功能）
 
 > 参考：`docs/10-roadmap.md` §8、`docs/07-providers.md` §10–11
+>
+> **现状**：M6 核心模块已全部交付——`McpService`（stdio/HTTP/SSE 传输 + JSON-RPC）、`AgentService`（think→tool→observe→respond 循环）、DB 表（`agent_runs`/`agent_steps`/`mcp_servers`/`mcp_tools`，migration 0006）、tRPC 路由（`mcp`/`agent`）、Jotai atoms、MCP 管理 UI、Agent 工作区 UI 均已落地。
 
 ### 5.1 MCP 协议
 
-| #   | 未完成项                          | 说明                                                                        |
-| --- | --------------------------------- | --------------------------------------------------------------------------- |
-| 1   | `@modelcontextprotocol/sdk` 集成  | 安装依赖 + 封装 `McpClient`                                                 |
-| 2   | stdio 传输                        | 桌面端子进程 spawn + JSON-RPC                                               |
-| 3   | HTTP / SSE 传输                   | 跨平台 HTTP 连接                                                            |
-| 4   | MCP 服务器管理 UI                 | 添加 / 连接测试 / 启用工具 / 授权                                           |
-| 5   | 工具授权 UX                       | 首次调用弹出、记住选择                                                      |
-| 6   | 工具调用审计日志                  | 记录每次 MCP 工具调用                                                       |
-| 7   | `mcp_servers` + `mcp_tools` 表    | `docs/04-data-model.md` §7 已设计，未建表                                   |
-| 8   | `mcp` tRPC 路由                   | `listServers / addServer / connect / listTools / authorizeTool`；接口已定义 |
-| 9   | `mcpServersAtom` + `mcpToolsAtom` | `docs/06-state.md` §12 已定义                                               |
+| #   | 状态 | 项                                | 说明                                                                                                       |
+| --- | ---- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | ✅   | MCP 客户端封装                    | `McpService` 封装 JSON-RPC 协议，无硬依赖                                                                  |
+| 2   | ✅   | stdio 传输                        | `child_process.spawn` + JSON-RPC over stdin/stdout                                                         |
+| 3   | ✅   | HTTP / SSE 传输                   | 通过 `HttpPort` 跨平台 HTTP 连接                                                                           |
+| 4   | ✅   | MCP 服务器管理 UI                 | `McpSettings` 组件：添加 / 连接 / 断开 / 启用禁用 / 删除                                                   |
+| 5   | ✅   | 工具授权 UX                       | 按工具粒度授权/撤销，状态持久化到 `mcp_tools.authorized`                                                   |
+| 6   | ⬜   | 工具调用审计日志                  | 记录每次 MCP 工具调用（`mcp_tools.last_used` 已有，完整审计日志待补）                                      |
+| 7   | ✅   | `mcp_servers` + `mcp_tools` 表    | migration 0006 已建表                                                                                      |
+| 8   | ✅   | `mcp` tRPC 路由                   | `listServers / addServer / updateServer / removeServer / connect / disconnect / listTools / authorizeTool` |
+| 9   | ✅   | `mcpServersAtom` + `mcpToolsAtom` | 已在 `@xiabao/state` 定义                                                                                  |
 
 ### 5.2 Agent 执行
 
-| #   | 未完成项                                       | 说明                                                                         |
-| --- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| 10  | `AgentService` 执行循环                        | `think → tool → observe → respond` 循环；`docs/07-providers.md` §11 有伪代码 |
-| 11  | 流式步骤卡片 UI                                | 聊天流内渲染 `ToolCallCard` / `AgentStepCard`                                |
-| 12  | 中止 / 暂停 / 继续                             | Agent 运行控制                                                               |
-| 13  | 分屏右侧工具面板                               | 文件变动 / 命令行输出 / 浏览器预览                                           |
-| 14  | 内置工具实装                                   | `web_search` / `fetch_url` / `run_javascript`（沙箱）                        |
-| 15  | "危险工具"二次确认                             | shell / file_write 每次授权                                                  |
-| 16  | `agent_runs` + `agent_steps` + `tool_calls` 表 | `docs/04-data-model.md` §7 已设计，未建表                                    |
-| 17  | `agent` tRPC 路由                              | `run / abort / list / stepsByRun`；接口已定义                                |
-| 18  | Agent Jotai atoms                              | `activeAgentRunIdAtom` / `agentStepsFamily` / `agentPanelModeAtom`           |
+| #   | 状态 | 项                              | 说明                                                                                                                                                                                          |
+| --- | ---- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10  | ✅   | `AgentService` 执行循环         | `think → tool → observe → respond` 循环，MAX_STEPS=20，流式事件                                                                                                                               |
+| 11  | ✅   | 流式步骤卡片 UI                 | `AgentWorkspace` + `StepCard` 组件，支持展开/折叠                                                                                                                                             |
+| 12  | ✅   | 中止                            | `AbortController` + `agent.abort` tRPC mutation                                                                                                                                               |
+| 13  | ⬜   | 分屏右侧工具面板                | 文件变动 / 命令行输出 / 浏览器预览（`agentPanelModeAtom` 已预留 split 模式）                                                                                                                  |
+| 14  | ✅   | 内置工具实装                    | `web_search`（多搜索引擎：Baidu/Bing/DuckDuckGo/Tavily/Google/Exa/SearXNG） / `fetch_url` / `fetch_page_with_content`（Readability 风格正文提取） / `file_read` / `run_javascript`（VM 沙箱） |
+| 15  | ⬜   | "危险工具"二次确认              | shell / file_write 每次授权（MCP 工具已有授权机制，内置危险工具待加）                                                                                                                         |
+| 16  | ✅   | `agent_runs` + `agent_steps` 表 | migration 0006 已建表                                                                                                                                                                         |
+| 17  | ✅   | `agent` tRPC 路由               | `run(subscription) / abort / list / getRun / stepsByRun`                                                                                                                                      |
+| 18  | ✅   | Agent Jotai atoms               | `activeAgentRunIdAtom` / `agentStepsAtom` / `agentPanelModeAtom`                                                                                                                              |
 
 ---
 
@@ -215,24 +227,26 @@
 
 ---
 
-## 8 · M4 长尾残留（2 项未交付）
+## 8 · M4 长尾残留（2 项未完成）
 
 > 参考：`docs/10-roadmap.md` §6、`docs/14-m4-long-tail.md`
+>
+> **状态**：Phase 1-8 已全交付（PDF/DOCX/PPTX/XLSX 解析✅、Token 预算裁剪✅、后台队列+进度订阅✅、VectorStore 抽象+libsql vector✅、LocalEmbedder+bge-m3✅、文档级#过滤✅、内联 mention 浮层✅、图像 OCR✅）；剩余 Git 仓库源 + 表格结构化查询两项未实现。
 
-| #   | 未完成项                             | 说明                                                                             |
-| --- | ------------------------------------ | -------------------------------------------------------------------------------- |
-| 1   | **Git 仓库源**（simple-git + AST）   | 知识库文档来源支持 Git 仓库克隆 + 代码文件解析；`source_kind = 'git'` 路径未实现 |
-| 2   | **表格结构化查询**（Excel → 临时表） | 导入 Excel 后建临时 SQLite 表，支持 SQL 查询而非纯文本 chunk                     |
+| #   | 未完成项                             | 说明                                                                             | 备注                                          |
+| --- | ------------------------------------ | -------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1   | **Git 仓库源**（simple-git + AST）   | 知识库文档来源支持 Git 仓库克隆 + 代码文件解析；`source_kind = 'git'` 路径未实现 | Phase 9 候选；需 `simple-git` + 代码 AST 解析 |
+| 2   | **表格结构化查询**（Excel → 临时表） | 导入 Excel 后建临时 SQLite 表，支持 SQL 查询而非纯文本 chunk                     | Phase 9 候选；需处理 xlsx/csv/ods 等多种格式  |
 
 ---
 
-## 9 · M2 遗留未完成项
+## 9 · M2 遗留未完成项（FTS5 ✅）
 
-| #   | 未完成项                       | 说明                                                                                                                                                                                            | 代码现状                                                |
-| --- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 1   | **FTS5 全文搜索**              | `docs/04-data-model.md` §8 设计了 `messages_fts` 虚拟表 + 触发器 + `body_plain` 冗余列；`search` tRPC 路由（`search.query` / `search.reindex`）未实现；`SearchService` 不存在                   | tRPC routers 中无 `search.ts`；DB schema 无 FTS 虚拟表  |
-| 2   | **消息分叉树 UI（‹2/3›切换）** | `listSiblings` / `chooseBranch` tRPC 路由已实现；`message.variantCount` / `variantIndex` 字段已存在；`AssistantWithSiblings` / `UserBubbleWithSiblings` 组件已搭建，但 ‹2/3› 切换按钮 UI 未实装 | tRPC 路由存在，UI 切换组件未完整落地                    |
-| 3   | **部分设置页**                 | 开发者设置、数据设置等设置页存在但功能不完整                                                                                                                                                    | `packages/app-ui/src/features/settings/` 已存在但需完善 |
+| #   | 状态 | 未完成项                       | 说明                                                                                                                                                                                            | 代码现状                                                |
+| --- | ---- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1   | ✅   | **FTS5 全文搜索**              | `docs/04-data-model.md` §8 设计了 `messages_fts` 虚拟表 + 触发器 + `body_plain` 冗余列；已完成 `messages_fts` 虚拟表建表 + 触发器 + `body_plain` 冗余列 + `SearchService` + `search` tRPC 路由  | DB migration + SearchService + search tRPC 路由已交付   |
+| 2   | ⬜   | **消息分叉树 UI（‹2/3›切换）** | `listSiblings` / `chooseBranch` tRPC 路由已实现；`message.variantCount` / `variantIndex` 字段已存在；`AssistantWithSiblings` / `UserBubbleWithSiblings` 组件已搭建，但 ‹2/3› 切换按钮 UI 未实装 | tRPC 路由存在，UI 切换组件未完整落地                    |
+| 3   | ⬜   | **部分设置页**                 | 开发者设置（`DeveloperSettings.tsx`）、数据设置（`DataSettings.tsx`）、外观设置（`AppearanceSettings.tsx`）、快捷键设置（`ShortcutsSettings.tsx`）已存在但功能不完整                            | `packages/app-ui/src/features/settings/` 已存在但需完善 |
 
 ---
 
@@ -271,12 +285,14 @@
 
 ### 10.5 功能级基础设施
 
-| #   | 未完成项                       | 说明                                                                                                               | 关联里程碑   |
-| --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------ |
-| 12  | **自动备份**                   | `docs/04-data-model.md` §12 设计了每日自动备份（`userData/backups/xiabaoai-YYYYMMDD.json.enc`，保留 7 份）；未实现 | M3+          |
-| 13  | **P9-Pro 多分屏**              | `docs/p9-cherry-ux.md` 9-5 拆出到 P9-Pro 单独排期；需 `panesAtom` + CSS Grid 二分 + `react-resizable-panels`       | P9-Pro       |
-| 14  | **主密码加密整个本地 DB**      | SQLCipher 或 libsql encryption                                                                                     | M4+          |
-| 15  | **Web onnxruntime-web Worker** | LocalEmbedder 浏览器端推理；明确推迟到 Phase 5-Pro+                                                                | Phase 5-Pro+ |
+| #   | 状态 | 未完成项                       | 说明                                                                                                               | 关联里程碑   |
+| --- | ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------ |
+| 12  | ✅   | **上下文百分比显示**           | Composer 输入框显示剩余上下文百分比，实时计算 token 使用率                                                         | M2+          |
+| 13  | ✅   | **Web Search Settings**        | `WebSearchSettings.tsx` — 最大内容长度、搜索引擎选择（Baidu/Bing/DuckDuckGo/Tavily/Google/Exa/SearXNG）            | M6           |
+| 14  | ⬜   | **自动备份**                   | `docs/04-data-model.md` §12 设计了每日自动备份（`userData/backups/xiabaoai-YYYYMMDD.json.enc`，保留 7 份）；未实现 | M3+          |
+| 15  | ⬜   | **P9-Pro 多分屏**              | `docs/p9-cherry-ux.md` 9-5 拆出到 P9-Pro 单独排期；需 `panesAtom` + CSS Grid 二分 + `react-resizable-panels`       | P9-Pro       |
+| 16  | ⬜   | **主密码加密整个本地 DB**      | SQLCipher 或 libsql encryption                                                                                     | M4+          |
+| 17  | ⬜   | **Web onnxruntime-web Worker** | LocalEmbedder 浏览器端推理；明确推迟到 Phase 5-Pro+                                                                | Phase 5-Pro+ |
 
 ---
 
@@ -321,36 +337,36 @@
 | ----------------------- | -------- | -------- | ------------------------------------------------------------------------- |
 | **M0 工程地基**         | 2 周     | **~95%** | 缺 `tools/` / `examples/` / `packages/testing` 实装                       |
 | **M1 Provider + IPC**   | 3 周     | **~90%** | 部分 Provider（groq/mistral/xai/cohere）未实装                            |
-| **M2 聊天 MVP**         | 6 周     | **~88%** | 缺 FTS5 全局搜索 / 消息分叉树 UI 切换                                     |
+| **M2 聊天 MVP**         | 6 周     | **~95%** | 缺消息分叉树 UI 切换（FTS5 全局搜索已完成）                               |
 | **M3 打磨与打包**       | 4 周     | **~85%** | 仅缺实际签名证书配置 / Onboarding 完善                                    |
 | **M4 知识库 RAG**       | 8 周     | **~95%** | 缺 Git 仓库源 / 表格结构化查询                                            |
 | **M5 图像生成**         | 6 周     | **~55%** | UI+DB+Service+tRPC 骨架完整；缺 Provider image 实装 / 参数面板 / 收藏导出 |
 | **M5 语音 + 翻译**      | —        | **0%**   | 整块未启动                                                                |
-| **M6 MCP + Agent**      | 8 周     | **0%**   | 整块未启动                                                                |
+| **M6 MCP + Agent**      | 8 周     | **~90%** | 核心已交付；缺审计日志 / 分屏工具面板 / 危险工具二次确认                  |
 | **M7 Agent 画布 + Web** | 8 周     | **~15%** | Web SPA+Server 已有，缺 PWA / Agent 画布 / Web Adapters / 移动布局降级    |
 | **M8 Android RN**       | 8 周     | **~2%**  | 仅 Hello World + 依赖安装 + 契约文档                                      |
 
-**总体进度**：约 **60–65%**（按功能完整度加权）。核心聊天 + RAG 管线已闭环（M0–M4），M3 核心模块（菜单/托盘/协议/自动更新/崩溃上报/设置 UI）已交付，图像生成骨架已搭建但功能未完成（M5），语音/翻译/MCP/Agent/移动端三大块尚未启动。
+**总体进度**：约 **72–77%**（按功能完整度加权）。核心聊天 + RAG 管线已闭环（M0–M4），M2 FTS5 全局搜索已完成，M3 核心模块（菜单/托盘/协议/自动更新/崩溃上报/设置 UI）已交付，M6 MCP + Agent 核心已落地（stdio/HTTP/SSE 传输、Agent 执行循环、工具沙箱、管理 UI、多搜索引擎增强、fetch_page_with_content 正文提取），图像生成骨架已搭建但功能未完成（M5），语音/翻译/移动端尚未启动。
 
 ### 13.1 已交付代码量统计
 
-| 包                   | 源文件数 | 测试文件数 | 说明                                                                                                        |
-| -------------------- | -------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
-| `packages/core`      | 37       | 27         | Port 定义 + Provider 实现（OpenAI/Anthropic/Google/Ollama/LocalEmbedder）+ 文本/向量/嵌入工具               |
-| `packages/server`    | 56       | 16         | tRPC 路由（chat/image/knowledge/prompt/provider/system/tool/local-embedder）+ Drizzle DB + Services + Repos |
-| `packages/ui`        | 16       | 0          | shadcn 风格基础组件                                                                                         |
-| `packages/app-ui`    | 40       | 0          | 业务面板（Chat/Knowledge/Image/Settings/Onboarding/Prompt/ToolSettings/ProviderSettings/Privacy/Update）    |
-| `packages/state`     | 2        | 0          | Jotai atoms + 可注入持久化                                                                                  |
-| `packages/theme`     | 5        | 0          | 设计令牌 + Tailwind preset                                                                                  |
-| `packages/i18n`      | 3        | 0          | zh-CN + en-US + 自定义 t()                                                                                  |
-| `packages/crypto`    | 1        | 0          | **仅类型占位**                                                                                              |
-| `packages/sync`      | 1        | 0          | **仅类型占位**                                                                                              |
-| `packages/testing`   | 1        | 0          | **仅版本常量**                                                                                              |
-| `packages/ui-native` | 8        | 0          | 5 原子组件 + 8 JSDoc 契约                                                                                   |
-| `apps/desktop`       | ~25      | 3          | Electron 主/预/渲 + adapters + local-embedder + menu/protocols/updater/crash-reporter                       |
-| `apps/web`           | ~8       | 0          | SPA + Fastify server + adapters                                                                             |
-| `apps/web-proxy`     | 1        | 0          | Cloudflare Worker                                                                                           |
-| `apps/mobile`        | 1        | 0          | Hello World                                                                                                 |
+| 包                   | 源文件数 | 测试文件数 | 说明                                                                                                                         |
+| -------------------- | -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`      | 30       | 10         | Port 定义 + Provider 实现（OpenAI/Anthropic/Google/Ollama/LocalEmbedder）+ 文本/向量/嵌入工具                                |
+| `packages/server`    | 61       | 17         | tRPC 路由（chat/image/knowledge/prompt/provider/system/tool/local-embedder/agent/mcp/search）+ Drizzle DB + Services + Repos |
+| `packages/ui`        | 15       | 0          | shadcn 风格基础组件                                                                                                          |
+| `packages/app-ui`    | 44       | 0          | 业务面板（Chat/Knowledge/Image/Settings/Onboarding/Prompt/ToolSettings/ProviderSettings/Privacy/Update/Agent/MCP）           |
+| `packages/state`     | 2        | 0          | Jotai atoms + 可注入持久化                                                                                                   |
+| `packages/theme`     | 5        | 0          | 设计令牌 + Tailwind preset                                                                                                   |
+| `packages/i18n`      | 3        | 0          | zh-CN + en-US + 自定义 t()                                                                                                   |
+| `packages/crypto`    | 1        | 0          | **仅类型占位**                                                                                                               |
+| `packages/sync`      | 1        | 0          | **仅类型占位**                                                                                                               |
+| `packages/testing`   | 1        | 0          | **仅版本常量**                                                                                                               |
+| `packages/ui-native` | 8        | 0          | 5 原子组件 + 8 JSDoc 契约                                                                                                    |
+| `apps/desktop`       | ~25      | 2          | Electron 主/预/渲 + adapters + local-embedder + menu/protocols/updater/crash-reporter                                        |
+| `apps/web`           | ~8       | 0          | SPA + Fastify server + adapters                                                                                              |
+| `apps/web-proxy`     | 1        | 0          | Cloudflare Worker                                                                                                            |
+| `apps/mobile`        | 1        | 0          | Hello World                                                                                                                  |
 
 ---
 
@@ -360,8 +376,8 @@
 
 1. **M3 剩余项**（Onboarding 完善）—— 提升首次使用体验
 2. **M5 图像 Provider 实装**（Dall-E 3 优先）—— 骨架已全，接 Provider 即可用
-3. **FTS5 全局搜索**—— M2 遗留高频功能，体验提升明显
-4. **M6 MCP + Agent**—— 差异化竞争力
+3. **消息分叉树 UI 切换**—— M2 遗留高频功能，体验提升明显
+4. **M6 MCP + Agent**—— 差异化竞争力（审计日志 / 分屏工具面板 / 危险工具二次确认）
 5. **M5 语音**（STT/TTS）—— 可与 M6 并行
 6. **M7 Web PWA**—— 扩大覆盖面，让 Web 可安装
 7. **crypto + sync**—— 端到端加密同步

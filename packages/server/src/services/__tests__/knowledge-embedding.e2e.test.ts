@@ -25,7 +25,7 @@ import { createServices } from '..';
 import * as schema from '../../db/schema';
 import { createRepos } from '../../repos';
 
-import { createFakeClock, createFakeSecret, createSilentLogger } from './fakes';
+import { createFakeClock, createFakeFile, createFakeSecret, createSilentLogger } from './fakes';
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../db/migrations');
 
@@ -100,7 +100,16 @@ async function setup(http: HttpPort) {
   const logger = createSilentLogger();
   const secret = createFakeSecret();
   const repos = createRepos({ db, clock });
-  const services = createServices({ http, secret, logger, clock, repos, db });
+  const services = createServices({
+    http,
+    secret,
+    logger,
+    clock,
+    repos,
+    db,
+    client,
+    file: createFakeFile(),
+  });
   return { repos, services };
 }
 

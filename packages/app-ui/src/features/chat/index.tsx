@@ -11,6 +11,7 @@
 import { useAtom } from 'jotai';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { estimateTokens } from '@xiabao/core';
 import type { MessageWithParts, SearchHit } from '@xiabao/server';
 import { activeTabIdAtom, openTabsAtom, primaryNavAtom, settingsSectionAtom } from '@xiabao/state';
 import { Button, Card } from '@xiabao/ui';
@@ -65,6 +66,7 @@ export function ChatPanel() {
               providerName: p.provider.name,
               modelId: m.id,
               modelDisplay: m.display,
+              contextTokens: m.contextTokens ?? undefined,
             })),
         ),
     [providersQ.data],
@@ -420,6 +422,40 @@ function ChatRoom({
 
   const chooseBranchM = trpc.chat.chooseBranch.useMutation({ onSuccess: () => invalidateChain() });
 
+  // 计算上下文使用情况
+  const contextUsage = useMemo(() => {
+    // 获取当前模型的上下文窗口
+    const modelContextTokens = modelOptions.find(
+      (m) => m.providerId === selected.providerId && m.modelId === selected.modelId,
+    )?.contextTokens;
+
+    // 如果没有 contextTokens，使用默认值（32k）
+    const effectiveContextTokens = modelContextTokens ?? 32768;
+
+    // 计算已有消息的 tokens
+    const messageTokens = messages.reduce((sum, m) => {
+      const text = collectText(m);
+      const reasoning = collectReasoning(m);
+      return sum + estimateTokens(text) + estimateTokens(reasoning);
+    }, 0);
+
+    // 加上当前输入的 tokens
+    const inputTokens = estimateTokens(input);
+    const totalUsed = messageTokens + inputTokens;
+    const remaining = Math.max(0, effectiveContextTokens - totalUsed);
+    const percentage = Math.max(
+      0,
+      Math.min(100, Math.round((remaining / effectiveContextTokens) * 100)),
+    );
+
+    return {
+      total: effectiveContextTokens,
+      used: totalUsed,
+      remaining,
+      percentage,
+    };
+  }, [messages, input, modelOptions, selected]);
+
   const composerSelectedModel = { providerId: selected.providerId, modelId: selected.modelId };
 
   return (
@@ -546,6 +582,8 @@ function ChatRoom({
           selectedDocIds,
           onPickDoc: handlePickMentionedDoc,
         }}
+        contextUsage={contextUsage}
+        voiceConfig={{ convId }}
       />
     </>
   );

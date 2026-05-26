@@ -15,7 +15,9 @@ import type { ModelCapability } from '../models/index.js';
 interface CapabilityRule {
   /** 命中则赋予对应能力，使用 lower-case 子串匹配 */
   match: (id: string) => boolean;
-  capability: Partial<Pick<ModelCapability, 'tools' | 'vision' | 'reasoning' | 'jsonMode'>>;
+  capability: Partial<
+    Pick<ModelCapability, 'tools' | 'vision' | 'reasoning' | 'jsonMode' | 'stt' | 'tts'>
+  >;
 }
 
 const RULES: CapabilityRule[] = [
@@ -99,6 +101,18 @@ const RULES: CapabilityRule[] = [
       id.includes('deepseek-chat') ||
       id.includes('deepseek-v3'),
     capability: { jsonMode: true },
+  },
+
+  // —— STT (Speech-to-Text) ——
+  {
+    match: (id) => id.includes('whisper-1') || id === 'whisper-1',
+    capability: { stt: true },
+  },
+
+  // —— TTS (Text-to-Speech) ——
+  {
+    match: (id) => id.includes('tts-1') || id === 'tts-1' || id === 'tts-1-hd',
+    capability: { tts: true },
   },
 ];
 

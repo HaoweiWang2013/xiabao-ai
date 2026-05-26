@@ -6,10 +6,11 @@
  * - Enter 发送 / Shift+Enter 换行 / Cmd+Enter 也发送
  * - **M4 长尾 Phase 7**：可选 `mentionConfig` 启用内联 `#文档` mention 浮层；
  *   触发时 textarea ↑↓ Enter Tab Esc 会被让步给浮层。
+ * - **M5 语音**：`[🎙]` 按钮支持按住说话 + 单击切换，自动转录后发送。
  *
  * 见 docs/12-ui-design.md §4.2 Composer / §5.3。
  */
-import { Mic, Paperclip, Send, Slash, Square } from 'lucide-react';
+import { AudioLines, Loader2, Mic, Paperclip, Send, Slash, Square } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { detectMentionAtCursor, replaceMentionRange, type MentionMatch } from '@xiabao/core';
@@ -28,6 +29,8 @@ import {
   type MentionAutocompleteHandle,
   type MentionCandidate,
 } from '../features/chat/MentionAutocomplete';
+import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { trpc } from '../lib/trpc';
 import { useTranslation } from '../lib/useTranslation';
 
 import { ModelSelector, type ModelOption } from './ModelSelector';
@@ -59,6 +62,10 @@ interface Props {
   extraTools?: ReactNode;
   /** M4 长尾 Phase 7：传入则启用内联 `#xxx` 文档 mention 浮层 */
   mentionConfig?: MentionConfig;
+  /** 上下文使用情况：{ used, total, percentage } */
+  contextUsage?: { used: number; total: number; percentage: number } | null;
+  /** M5 语音：传入则启用语音录制功能 */
+  voiceConfig?: { convId?: string };
 }
 
 export function Composer({
@@ -74,11 +81,60 @@ export function Composer({
   textareaProps,
   extraTools,
   mentionConfig,
+  contextUsage,
+  voiceConfig,
 }: Props) {
   const { t } = useTranslation();
   const finalPlaceholder = placeholder ?? t('chat.placeholder');
   const ref = useRef<HTMLTextAreaElement>(null);
   const mentionRef = useRef<MentionAutocompleteHandle>(null);
+
+  const { state: recState, audioBlob, startRecording, stopRecording } = useAudioRecorder();
+  const sttMut = trpc.voice.stt.useMutation();
+  const [sttTranscribing, setSttTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const voiceProcessedRef = useRef(false);
+
+  useEffect(() => {
+    if (recState !== 'stopped' || !audioBlob || !voiceConfig || voiceProcessedRef.current) return;
+    voiceProcessedRef.current = true;
+    setVoiceError(null);
+    setSttTranscribing(true);
+
+    (async () => {
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1] ?? result);
+          };
+          reader.onerror = () => reject(new Error('Failed to read audio'));
+          reader.readAsDataURL(audioBlob);
+        });
+        const result = await sttMut.mutateAsync({
+          audioBase64: base64,
+          modelId: 'whisper-1',
+          convId: voiceConfig.convId,
+        });
+        if (result.text) {
+          onChange(value ? `${value}\n${result.text}` : result.text);
+          setTimeout(() => onSend(), 50);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('not found') || msg.includes('Provider')) {
+          setVoiceError(
+            '未配置语音 Provider。请在 设置 → 模型提供商 中添加 OpenAI 并拉取 whisper-1 / tts-1 模型。',
+          );
+        } else {
+          setVoiceError(msg);
+        }
+      } finally {
+        setSttTranscribing(false);
+      }
+    })();
+  }, [recState, audioBlob, voiceConfig]);
 
   // mention 探测状态（仅 mentionConfig 提供时启用）
   const [match, setMatch] = useState<MentionMatch | null>(null);
@@ -190,22 +246,91 @@ export function Composer({
               </TooltipTrigger>
               <TooltipContent side="top">附件（M3）</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <IconButton size="sm" variant="ghost" disabled>
-                  <Mic className="h-3.5 w-3.5" />
-                </IconButton>
-              </TooltipTrigger>
-              <TooltipContent side="top">语音（M3）</TooltipContent>
-            </Tooltip>
+            {voiceConfig ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {sttTranscribing ? (
+                    <IconButton size="sm" variant="ghost" disabled>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    </IconButton>
+                  ) : recState === 'recording' ? (
+                    <IconButton
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-600"
+                      onPointerUp={stopRecording}
+                      onPointerLeave={stopRecording}
+                      onClick={stopRecording}
+                    >
+                      <AudioLines className="h-3.5 w-3.5 animate-pulse" />
+                    </IconButton>
+                  ) : (
+                    <IconButton
+                      size="sm"
+                      variant="ghost"
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        voiceProcessedRef.current = false;
+                        setVoiceError(null);
+                        startRecording();
+                      }}
+                      onClick={() => {
+                        if (recState === 'idle') {
+                          voiceProcessedRef.current = false;
+                          setVoiceError(null);
+                          startRecording();
+                        }
+                      }}
+                    >
+                      <Mic className="h-3.5 w-3.5" />
+                    </IconButton>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {sttTranscribing
+                    ? '转录中…'
+                    : recState === 'recording'
+                      ? '松开发送，点击停止'
+                      : '按住说话 / 点击切换'}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconButton size="sm" variant="ghost" disabled>
+                    <Mic className="h-3.5 w-3.5" />
+                  </IconButton>
+                </TooltipTrigger>
+                <TooltipContent side="top">语音（M3）</TooltipContent>
+              </Tooltip>
+            )}
             <div className="flex-1" />
+            {voiceError && (
+              <span className="text-destructive max-w-[200px] truncate text-[10px]">
+                {voiceError}
+              </span>
+            )}
+            {contextUsage && (
+              <div
+                className={cn(
+                  'text-xs tabular-nums',
+                  contextUsage.percentage <= 10
+                    ? 'text-red-500'
+                    : contextUsage.percentage <= 30
+                      ? 'text-amber-500'
+                      : 'text-muted-foreground',
+                )}
+              >
+                {contextUsage.percentage}%
+              </div>
+            )}
             {busy ? (
               <Button variant="destructive" size="sm" onClick={onStop} disabled={!onStop}>
                 <Square className="h-3.5 w-3.5 fill-current" />
                 {t('chat.stopGenerating')}
               </Button>
             ) : (
-              <Button variant="primary" size="sm" onClick={onSend} disabled={!value.trim()}>
+              <Button variant="primary" size="sm" onClick={() => onSend()} disabled={!value.trim()}>
                 <Send className="h-3.5 w-3.5" />
                 {t('chat.sendButton')}
               </Button>

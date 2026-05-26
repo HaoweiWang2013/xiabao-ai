@@ -22,7 +22,7 @@ import { createServices } from '..';
 import * as schema from '../../db/schema';
 import { createRepos } from '../../repos';
 
-import { createFakeClock, createFakeSecret, createSilentLogger } from './fakes';
+import { createFakeClock, createFakeFile, createFakeSecret, createSilentLogger } from './fakes';
 
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../db/migrations');
 
@@ -86,6 +86,8 @@ async function setup(opts?: { vectorStore?: VectorStore }) {
     clock,
     repos,
     db,
+    client,
+    file: createFakeFile(),
     vectorStore: opts?.vectorStore,
   });
 

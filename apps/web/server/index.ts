@@ -79,6 +79,7 @@ async function bootstrap() {
     clock,
     repos,
     db,
+    client,
     paths: {
       userDataPath: dbDir,
       dbPath: DB_PATH,
@@ -104,7 +105,7 @@ async function bootstrap() {
     useWSS: false,
     trpcOptions: {
       router: appRouter,
-      createContext: createContextFactory({ services }),
+      createContext: createContextFactory({ services, repos }),
       onError({ path, error }: { path: string | undefined; error: Error }) {
         log.warn({ path, err: error.message }, 'tRPC error');
       },
@@ -140,7 +141,7 @@ async function bootstrap() {
   const trpcWss = applyWSSHandler({
     wss,
     router: appRouter,
-    createContext: createContextFactory({ services }),
+    createContext: createContextFactory({ services, repos }),
   });
 
   app.server.on('upgrade', (request, socket, head) => {
