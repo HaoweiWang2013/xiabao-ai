@@ -20,6 +20,7 @@ export const providers = sqliteTable(
     extra: text('extra').notNull().default('{}'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
+    rev: integer('rev').default(0).notNull(),
     deletedAt: integer('deleted_at'),
     deviceId: text('device_id'),
   },

@@ -25,6 +25,7 @@ export const messageParts = sqliteTable(
     argsJson: text('args_json'),
     resultJson: text('result_json'),
     extra: text('extra').notNull().default('{}'),
+    rev: integer('rev').default(0).notNull(),
     createdAt: integer('created_at').notNull(),
   },
   (t) => ({

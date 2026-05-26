@@ -19,7 +19,7 @@
 
 ---
 
-## 0 · 用户提出的具体改动
+## 0 · 提出的具体改动
 
 按用户原话整理，分为 7 个独立子项：
 
@@ -171,7 +171,7 @@ activePaneIdAtom: string;
 - [ ] `docs/12-ui-design.md` §4「导航栏 / 标签栏 / 多分屏」段更新（保留原 §4.2 留作 left 模式描述）。
 - [ ] `docs/07-providers.md` §4.1 加「Probe by creds」mutation 说明。
 - [ ] `docs/10-roadmap.md` M5 段落加 P9 子段（链回本文）。
-- [ ] i18n `provider.create.step1Title` / `step2Title` / `manualAdd` / `pickModels` / `navBarPositionLeft` / `navBarPositionTop` 等 ~14 key × 2 lang。
+- [ ] i18n `provider.create.step1Title` / `step2Title` / `manualAdd` / `pickModels` / `navBarPositionLeft` / `navBarPositionTop` 等 \~14 key × 2 lang。
 
 ### 9-7 验证 ⚪
 
@@ -207,7 +207,7 @@ activePaneIdAtom: string;
 ## 5 · 完成定义（DoD）
 
 - [ ] 本文档存在 ✅（本提交）
-- [ ] 9-1 ~ 9-7 全部 ✅
+- [ ] 9-1 \~ 9-7 全部 ✅
 - [ ] 全量 typecheck 绿（17 包）+ vitest 绿（新增 case 数量待定）
 - [ ] e2e + smoke：手测 stepper / 多分屏 / 导航位置切换三路径
 - [ ] `docs/10-roadmap.md` M5 段落已链到本文
@@ -263,8 +263,8 @@ activePaneIdAtom: string;
 ### 6.4 残留 / 后续可选
 
 - ⚪ 单独的 `docs/p8-image-ocr.md` 用户指南（对标 `p5pro-local-embedder.md`）—— 本期没建，因为内容已经全部进 14 / 13 / 10。如果觉得有必要，可作为本期 9-6 子任务一起做。
-- ⚪ OCR worker pool（per-call 创建有 ~2s cold start，频繁导入图像时可上池）。
-- ⚪ langPath 离线打包（首次联网下载 ~30MB，未来若要"完全离线"可预拉 traineddata 进 desktop bundle）。
+- ⚪ OCR worker pool（per-call 创建有 \~2s cold start，频繁导入图像时可上池）。
+- ⚪ langPath 离线打包（首次联网下载 \~30MB，未来若要"完全离线"可预拉 traineddata 进 desktop bundle）。
 - ⚪ 扫描版 PDF 内嵌图像 OCR（pdfjs 取空 textContent 时降级到 page→PNG→tesseract 链路）。
 - ⚪ `local-ocr` provider kind（类似 `local-embedder`，让用户挑高精度 PaddleOCR）。
 

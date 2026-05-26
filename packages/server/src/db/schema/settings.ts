@@ -9,6 +9,7 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull(),
   updatedAt: integer('updated_at').notNull(),
   deviceId: text('device_id'),
+  rev: integer('rev').default(0).notNull(),
 });
 
 export type SettingRow = typeof settings.$inferSelect;

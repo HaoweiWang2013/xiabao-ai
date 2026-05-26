@@ -28,6 +28,7 @@ export const knowledgeDocs = sqliteTable(
     indexedAt: integer('indexed_at'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
+    rev: integer('rev').default(0).notNull(),
     deletedAt: integer('deleted_at'),
   },
   (t) => ({

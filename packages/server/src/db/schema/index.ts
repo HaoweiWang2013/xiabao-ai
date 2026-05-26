@@ -19,3 +19,4 @@ export * from './mcpTools';
 export * from './auditLog';
 export * from './voiceTranscriptions';
 export * from './voiceSyntheses';
+export * from './syncState';

@@ -22,6 +22,7 @@ import { createKnowledgeService, type KnowledgeService } from './knowledge.servi
 import { createLocalEmbedderService, type LocalEmbedderService } from './local-embedder.service';
 import { createMcpService, type McpService } from './mcp.service';
 import { createVoiceService, type VoiceService } from './voice.service';
+import { createSyncService, type SyncService } from './sync.service';
 import { createPromptService, type PromptService } from './prompt.service';
 import { createProviderService, type ProviderService } from './provider.service';
 import { createSearchService, type SearchService } from './search.service';
@@ -49,6 +50,7 @@ export interface Services {
   mcp: McpService;
   agent: AgentService;
   voice: VoiceService;
+  sync: SyncService;
 }
 
 export interface ServicesDeps {
@@ -165,6 +167,12 @@ export function createServices(deps: ServicesDeps): Services {
     repos: { voice: deps.repos.voice },
   });
 
+  const sync = createSyncService({
+    logger: deps.logger,
+    clock: deps.clock,
+    repos: { sync: deps.repos.sync },
+  });
+
   return {
     provider,
     chat,
@@ -178,6 +186,7 @@ export function createServices(deps: ServicesDeps): Services {
     mcp,
     agent,
     voice,
+    sync,
   };
 }
 

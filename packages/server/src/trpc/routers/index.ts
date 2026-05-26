@@ -8,6 +8,7 @@ import { router } from '../trpc';
 import { agentRouter } from './agent';
 import { auditRouter } from './audit';
 import { voiceRouter } from './voice';
+import { syncRouter } from './sync';
 import { chatRouter } from './chat';
 import { imageRouter } from './image';
 import { knowledgeRouter } from './knowledge';
@@ -35,6 +36,7 @@ export const appRouter = router({
   agent: agentRouter,
   audit: auditRouter,
   voice: voiceRouter,
+  sync: syncRouter,
 });
 
 export type AppRouter = typeof appRouter;

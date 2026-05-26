@@ -30,6 +30,7 @@ export const conversations = sqliteTable(
     messageCount: integer('message_count').notNull().default(0),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
+    rev: integer('rev').default(0).notNull(),
     deletedAt: integer('deleted_at'),
     deviceId: text('device_id'),
   },

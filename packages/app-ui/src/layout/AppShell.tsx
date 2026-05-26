@@ -1,17 +1,16 @@
 /**
- * AppShell · 三栏 IDE 主框架（支持左 / 顶 双导航布局，P9 · 9-4）
+ * AppShell · 三栏 IDE 主框架（支持左 / 顶 双导航布局，P9 · 9-4）+ 移动端 <768px 降级
  *
- * 见 docs/12-ui-design.md §4.1 / docs/p9-cherry-ux.md §1.3。
+ * 见 docs/12-ui-design.md §4.1 / §7。
  *
- * **导航位置 = `'left'`（默认）**：
- *   - 左：IconSidebar（48px）
- *   - 中：根据主导航变化（chat → ConversationList，其他 → null）
- *   - 右：内容区
+ * **桌面端（≥768px）**：
+ *   - 导航位置 = `'left'`：左 IconSidebar（48px）+ 中栏 + 右内容
+ *   - 导航位置 = `'top'`：顶 IconTopBar（48px）+ 中栏 + 内容区
  *
- * **导航位置 = `'top'`（P9）**：
- *   - 顶：IconTopBar（48px 横向）
- *   - 中下：可选 middle 栏（chat）
- *   - 主内容区
+ * **移动端（<768px）**：
+ *   - 全屏内容 + 底部 TabBar（💬 聊天 / 📚 知识 / 🧩 工具 / ⚙ 我）
+ *   - 左侧抽屉式会话列表
+ *   - 无 Split View / 多 Tab
  */
 import { useAtomValue } from 'jotai';
 import { useEffect, useState } from 'react';
@@ -21,6 +20,7 @@ import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
 
 import { IconSidebar } from './IconSidebar';
 import { IconTopBar } from './IconTopBar';
+import { TabBar } from './TabBar';
 
 import type { ReactNode } from 'react';
 
@@ -33,6 +33,23 @@ interface Props {
   showMiddle?: boolean;
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function handle() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
+
+  return isMobile;
+}
+
 export function AppShell({ middle, children, showMiddle = true }: Props) {
   const nav = useAtomValue(primaryNavAtom);
   const theme = useAtomValue(themeAtom);
@@ -42,6 +59,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : false,
   );
+  const isMobile = useIsMobile();
 
   // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
   useEffect(() => {
@@ -75,6 +93,16 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
 
   const navPosition = useAtomValue(navBarPositionAtom);
   const visibleMiddle = showMiddle && nav === 'chat' && middle;
+
+  // ── 移动端 (<768px) ──
+  if (isMobile) {
+    return (
+      <div className="bg-background text-foreground relative flex h-dvh w-screen flex-col overflow-hidden font-sans">
+        <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+        <TabBar />
+      </div>
+    );
+  }
 
   if (navPosition === 'top') {
     return (

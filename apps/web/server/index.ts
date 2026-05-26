@@ -25,10 +25,12 @@ import {
   createContextFactory,
   createRepos,
   createServices,
+  LibsqlVecStore,
   type AppRouter,
 } from '@xiabao/server';
 
 import { createWebClockAdapter } from './adapters/clock';
+import { createWebFileAdapter } from './adapters/file';
 import { createWebHttpAdapter } from './adapters/http';
 import { createWebLoggerAdapter } from './adapters/logger';
 import { createWebSecretAdapter } from './adapters/secret';
@@ -69,17 +71,21 @@ async function bootstrap() {
   const http = createWebHttpAdapter();
   const secret = createWebSecretAdapter();
   const clock = createWebClockAdapter();
+  const file = createWebFileAdapter(dbDir);
 
   // ── Repos / Services ──
   const repos = createRepos({ db, clock });
+  const vectorStore = new LibsqlVecStore({ client });
   const services = createServices({
     http,
     secret,
+    file,
     logger,
     clock,
     repos,
     db,
     client,
+    vectorStore,
     paths: {
       userDataPath: dbDir,
       dbPath: DB_PATH,

@@ -22,18 +22,19 @@
 
 ### 一级功能
 
-| 图标 | 功能                                                 | 里程碑 |
-| ---- | ---------------------------------------------------- | ------ |
-| 💬   | 多模型聊天（流式、分叉、Markdown/代码/数学/Mermaid） | M2     |
-| 📝   | 提示词库（Preset 管理）                              | M2     |
-| 🔍   | 全局搜索（FTS5）                                     | M2     |
-| ⚙   | 设置                                                 | M2     |
-| 🌐   | 翻译工作区                                           | M3     |
-| 📚   | 知识库 RAG（MD/PDF/Office/网页/Git 仓库/OCR）        | M4     |
-| 🎨   | 图像生成（Dall-E / Flux / SD）                       | M5     |
-| 🎙   | 语音对话（STT / TTS / 实时）                         | M5     |
-| 🧩   | MCP 工具集成                                         | M6     |
-| 🤖   | Agent 工作流（卡片 / 分屏 / 画布）                   | M6-M7  |
+| 图标 | 功能                                                 | 里程碑 | 状态 |
+| ---- | ---------------------------------------------------- | ------ | ---- |
+| 💬   | 多模型聊天（流式、分叉、Markdown/代码/数学/Mermaid） | M2     | ✅   |
+| 📝   | 提示词库（Preset 管理）                              | M2     | ✅   |
+| 🔍   | 全局搜索（FTS5）                                     | M2     | ✅   |
+| ⚙   | 设置 + 首次启动引导（Onboarding）                    | M2-M3  | ✅   |
+| 🌐   | 翻译工作区                                           | M3     | ⬜   |
+| 📚   | 知识库 RAG（MD/PDF/Office/网页/OCR）                 | M4     | ✅   |
+| 🎨   | 图像生成（Dall-E 3 + 参数面板）                      | M5     | ✅   |
+| 🎙   | 语音对话（STT Whisper + TTS + 按住说话）             | M5     | ✅   |
+| 🧩   | MCP 工具集成（stdio/HTTP/SSE）                       | M6     | ✅   |
+| 🤖   | Agent 工作流（审计日志 + 危险确认 + 分屏面板）       | M6     | ✅   |
+| 📱   | Android RN 端                                        | M8     | ⬜   |
 
 ---
 
@@ -118,11 +119,11 @@
 
 ## 快速开始
 
-> 当前阶段：**代码已落地，核心功能可用**。
+> 当前阶段：**v0.1.0-dev · 核心功能可用**。
 >
-> 已完成：M0–M2（工程地基 + Provider + 聊天 MVP）+ M4（知识库 RAG 全部交付）
-> 进行中：M3（打磨与打包）
-> 待开发：M5（图像 + 语音）、M6（MCP + Agent）、M7（Agent 画布）、M8（Android）
+> 已完成：M0–M4, M5 图像+语音, M6 MCP+Agent
+> 进行中：M3 打磨（签名证书 / Onboarding 完善）
+> 待开发：M7 Agent 画布+PWA, M8 Android
 
 ### 环境要求
 
@@ -137,8 +138,8 @@
 
 ```bash
 # 克隆
-git clone https://github.com/<org>/xiabaoai.git
-cd xiabaoai
+git clone https://github.com/HaoweiWang2013/xiabao-ai.git
+cd xiabao-ai
 
 # 安装依赖
 pnpm install
@@ -173,20 +174,22 @@ pnpm build:mobile
 
 ## 项目状态
 
-当前版本：`0.0.1`
+当前版本：`0.1.0-dev`
 
-里程碑进度见 [`docs/10-roadmap.md`](./docs/10-roadmap.md)。
+里程碑进度见 [`docs/10-roadmap.md`](./docs/10-roadmap.md)，未完成项见 [`docs/15-incomplete-status.md`](./docs/15-incomplete-status.md)。
 
 - [x] 架构设计定稿
 - [x] UI/UX 规格定稿
 - [x] M0 工程地基（pnpm/Turbo/Webpack 空白窗口）
-- [x] M1 Provider + IPC（OpenAI + Anthropic + Google + Ollama，流式 subscription）
-- [x] M2 聊天 MVP（IDE Tab + 会话 + 提示词库 + 搜索 + 设置）
-- [ ] M3 打磨与打包（主题/快捷键/@/#命令/三端出包）
-- [x] M4 知识库 RAG（M4-A/B/C/D/E 全部交付 + 长尾 Phase 1–8）
-- [ ] M5 图像 + 语音
-- [ ] M6 MCP + Agent 卡片/分屏
-- [ ] M7 Agent 画布 + Web 端完整版
+- [x] M1 Provider + IPC（OpenAI + Anthropic + Google + Ollama + DeepSeek，流式 subscription）
+- [x] M2 聊天 MVP（IDE Tab + 会话 + 提示词库 + FTS5 搜索 + 设置）
+- [x] M3 打磨与打包（菜单/托盘/协议/自动更新/崩溃上报/Onboarding）
+- [x] M4 知识库 RAG（PDF/DOCX/PPTX/XLSX 解析 + OCR + Token 预算裁剪 + libsql vector + bge-m3）
+- [x] M5 图像生成（Dall-E 3 + 参数面板 + ImageGallery）
+- [x] M5 语音（STT Whisper + TTS + 按住说话 Composer）
+- [x] M6 MCP 工具集成（stdio/HTTP/SSE + 管理 UI）
+- [x] M6 Agent 工作流（审计日志 + 危险工具确认 + 分屏工具面板）
+- [ ] M7 Agent 画布 + Web PWA
 - [ ] M8 Android RN 端
 
 ---

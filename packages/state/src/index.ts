@@ -252,3 +252,6 @@ export const ttsModelIdAtom = createPersistedAtom<string>('voice.ttsModelId', 't
 export const ttsVoiceAtom = createPersistedAtom<string>('voice.ttsVoice', 'alloy');
 export const ttsSpeedAtom = createPersistedAtom<number>('voice.ttsSpeed', 1);
 export const voiceAutoSendAtom = createPersistedAtom<boolean>('voice.autoSend', true);
+
+export const syncEnabledAtom = createPersistedAtom<boolean>('sync.enabled', false);
+export const syncConfiguredAtom = createPersistedAtom<boolean>('sync.configured', false);

@@ -6,6 +6,7 @@ import type { ClockPort } from '@xiabao/core';
 import { createAgentRepo, type AgentRepo } from './agent';
 import { createAuditRepo, type AuditRepo } from './audit';
 import { createVoiceRepo, type VoiceRepo } from './voice';
+import { createSyncRepo, type SyncRepo } from './sync';
 import { createConversationRepo, type ConversationRepo } from './conversations';
 import { createImageRepo, type ImageRepo } from './images';
 import { createKnowledgeRepo, type KnowledgeRepo } from './knowledge';
@@ -31,6 +32,7 @@ export interface Repos {
   mcp: McpRepo;
   audit: AuditRepo;
   voice: VoiceRepo;
+  sync: SyncRepo;
 }
 
 export interface RepoDeps {
@@ -54,6 +56,7 @@ export function createRepos({ db, clock, deviceId }: RepoDeps): Repos {
     mcp: createMcpRepo({ db, now }),
     audit: createAuditRepo({ db, now }),
     voice: createVoiceRepo({ db, now }),
+    sync: createSyncRepo({ db, now }),
   };
 }
 
@@ -61,6 +64,7 @@ export type {
   AgentRepo,
   AuditRepo,
   VoiceRepo,
+  SyncRepo,
   ConversationRepo,
   ImageRepo,
   KnowledgeRepo,

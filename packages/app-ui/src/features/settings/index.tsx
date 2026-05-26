@@ -38,7 +38,7 @@ import { DataSettings } from './DataSettings';
 import { DeveloperSettings } from './DeveloperSettings';
 import { PrivacySettings } from './PrivacySettings';
 import { ShortcutsSettings } from './ShortcutsSettings';
-import { UpdateSettings } from './UpdateSettings';
+import { SyncSettings } from './SyncSettings';
 import { WebSearchSettings } from './WebSearchSettings';
 
 import type { ReactNode } from 'react';
@@ -102,7 +102,10 @@ export function SettingsPage() {
         ) : section === 'shortcuts' ? (
           <ShortcutsSettings />
         ) : section === 'data' ? (
-          <DataSettings />
+          <div className="flex flex-col gap-6">
+            <DataSettings />
+            <SyncSettings />
+          </div>
         ) : section === 'privacy' ? (
           <PrivacySettings />
         ) : section === 'developer' ? (

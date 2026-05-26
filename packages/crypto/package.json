@@ -26,7 +26,9 @@
   },
   "dependencies": {
     "@noble/ciphers": "0.5.3",
-    "@noble/hashes": "1.4.0"
+    "@noble/hashes": "1.4.0",
+    "@scure/bip39": "^2.2.0",
+    "argon2": "^0.44.0"
   },
   "devDependencies": {
     "@xiabao/tsconfig": "workspace:*",

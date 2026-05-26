@@ -47,6 +47,7 @@
     "@libsql/client": "0.10.0",
     "@trpc/server": "10.45.2",
     "@xiabao/core": "workspace:*",
+    "@xiabao/crypto": "workspace:^",
     "drizzle-orm": "0.33.0",
     "mammoth": "^1.8.0",
     "officeparser": "^5.1.1",
