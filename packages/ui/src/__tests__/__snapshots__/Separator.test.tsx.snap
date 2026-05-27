@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Separator > renders a separator 1`] = `
+<div
+  aria-orientation="horizontal"
+  class="bg-border/60 shrink-0 h-px w-full"
+  role="separator"
+/>
+`;

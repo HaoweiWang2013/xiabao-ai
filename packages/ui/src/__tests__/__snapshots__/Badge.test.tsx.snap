@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Badge > renders with default variant 1`] = `
+<span
+  class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-medium transition-colors bg-primary/10 text-primary border-transparent"
+>
+  New
+</span>
+`;

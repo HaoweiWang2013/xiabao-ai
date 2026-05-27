@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Card > renders card with children 1`] = `
+<div
+  class="bg-card text-card-foreground border-border/40 rounded-lg border shadow-sm"
+>
+  Content
+</div>
+`;

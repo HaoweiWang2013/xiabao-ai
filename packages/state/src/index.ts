@@ -116,15 +116,18 @@ export const SETTINGS_STORAGE_KEYS = [
 ] as const;
 
 export type PrimaryNav =
+  | 'home'
+  | 'agent'
+  | 'image'
+  | 'miniapp'
+  | 'translate'
   | 'chat'
   | 'knowledge'
   | 'prompt'
   | 'providers'
   | 'tools'
-  | 'settings'
-  | 'image'
-  | 'agent';
-export const primaryNavAtom = atom<PrimaryNav>('chat');
+  | 'settings';
+export const primaryNavAtom = atom<PrimaryNav>('home');
 
 /** 图像生成记录（对齐 docs/04-data-model.md §6 image_generations 表） */
 export interface ImageGeneration {

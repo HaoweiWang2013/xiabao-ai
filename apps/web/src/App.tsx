@@ -12,11 +12,14 @@ import {
   ChatPanel,
   CommandPalette,
   ConversationList,
+  HomePage,
   ImageWorkspace,
   KnowledgePanel,
+  MiniAppPage,
   Onboarding,
   PromptPanel,
   SettingsPage,
+  TranslatePage,
   trpc,
   useAppShortcuts,
   type ConversationListItem,
@@ -86,7 +89,9 @@ export function App() {
   return (
     <>
       <AppShell middle={Middle}>
-        {nav === 'chat' ? (
+        {nav === 'home' ? (
+          <HomePage />
+        ) : nav === 'chat' ? (
           <ChatPanel />
         ) : nav === 'knowledge' ? (
           <KnowledgePanel />
@@ -96,6 +101,10 @@ export function App() {
           <ImageWorkspace />
         ) : nav === 'agent' ? (
           <AgentWorkspace />
+        ) : nav === 'translate' ? (
+          <TranslatePage />
+        ) : nav === 'miniapp' ? (
+          <MiniAppPage />
         ) : (
           <SettingsPage />
         )}

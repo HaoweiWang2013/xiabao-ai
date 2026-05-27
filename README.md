@@ -121,9 +121,9 @@
 
 > 当前阶段：**v0.1.0-dev · 核心功能可用**。
 >
-> 已完成：M0–M4, M5 图像+语音, M6 MCP+Agent
-> 进行中：M3 打磨（签名证书 / Onboarding 完善）
-> 待开发：M7 Agent 画布+PWA, M8 Android
+> 已完成：M0–M4, M5 图像+语音, M6 MCP+Agent, M7 Web PWA, crypto+sync E2EE
+> 进行中：M3 打磨（签名证书）
+> 待开发：M7 Agent 画布, M8 Android
 
 ### 环境要求
 
@@ -189,7 +189,10 @@ pnpm build:mobile
 - [x] M5 语音（STT Whisper + TTS + 按住说话 Composer）
 - [x] M6 MCP 工具集成（stdio/HTTP/SSE + 管理 UI）
 - [x] M6 Agent 工作流（审计日志 + 危险工具确认 + 分屏工具面板）
-- [ ] M7 Agent 画布 + Web PWA
+- [x] M7 Web PWA（vite-plugin-pwa + Service Worker + Cloudflare Pages CI + 移动布局）
+- [x] Crypto + Sync（AES-256-GCM + Argon2id + HKDF + BIP-39 + libsql 增量同步）
+- [x] UI 测试（@xiabao/ui 15 基础组件 51 snapshot tests）
+- [ ] M7 Agent 画布（React Flow 节点图编辑器）
 - [ ] M8 Android RN 端
 
 ---

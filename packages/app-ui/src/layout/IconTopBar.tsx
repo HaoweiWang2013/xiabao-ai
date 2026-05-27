@@ -7,16 +7,7 @@
  * 见 docs/p9-cherry-ux.md §1.3 / `docs/12-ui-design.md`（顶导航模式）。
  */
 import { useAtom } from 'jotai';
-import {
-  BookOpen,
-  Brain,
-  MessageSquare,
-  Settings,
-  Sliders,
-  Sparkles,
-  Wrench,
-  Lightbulb,
-} from 'lucide-react';
+import { Brain, Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } from 'lucide-react';
 
 import { primaryNavAtom, settingsSectionAtom, type PrimaryNav } from '@xiabao/state';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, cn } from '@xiabao/ui';
@@ -30,15 +21,15 @@ interface NavItem {
 }
 
 const TOP_ITEMS: NavItem[] = [
-  { id: 'chat', label: '聊天', icon: <MessageSquare className="h-[18px] w-[18px]" /> },
-  { id: 'knowledge', label: '知识库', icon: <BookOpen className="h-[18px] w-[18px]" /> },
-  { id: 'prompt', label: '提示词库', icon: <Lightbulb className="h-[18px] w-[18px]" /> },
-  { id: 'agent', label: 'Agent', icon: <Brain className="h-[18px] w-[18px]" /> },
-  { id: 'providers', label: '模型供应商', icon: <Sliders className="h-[18px] w-[18px]" /> },
-  { id: 'tools', label: '工具', icon: <Wrench className="h-[18px] w-[18px]" /> },
+  { id: 'home', label: '首页', icon: <Home className="h-[18px] w-[18px]" /> },
+  { id: 'agent', label: '智能体', icon: <Brain className="h-[18px] w-[18px]" /> },
+  { id: 'image', label: '绘画', icon: <Image className="h-[18px] w-[18px]" /> },
+  { id: 'miniapp', label: '小程序', icon: <Puzzle className="h-[18px] w-[18px]" /> },
+  { id: 'translate', label: '翻译', icon: <Globe className="h-[18px] w-[18px]" /> },
 ];
 
 const RIGHT_ITEMS: NavItem[] = [
+  { id: 'chat', label: '聊天', icon: <MessageSquare className="h-[18px] w-[18px]" /> },
   { id: 'settings', label: '设置', icon: <Settings className="h-[18px] w-[18px]" /> },
 ];
 

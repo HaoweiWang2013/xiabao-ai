@@ -1,0 +1,68 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Tabs > renders tabs with triggers and content 1`] = `
+<div
+  data-orientation="horizontal"
+  dir="ltr"
+>
+  <div
+    aria-orientation="horizontal"
+    class="bg-secondary text-muted-foreground inline-flex h-9 items-center justify-center rounded-md p-1"
+    data-orientation="horizontal"
+    role="tablist"
+    style="outline: none;"
+    tabindex="0"
+  >
+    <button
+      aria-controls="radix-:r0:-content-tab1"
+      aria-selected="true"
+      class="ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm"
+      data-orientation="horizontal"
+      data-radix-collection-item=""
+      data-state="active"
+      id="radix-:r0:-trigger-tab1"
+      role="tab"
+      tabindex="-1"
+      type="button"
+    >
+      Tab 1
+    </button>
+    <button
+      aria-controls="radix-:r0:-content-tab2"
+      aria-selected="false"
+      class="ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded px-3 py-1 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm"
+      data-orientation="horizontal"
+      data-radix-collection-item=""
+      data-state="inactive"
+      id="radix-:r0:-trigger-tab2"
+      role="tab"
+      tabindex="-1"
+      type="button"
+    >
+      Tab 2
+    </button>
+  </div>
+  <div
+    aria-labelledby="radix-:r0:-trigger-tab1"
+    class="ring-offset-background focus-visible:ring-ring mt-2 focus-visible:outline-none focus-visible:ring-2"
+    data-orientation="horizontal"
+    data-state="active"
+    id="radix-:r0:-content-tab1"
+    role="tabpanel"
+    style="animation-duration: 0s;"
+    tabindex="0"
+  >
+    Content 1
+  </div>
+  <div
+    aria-labelledby="radix-:r0:-trigger-tab2"
+    class="ring-offset-background focus-visible:ring-ring mt-2 focus-visible:outline-none focus-visible:ring-2"
+    data-orientation="horizontal"
+    data-state="inactive"
+    hidden=""
+    id="radix-:r0:-content-tab2"
+    role="tabpanel"
+    tabindex="0"
+  />
+</div>
+`;

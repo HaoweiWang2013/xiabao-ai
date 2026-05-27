@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Dialog > renders DialogContent with title and description 1`] = `
+<button
+  aria-controls="radix-:r0:"
+  aria-expanded="true"
+  aria-haspopup="dialog"
+  data-state="open"
+  type="button"
+>
+  Open
+</button>
+`;

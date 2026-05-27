@@ -1,7 +1,6 @@
 import { createClient } from '@libsql/client';
 
 import type { ClockPort, LoggerPort } from '@xiabao/core';
-import * as crypto from '@xiabao/crypto';
 import type { SyncRepo } from '../repos';
 
 const SYNCABLE_TABLES = [
@@ -60,19 +59,14 @@ export function createSyncService(deps: SyncServiceDeps) {
       return { pushed: 0, errors: ['sync not configured'] };
     }
 
+    const { encryptBlob } = await import('@xiabao/crypto');
     const errors: string[] = [];
     let pushed = 0;
     try {
       const pending = await repos.sync.getPending(100);
       for (const row of pending) {
         try {
-          const payload = crypto.encryptBlob(
-            syncKey,
-            row.payload ?? '{}',
-            row.tableName,
-            row.rowId,
-            0,
-          );
+          const payload = encryptBlob(syncKey, row.payload ?? '{}', row.tableName, row.rowId, 0);
           if (row.op === 'delete') {
             await remoteClient.execute({
               sql: `UPDATE ${row.tableName} SET deleted_at = ?, rev = rev + 1 WHERE id = ?`,

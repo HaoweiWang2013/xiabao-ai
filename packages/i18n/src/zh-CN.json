@@ -244,6 +244,7 @@
     "emptyHint": "还没有任何 Provider，点下方「+ 添加」开始",
     "addBtn": "添加",
     "detailEmpty": "在左侧选择或新建一个 Provider",
+    "loading": "加载中...",
     "apiKeyConfigured": "API Key 已配置",
     "apiKeyNotConfigured": "未配置 API Key",
     "enable": "启用 Provider",
