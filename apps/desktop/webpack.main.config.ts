@@ -33,6 +33,8 @@ const config: Configuration = {
     'onnxruntime-node': 'commonjs onnxruntime-node',
     '@huggingface/transformers': 'commonjs @huggingface/transformers',
     sharp: 'commonjs sharp',
+    // argon2：native binding（Argon2id KDF，crypto/sync 依赖），必须 externalize
+    argon2: 'commonjs argon2',
   },
   plugins: [
     new webpack.DefinePlugin({

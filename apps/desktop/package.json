@@ -46,6 +46,7 @@
     "@xiabao/state": "workspace:*",
     "@xiabao/theme": "workspace:*",
     "@xiabao/ui": "workspace:*",
+    "argon2": "^0.44.0",
     "clsx": "2.1.1",
     "drizzle-orm": "0.33.0",
     "electron-trpc": "0.5.2",
