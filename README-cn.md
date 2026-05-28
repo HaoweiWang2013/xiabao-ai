@@ -120,6 +120,16 @@
 
 ## 快速开始
 
+### 下载
+
+预构建包可在 [GitHub Releases](https://github.com/HaoweiWang2013/xiabao-ai/releases) 页面下载。
+
+| 平台    | 安装包                                     | 架构                    |
+| ------- | ------------------------------------------ | ----------------------- |
+| Windows | `XiabaoAI-Setup-x.y.z.exe` (NSIS 安装程序) | x64, arm64              |
+| macOS   | `XiabaoAI-x.y.z.dmg`                       | Universal (x64 + arm64) |
+| Linux   | `XiabaoAI-x.y.z.AppImage` / `.deb`         | x64, arm64              |
+
 > 当前阶段：**v0.1.0-dev · 核心功能可用**。
 >
 > 已完成：M0–M4, M5 图像+语音, M6 MCP+Agent, M7 Web PWA, crypto+sync E2EE

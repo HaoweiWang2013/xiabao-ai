@@ -120,6 +120,16 @@ See [`docs/02-architecture.md`](./docs/02-architecture.md) for details.
 
 ## Quick Start
 
+### Downloads
+
+Pre-built packages are available on the [GitHub Releases](https://github.com/HaoweiWang2013/xiabao-ai/releases) page.
+
+| Platform | Package                                     | Architecture            |
+| -------- | ------------------------------------------- | ----------------------- |
+| Windows  | `XiabaoAI-Setup-x.y.z.exe` (NSIS installer) | x64, arm64              |
+| macOS    | `XiabaoAI-x.y.z.dmg`                        | Universal (x64 + arm64) |
+| Linux    | `XiabaoAI-x.y.z.AppImage` / `.deb`          | x64, arm64              |
+
 > Current phase: **v0.1.0-dev · core features available**.
 >
 > Completed: M0–M4, M5 Image+Voice, M6 MCP+Agent, M7 Web PWA, crypto+sync E2EE
