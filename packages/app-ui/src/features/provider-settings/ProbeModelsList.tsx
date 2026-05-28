@@ -61,7 +61,7 @@ export function ProbeModelsList({
   onFilterChange,
   onRefresh,
   isExisting,
-  maxHeightClass = 'max-h-[420px]',
+  maxHeightClass = 'h-[420px] max-h-[420px]',
 }: ProbeModelsListProps) {
   const { t } = useTranslation();
   const filtered = useMemo(() => {

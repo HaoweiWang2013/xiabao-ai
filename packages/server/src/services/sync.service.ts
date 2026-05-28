@@ -98,6 +98,7 @@ export function createSyncService(deps: SyncServiceDeps) {
       return { pulled: 0, resolved: 0, errors: ['sync not configured'] };
     }
 
+    const { decryptBlob } = await import('@xiabao/crypto');
     const errors: string[] = [];
     let pulled = 0;
     let resolved = 0;
@@ -114,7 +115,7 @@ export function createSyncService(deps: SyncServiceDeps) {
             const rowObj = row as Record<string, unknown>;
             if (rowObj.cipher_blob && typeof rowObj.cipher_blob === 'string') {
               try {
-                const plain = crypto.decryptBlob(
+                const plain = decryptBlob(
                   syncKey,
                   rowObj.cipher_blob,
                   tableName,

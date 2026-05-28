@@ -9,7 +9,6 @@ import { useEffect } from 'react';
 import {
   AgentWorkspace,
   AppShell,
-  ChatPanel,
   CommandPalette,
   ConversationList,
   HomePage,
@@ -19,6 +18,7 @@ import {
   Onboarding,
   PromptPanel,
   SettingsPage,
+  SplitChatView,
   TranslatePage,
   trpc,
   useAppShortcuts,
@@ -73,7 +73,19 @@ export function App() {
     id: c.id,
     title: c.title,
     updatedAt: c.updatedAt,
+    favorite: c.favorite,
   }));
+
+  const renameConv = trpc.chat.renameConversation.useMutation({
+    onSuccess: () => {
+      void utils.chat.listConversations.invalidate();
+    },
+  });
+  const toggleFavorite = trpc.chat.toggleFavorite.useMutation({
+    onSuccess: () => {
+      void utils.chat.listConversations.invalidate();
+    },
+  });
 
   const Middle = (
     <ConversationList
@@ -82,6 +94,12 @@ export function App() {
       onCreate={() => createConv.mutate({ title: `新对话 ${new Date().toLocaleTimeString()}` })}
       onDelete={(id) => {
         if (confirm('确定要删除这个会话吗？')) deleteConv.mutate({ id });
+      }}
+      onRename={(id, title) => renameConv.mutate({ id, title })}
+      onToggleFavorite={(id) => toggleFavorite.mutate({ id })}
+      onAddToKnowledge={(id) => {
+        setActive(id);
+        setNav('knowledge');
       }}
     />
   );
@@ -92,7 +110,7 @@ export function App() {
         {nav === 'home' ? (
           <HomePage />
         ) : nav === 'chat' ? (
-          <ChatPanel />
+          <SplitChatView />
         ) : nav === 'knowledge' ? (
           <KnowledgePanel />
         ) : nav === 'prompt' ? (

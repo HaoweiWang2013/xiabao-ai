@@ -107,6 +107,7 @@ export function createServices(deps: ServicesDeps): Services {
     providerService: provider,
     toolService: tool,
     knowledgeService: knowledge,
+    getSetting: async (key: string) => deps.repos.settings.get(key as never),
     repos: {
       conversations: deps.repos.conversations,
       messages: deps.repos.messages,
@@ -135,7 +136,7 @@ export function createServices(deps: ServicesDeps): Services {
     http: deps.http,
     file: deps.file,
     providerService: provider,
-    repos: { images: deps.repos.images },
+    repos: { images: deps.repos.images, models: deps.repos.models },
   });
 
   const search = createSearchService({

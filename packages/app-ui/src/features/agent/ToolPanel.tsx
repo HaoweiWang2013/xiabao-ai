@@ -4,6 +4,8 @@ import { AlertCircle, CheckCircle2, Wrench } from 'lucide-react';
 import type { AgentStepState } from '@xiabao/state';
 import { cn } from '@xiabao/ui';
 
+import { useTranslation } from '../../lib/useTranslation';
+
 interface Props {
   steps: AgentStepState[];
   isRunning: boolean;
@@ -39,6 +41,7 @@ function formatJson(s: string | null): string {
 }
 
 export function ToolPanel({ steps, isRunning }: Props) {
+  const { t } = useTranslation();
   const toolCalls = extractToolCalls(steps);
   const latest = toolCalls[toolCalls.length - 1];
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -55,10 +58,12 @@ export function ToolPanel({ steps, isRunning }: Props) {
     <div className="border-border/40 bg-card/30 flex h-full w-80 shrink-0 flex-col border-l">
       <div className="border-border/40 flex h-10 shrink-0 items-center gap-2 border-b px-3">
         <Wrench className="text-muted-foreground h-3.5 w-3.5" />
-        <span className="text-xs font-medium">工具面板</span>
+        <span className="text-xs font-medium">
+          {t('agent.toolPanel', { defaultValue: '工具面板' })}
+        </span>
         {isRunning && (
           <span className="bg-primary/10 text-primary ml-auto rounded px-1.5 py-0.5 text-[10px] font-medium">
-            运行中
+            {t('agent.running', { defaultValue: '运行中' })}
           </span>
         )}
       </div>
@@ -66,7 +71,7 @@ export function ToolPanel({ steps, isRunning }: Props) {
       {latest && (
         <div className="border-border/40 shrink-0 border-b p-3">
           <p className="text-muted-foreground mb-2 text-[10px] uppercase tracking-wide">
-            当前工具结果
+            {t('agent.currentToolResult', { defaultValue: '当前工具结果' })}
           </p>
           <div className="border-border/30 bg-secondary/20 rounded-md border p-2.5">
             <div className="mb-1.5 flex items-center gap-1.5">
@@ -97,9 +102,13 @@ export function ToolPanel({ steps, isRunning }: Props) {
       )}
 
       <div ref={bottomRef} className="flex-1 overflow-auto p-3">
-        <p className="text-muted-foreground mb-2 text-[10px] uppercase tracking-wide">调用历史</p>
+        <p className="text-muted-foreground mb-2 text-[10px] uppercase tracking-wide">
+          {t('agent.callHistory', { defaultValue: '调用历史' })}
+        </p>
         {history.length === 0 ? (
-          <p className="text-muted-foreground text-xs">暂无工具调用记录</p>
+          <p className="text-muted-foreground text-xs">
+            {t('agent.noCallHistory', { defaultValue: '暂无工具调用记录' })}
+          </p>
         ) : (
           <div className="flex flex-col gap-1.5">
             {history.map((tc, i) => (

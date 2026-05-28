@@ -22,9 +22,11 @@ import {
   Skeleton,
 } from '@xiabao/ui';
 
+import { useTranslation } from '../../lib/useTranslation';
 import { trpc } from '../../lib/trpc';
 
 export function ToolSettings() {
+  const { t } = useTranslation();
   const toolsQ = trpc.tool.list.useQuery();
   const tools = toolsQ.data ?? [];
   const [, setSection] = useAtom(settingsSectionAtom);
@@ -33,9 +35,13 @@ export function ToolSettings() {
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
         <div>
-          <h2 className="text-sm font-semibold">已注册工具</h2>
+          <h2 className="text-sm font-semibold">
+            {t('toolSettings.title', { defaultValue: '已注册工具' })}
+          </h2>
           <p className="text-muted-foreground text-[11px]">
-            模型在生成回复时可调用以下工具。结果会作为消息追加到对话中。
+            {t('toolSettings.desc', {
+              defaultValue: '模型在生成回复时可调用以下工具。结果会作为消息追加到对话中。',
+            })}
           </p>
         </div>
       </header>
@@ -47,9 +53,13 @@ export function ToolSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="text-primary h-4 w-4" />
-                联网搜索
+                {t('toolSettings.webSearchTitle', { defaultValue: '联网搜索' })}
               </CardTitle>
-              <CardDescription>配置 Tavily API Key，让模型可以实时获取最新信息</CardDescription>
+              <CardDescription>
+                {t('toolSettings.webSearchDesc', {
+                  defaultValue: '配置 Tavily API Key，让模型可以实时获取最新信息',
+                })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Button
@@ -58,7 +68,7 @@ export function ToolSettings() {
                 onClick={() => setSection('webSearch')}
                 className="group"
               >
-                前往设置
+                {t('toolSettings.goSettings', { defaultValue: '前往设置' })}
                 <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Button>
             </CardContent>
@@ -71,7 +81,9 @@ export function ToolSettings() {
             </div>
           ) : tools.length === 0 ? (
             <div className="border-border/40 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-12 text-center">
-              <p className="text-muted-foreground text-sm">暂无可用工具</p>
+              <p className="text-muted-foreground text-sm">
+                {t('toolSettings.empty', { defaultValue: '暂无可用工具' })}
+              </p>
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
@@ -85,7 +97,7 @@ export function ToolSettings() {
                         </span>
                         <span className="font-mono">{tool.name}</span>
                         <Badge variant="success" className="text-[10px]">
-                          已启用
+                          {t('toolSettings.enabled', { defaultValue: '已启用' })}
                         </Badge>
                       </CardTitle>
                       {tool.description && <CardDescription>{tool.description}</CardDescription>}
@@ -93,7 +105,7 @@ export function ToolSettings() {
                     <CardContent>
                       <details className="border-border/40 group/det rounded-md border">
                         <summary className="text-muted-foreground hover:text-foreground hover:bg-secondary/40 cursor-pointer rounded-md px-3 py-1.5 text-xs">
-                          参数 schema
+                          {t('toolSettings.schema', { defaultValue: '参数 schema' })}
                         </summary>
                         <pre className="scroll-thin border-border/40 max-h-48 overflow-auto border-t p-3 text-[11px]">
                           {JSON.stringify(tool.parameters, null, 2)}

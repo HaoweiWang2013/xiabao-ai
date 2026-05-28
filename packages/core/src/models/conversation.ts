@@ -17,6 +17,8 @@ export const ConversationSchema = z.object({
   folder: z.string().nullable(),
   pinned: z.boolean(),
   archived: z.boolean(),
+  favorite: z.boolean(),
+  autoRenamed: z.boolean(),
   color: z.string().nullable(),
   icon: z.string().nullable(),
   kind: ConversationKindSchema,
@@ -57,5 +59,7 @@ export const ConversationUpdateInputSchema = ConversationCreateInputSchema.parti
   id: z.string(),
   pinned: z.boolean().optional(),
   archived: z.boolean().optional(),
+  favorite: z.boolean().optional(),
+  autoRenamed: z.boolean().optional(),
 });
 export type ConversationUpdateInput = z.infer<typeof ConversationUpdateInputSchema>;

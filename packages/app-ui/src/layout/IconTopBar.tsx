@@ -12,30 +12,32 @@ import { Brain, Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } 
 import { primaryNavAtom, settingsSectionAtom, type PrimaryNav } from '@xiabao/state';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, cn } from '@xiabao/ui';
 
+import { useTranslation } from '../lib/useTranslation';
+
 import type { ReactNode } from 'react';
 
 interface NavItem {
   id: PrimaryNav;
-  label: string;
   icon: ReactNode;
 }
 
 const TOP_ITEMS: NavItem[] = [
-  { id: 'home', label: '首页', icon: <Home className="h-[18px] w-[18px]" /> },
-  { id: 'agent', label: '智能体', icon: <Brain className="h-[18px] w-[18px]" /> },
-  { id: 'image', label: '绘画', icon: <Image className="h-[18px] w-[18px]" /> },
-  { id: 'miniapp', label: '小程序', icon: <Puzzle className="h-[18px] w-[18px]" /> },
-  { id: 'translate', label: '翻译', icon: <Globe className="h-[18px] w-[18px]" /> },
+  { id: 'home', icon: <Home className="h-[18px] w-[18px]" /> },
+  { id: 'agent', icon: <Brain className="h-[18px] w-[18px]" /> },
+  { id: 'image', icon: <Image className="h-[18px] w-[18px]" /> },
+  { id: 'miniapp', icon: <Puzzle className="h-[18px] w-[18px]" /> },
+  { id: 'translate', icon: <Globe className="h-[18px] w-[18px]" /> },
 ];
 
 const RIGHT_ITEMS: NavItem[] = [
-  { id: 'chat', label: '聊天', icon: <MessageSquare className="h-[18px] w-[18px]" /> },
-  { id: 'settings', label: '设置', icon: <Settings className="h-[18px] w-[18px]" /> },
+  { id: 'chat', icon: <MessageSquare className="h-[18px] w-[18px]" /> },
+  { id: 'settings', icon: <Settings className="h-[18px] w-[18px]" /> },
 ];
 
 export function IconTopBar() {
   const [active, setActive] = useAtom(primaryNavAtom);
   const [section, setSection] = useAtom(settingsSectionAtom);
+  const { t } = useTranslation();
 
   function activate(id: PrimaryNav) {
     if (id === 'providers') {
@@ -71,7 +73,7 @@ export function IconTopBar() {
               key={item.id}
               active={isActive(item.id)}
               onClick={() => activate(item.id)}
-              label={item.label}
+              label={t(`iconNav.${item.id}`, { defaultValue: item.id })}
               icon={item.icon}
             />
           ))}
@@ -82,7 +84,7 @@ export function IconTopBar() {
               key={item.id}
               active={isActive(item.id)}
               onClick={() => activate(item.id)}
-              label={item.label}
+              label={t(`iconNav.${item.id}`, { defaultValue: item.id })}
               icon={item.icon}
             />
           ))}

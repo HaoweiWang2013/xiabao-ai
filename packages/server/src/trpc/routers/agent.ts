@@ -13,6 +13,7 @@ export const agentRouter = router({
         convId: z.string().optional(),
         modelId: z.string().optional(),
         toolsAllowed: z.array(z.string()).optional(),
+        workDir: z.string().optional(),
       }),
     )
     .subscription(({ ctx, input }) => {

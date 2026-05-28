@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 
 import { bootstrapDesktopContainer, type DesktopContainer } from './adapters';
 import { setupCrashReporter } from './crash-reporter';
@@ -112,6 +112,16 @@ void app.whenReady().then(async () => {
     setupProtocolHandlers(container);
 
     trpcHandle = createTrpcIpcHandler(container.services, container.repos);
+
+    ipcMain.handle('dialog:openDirectory', async () => {
+      if (!mainWindow) return null;
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+        title: '选择工作目录 — Agent 将只能在此文件夹内操作文件',
+      });
+      if (result.canceled || result.filePaths.length === 0) return null;
+      return result.filePaths[0];
+    });
   } catch (err) {
     console.error('[xiabao] bootstrap failed', err);
   }

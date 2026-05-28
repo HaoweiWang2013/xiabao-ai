@@ -382,6 +382,10 @@ When you have completed the task, provide your final answer without calling any 
             /* keep {} */
           }
 
+          if (input.workDir) {
+            args = { ...args, _workDir: input.workDir };
+          }
+
           if (isDangerousTool(tc.toolName)) {
             yield {
               type: 'confirm-tool',

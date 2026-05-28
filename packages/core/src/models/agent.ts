@@ -49,6 +49,7 @@ export const AgentRunInputSchema = z.object({
   convId: z.string().optional(),
   modelId: z.string().optional(),
   toolsAllowed: z.array(z.string()).optional(),
+  workDir: z.string().optional(),
 });
 export type AgentRunInput = z.infer<typeof AgentRunInputSchema>;
 

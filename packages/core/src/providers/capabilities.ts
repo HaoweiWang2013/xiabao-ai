@@ -16,7 +16,10 @@ interface CapabilityRule {
   /** 命中则赋予对应能力，使用 lower-case 子串匹配 */
   match: (id: string) => boolean;
   capability: Partial<
-    Pick<ModelCapability, 'tools' | 'vision' | 'reasoning' | 'jsonMode' | 'stt' | 'tts'>
+    Pick<
+      ModelCapability,
+      'tools' | 'vision' | 'reasoning' | 'jsonMode' | 'stt' | 'tts' | 'imageGeneration'
+    >
   >;
 }
 
@@ -113,6 +116,19 @@ const RULES: CapabilityRule[] = [
   {
     match: (id) => id.includes('tts-1') || id === 'tts-1' || id === 'tts-1-hd',
     capability: { tts: true },
+  },
+
+  // —— Image Generation ——
+  {
+    match: (id) =>
+      id.includes('dall-e') ||
+      id.includes('dalle') ||
+      id.includes('stable-diffusion') ||
+      id.includes('sdxl') ||
+      id.includes('flux') ||
+      id.includes('midjourney') ||
+      id.includes('imagen'),
+    capability: { imageGeneration: true },
   },
 ];
 

@@ -130,10 +130,12 @@ export interface ChatServiceDeps {
     models: ModelRepo;
     providers: ProviderRepo;
   };
+  /** AI 重命名设置读取器 */
+  getSetting?: <K extends string>(key: K) => Promise<unknown>;
 }
 
 export function createChatService(deps: ChatServiceDeps) {
-  const { logger, clock, providerService, toolService, knowledgeService, repos } = deps;
+  const { logger, clock, providerService, toolService, knowledgeService, repos, getSetting } = deps;
   const log = logger.child({ mod: 'chat.service' });
 
   /**
@@ -625,7 +627,7 @@ export function createChatService(deps: ChatServiceDeps) {
         await repos.messages.setMessageExtra(assistantMsg.message.id, { knowledgeHits: hits });
       }
 
-      const turns: ChatTurn[] = [...chain, userMsg].map(toChatTurn);
+      const turns: ChatTurn[] = sanitizeTurns([...chain, userMsg].map(toChatTurn));
       const instance = await providerService.instantiate(provider);
 
       yield* runProviderStream({
@@ -699,7 +701,7 @@ export function createChatService(deps: ChatServiceDeps) {
       const chain = await repos.messages.listActiveChain(conv.id);
       const cutoff = userParentId ? chain.findIndex((m) => m.message.id === userParentId) : -1;
       const visible = cutoff >= 0 ? chain.slice(0, cutoff + 1) : chain;
-      const turns: ChatTurn[] = visible.map(toChatTurn);
+      const turns: ChatTurn[] = sanitizeTurns(visible.map(toChatTurn));
 
       const assistantMsg = await repos.messages.appendAssistantDraft({
         convId: conv.id,
@@ -800,7 +802,9 @@ export function createChatService(deps: ChatServiceDeps) {
 
       const chain = await repos.messages.listActiveChain(conv.id);
       const cutoff = grandParentId ? chain.findIndex((m) => m.message.id === grandParentId) : -1;
-      const baseTurns: ChatTurn[] = (cutoff >= 0 ? chain.slice(0, cutoff + 1) : []).map(toChatTurn);
+      const baseTurns: ChatTurn[] = sanitizeTurns(
+        (cutoff >= 0 ? chain.slice(0, cutoff + 1) : []).map(toChatTurn),
+      );
 
       const newUser = await repos.messages.appendUser({
         convId: conv.id,
@@ -951,6 +955,168 @@ export function createChatService(deps: ChatServiceDeps) {
       log.info('import: conversation restored', { convId: conv.id, total: chain.length });
       return { conversation: conv, messageCount: chain.length };
     },
+
+    async autoRenameConversation(convId: string): Promise<string | null> {
+      if (!getSetting) return null;
+      const enabled = await getSetting('aiRename.enabled');
+      if (!enabled) return null;
+      const renameModelId = (await getSetting('aiRename.modelId')) as string | null;
+      if (!renameModelId) return null;
+
+      const conv = await repos.conversations.findById(convId);
+      if (!conv || conv.autoRenamed) return null;
+
+      const renameModel = await repos.models.findById(renameModelId);
+      if (!renameModel) return null;
+
+      const provider = await providerService.get(renameModel.providerId);
+      if (!provider) return null;
+
+      const chain = await repos.messages.listActiveChain(convId);
+      const userMsg = chain.find((m) => m.message.role === 'user');
+      const assistantMsg = chain.find((m) => m.message.role === 'assistant');
+      if (!userMsg || !assistantMsg) return null;
+
+      const userText = userMsg.parts
+        .filter((p) => p.kind === 'text')
+        .map((p) => p.text ?? '')
+        .join(' ')
+        .slice(0, 500);
+
+      const assistantText = assistantMsg.parts
+        .filter((p) => p.kind === 'text')
+        .map((p) => p.text ?? '')
+        .join(' ')
+        .slice(0, 200);
+
+      try {
+        const modelName = renameModel.id.includes(':')
+          ? renameModel.id.split(':').slice(1).join(':')
+          : renameModel.display;
+        const aiProvider = await providerService.instantiate(provider);
+        const stream = aiProvider.chat({
+          modelName,
+          turns: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  kind: 'text',
+                  text: `请根据以下对话内容生成一个简短的标题（最多20个字，不要引号）：\n\n用户：${userText}\n\n助手：${assistantText}\n\n标题：`,
+                },
+              ],
+            },
+          ],
+          temperature: 0.3,
+          maxOutputTokens: 50,
+        });
+
+        let titleText = '';
+        for await (const chunk of stream) {
+          if (chunk.delta) {
+            titleText += chunk.delta;
+          }
+        }
+
+        const title = titleText.trim().slice(0, 30) || conv.title;
+        await repos.conversations.rename(convId, title);
+        await repos.conversations.markAutoRenamed(convId);
+        return title;
+      } catch (err) {
+        log.warn('auto rename failed', { convId, err: (err as Error).message });
+        return null;
+      }
+    },
+
+    async translateText(input: {
+      text: string;
+      sourceLang?: string;
+      targetLang: string;
+      modelId: string;
+    }): Promise<string> {
+      const model = await repos.models.findById(input.modelId);
+      if (!model) throw new Error(`Model not found: ${input.modelId}`);
+
+      const provider = await providerService.get(model.providerId);
+      if (!provider) throw new Error(`Provider not found: ${model.providerId}`);
+
+      const sourceHint = input.sourceLang ? `\n\n源语言：${input.sourceLang}` : '';
+      const systemPrompt = `你是一个专业的翻译助手。請将用户输入的文本翻译成${input.targetLang}。只输出翻译结果，不要添加任何解释、标点修饰或额外内容。保持原文格式（换行、缩进等）。${sourceHint}`;
+
+      const modelName = model.id.includes(':')
+        ? model.id.split(':').slice(1).join(':')
+        : model.display;
+
+      const instance = await providerService.instantiate(provider);
+      const stream = instance.chat({
+        modelName,
+        turns: [{ role: 'user', parts: [{ kind: 'text', text: input.text }] }],
+        systemPrompt,
+        temperature: 0.1,
+        maxOutputTokens: 4096,
+      });
+
+      let result = '';
+      for await (const chunk of stream) {
+        if (chunk.delta) result += chunk.delta;
+      }
+      return result.trim();
+    },
+
+    async *translateTextStream(input: {
+      text: string;
+      sourceLang?: string;
+      targetLang: string;
+      modelId: string;
+      temperature?: number;
+      customSystemPrompt?: string;
+    }): AsyncIterable<ChatStreamEvent> {
+      const model = await repos.models.findById(input.modelId);
+      if (!model) {
+        yield { type: 'error', messageId: null, code: 'model_not_found', message: input.modelId };
+        return;
+      }
+
+      const provider = await providerService.get(model.providerId);
+      if (!provider) {
+        yield {
+          type: 'error',
+          messageId: null,
+          code: 'provider_not_found',
+          message: model.providerId,
+        };
+        return;
+      }
+
+      const sourceHint = input.sourceLang ? `\n\n源语言：${input.sourceLang}` : '';
+      const systemPrompt =
+        input.customSystemPrompt ??
+        `你是一个专业的翻译助手。請将用户输入的文本翻译成${input.targetLang}。只输出翻译结果，不要添加任何解释、标点修饰或额外内容。保持原文格式（换行、缩进等）。${sourceHint}`;
+
+      const modelName = model.id.includes(':')
+        ? model.id.split(':').slice(1).join(':')
+        : model.display;
+
+      const instance = await providerService.instantiate(provider);
+      const stream = instance.chat({
+        modelName,
+        turns: [{ role: 'user', parts: [{ kind: 'text', text: input.text }] }],
+        systemPrompt,
+        temperature: input.temperature ?? 0.1,
+        maxOutputTokens: 4096,
+      });
+
+      for await (const chunk of stream) {
+        if (chunk.delta) {
+          yield { type: 'delta', text: chunk.delta };
+        }
+      }
+      yield {
+        type: 'done',
+        messageId: '',
+        finishReason: 'stop',
+      };
+    },
   };
 }
 
@@ -1059,6 +1225,20 @@ function toChatTurn(mwp: MessageWithParts): ChatTurn {
     role: mwp.message.role,
     parts: mwp.parts.map(partToTurnPart).filter((p): p is ChatTurn['parts'][number] => p !== null),
   };
+}
+
+function sanitizeTurns(turns: ChatTurn[]): ChatTurn[] {
+  return turns.map((turn, i) => {
+    if (turn.role !== 'assistant') return turn;
+    const hasToolCalls = turn.parts.some((p) => p.kind === 'tool-call');
+    if (!hasToolCalls) return turn;
+    const next = turns[i + 1];
+    if (next && next.role === 'tool') return turn;
+    return {
+      ...turn,
+      parts: turn.parts.filter((p) => p.kind !== 'tool-call'),
+    };
+  });
 }
 
 function partToTurnPart(part: MessagePart): ChatTurn['parts'][number] | null {

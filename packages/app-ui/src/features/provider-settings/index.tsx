@@ -559,7 +559,7 @@ function CreateProviderDialog({
               >
                 {KINDS.map((k) => (
                   <option key={k.value} value={k.value}>
-                    {k.label}
+                    {t(`providers.kinds.${k.value}`, { defaultValue: k.label })}
                   </option>
                 ))}
               </select>

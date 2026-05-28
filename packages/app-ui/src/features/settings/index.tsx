@@ -19,6 +19,7 @@ import {
   Info,
   Keyboard,
   Palette,
+  Pencil,
   Plug,
   Shield,
   TerminalSquare,
@@ -33,6 +34,7 @@ import { ProviderSettings } from '../provider-settings';
 import { ToolSettings } from '../tool-settings';
 
 import { AboutSettings } from './AboutSettings';
+import { AiRenameSettings } from './AiRenameSettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { DataSettings } from './DataSettings';
 import { DeveloperSettings } from './DeveloperSettings';
@@ -42,28 +44,30 @@ import { SyncSettings } from './SyncSettings';
 import { WebSearchSettings } from './WebSearchSettings';
 
 import type { ReactNode } from 'react';
+import { useTranslation } from '../../lib/useTranslation';
 
 interface NavItem {
   id: SettingsSection;
-  label: string;
   icon: ReactNode;
 }
 
 const NAV: NavItem[] = [
-  { id: 'models', label: '模型供应商', icon: <Cpu className="h-3.5 w-3.5" /> },
-  { id: 'tools', label: '工具', icon: <Wrench className="h-3.5 w-3.5" /> },
-  { id: 'mcp', label: 'MCP', icon: <Plug className="h-3.5 w-3.5" /> },
-  { id: 'webSearch', label: '联网搜索', icon: <Globe className="h-3.5 w-3.5" /> },
-  { id: 'appearance', label: '外观', icon: <Palette className="h-3.5 w-3.5" /> },
-  { id: 'shortcuts', label: '快捷键', icon: <Keyboard className="h-3.5 w-3.5" /> },
-  { id: 'data', label: '数据', icon: <Database className="h-3.5 w-3.5" /> },
-  { id: 'privacy', label: '隐私', icon: <Shield className="h-3.5 w-3.5" /> },
-  { id: 'developer', label: '开发者', icon: <TerminalSquare className="h-3.5 w-3.5" /> },
-  { id: 'about', label: '关于', icon: <Info className="h-3.5 w-3.5" /> },
+  { id: 'models', icon: <Cpu className="h-3.5 w-3.5" /> },
+  { id: 'tools', icon: <Wrench className="h-3.5 w-3.5" /> },
+  { id: 'mcp', icon: <Plug className="h-3.5 w-3.5" /> },
+  { id: 'aiRename', icon: <Pencil className="h-3.5 w-3.5" /> },
+  { id: 'webSearch', icon: <Globe className="h-3.5 w-3.5" /> },
+  { id: 'appearance', icon: <Palette className="h-3.5 w-3.5" /> },
+  { id: 'shortcuts', icon: <Keyboard className="h-3.5 w-3.5" /> },
+  { id: 'data', icon: <Database className="h-3.5 w-3.5" /> },
+  { id: 'privacy', icon: <Shield className="h-3.5 w-3.5" /> },
+  { id: 'developer', icon: <TerminalSquare className="h-3.5 w-3.5" /> },
+  { id: 'about', icon: <Info className="h-3.5 w-3.5" /> },
 ];
 
 export function SettingsPage() {
   const [section, setSection] = useAtom(settingsSectionAtom);
+  const { t } = useTranslation();
 
   return (
     <div className="flex h-full">
@@ -82,7 +86,7 @@ export function SettingsPage() {
                 )}
               >
                 {item.icon}
-                {item.label}
+                {t(`settings.sections.${item.id}`, { defaultValue: item.id })}
               </button>
             </li>
           ))}
@@ -97,6 +101,8 @@ export function SettingsPage() {
           <McpSettings />
         ) : section === 'webSearch' ? (
           <WebSearchSettings />
+        ) : section === 'aiRename' ? (
+          <AiRenameSettings />
         ) : section === 'appearance' ? (
           <AppearanceSettings />
         ) : section === 'shortcuts' ? (
@@ -114,7 +120,7 @@ export function SettingsPage() {
           <AboutSettings />
         ) : (
           <ScrollArea className="text-muted-foreground flex-1 p-6 text-xs">
-            此分类暂未启用，敬请期待后续版本
+            {t('common.loading', { defaultValue: '加载中…' })}
           </ScrollArea>
         )}
       </div>

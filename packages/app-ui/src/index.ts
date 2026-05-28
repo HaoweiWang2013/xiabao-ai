@@ -9,6 +9,7 @@
  * desktop（electron-trpc IPC）与 web（fastify HTTP+WS）通过自定义的 tRPC 客户端注入。
  */
 export { ChatPanel } from './features/chat/index';
+export { SplitChatView } from './features/chat/SplitChatView';
 export { KnowledgePanel } from './features/knowledge/index';
 export { Onboarding } from './features/onboarding/index';
 export { PromptPanel } from './features/prompt/index';

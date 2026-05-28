@@ -11,6 +11,7 @@ import type { ImageGeneration } from '@xiabao/state';
 import { Badge, Card, ScrollArea, cn } from '@xiabao/ui';
 
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
 export function ImageGallery({ convId }: { convId?: string }) {
   const listQ = trpc.image.list.useQuery({ limit: 50, convId }, { staleTime: 30_000 });
@@ -55,25 +56,37 @@ export function ImageGallery({ convId }: { convId?: string }) {
 }
 
 function GalleryEmpty() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 px-6 py-20 text-center">
       <div className="from-muted/50 to-muted/20 ring-border/30 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br shadow-inner ring-1">
         <ImageIcon className="text-muted-foreground/25 h-12 w-12" strokeWidth={1.5} />
       </div>
       <div className="flex flex-col gap-2">
-        <p className="text-foreground/80 text-base font-semibold">还没有生成记录</p>
+        <p className="text-foreground/80 text-base font-semibold">
+          {t('image.emptyTitle', { defaultValue: 'No generations yet' })}
+        </p>
         <p className="text-muted-foreground/60 mx-auto max-w-[240px] text-[13px] leading-relaxed">
-          在上方输入描述并点击生成，开始创建你的第一张 AI 图像
+          {t('image.emptyDesc', {
+            defaultValue:
+              'Enter a description above and click generate to create your first AI image',
+          })}
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
         <div className="bg-muted/50 text-muted-foreground/70 border-border/40 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px]">
           <Sparkles className="h-3 w-3" />
-          <span>描述越详细效果越好</span>
+          <span>
+            {t('image.tipDetail', { defaultValue: 'More detailed prompts yield better results' })}
+          </span>
         </div>
         <div className="bg-muted/50 text-muted-foreground/70 border-border/40 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px]">
-          <span className="font-medium">支持</span>
-          <span>风格、色彩、构图等细节</span>
+          <span className="font-medium">
+            {t('image.tipDetail2', {
+              defaultValue: 'Style, colors, composition and other details',
+            })}
+          </span>
         </div>
       </div>
     </div>

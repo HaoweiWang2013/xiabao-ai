@@ -86,6 +86,7 @@ export const ModelCapabilitySchema = z
     reasoning: z.boolean().default(false),
     stt: z.boolean().default(false),
     tts: z.boolean().default(false),
+    imageGeneration: z.boolean().default(false),
   })
   .partial();
 export type ModelCapability = z.infer<typeof ModelCapabilitySchema>;

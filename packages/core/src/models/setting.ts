@@ -35,6 +35,8 @@ export const SettingsSchema = {
   'webSearch.googleApiKey': z.string().nullable().default(null),
   'webSearch.googleCx': z.string().nullable().default(null),
   'webSearch.maxContentLength': z.number().int().min(500).max(10000).default(3000),
+  'aiRename.modelId': z.string().nullable().default(null),
+  'aiRename.enabled': z.boolean().default(true),
 } as const;
 
 export type SettingsKey = keyof typeof SettingsSchema;

@@ -273,8 +273,7 @@ export function createToolService(deps: ToolServiceDeps) {
   const fileReadTool: ToolImpl = {
     descriptor: {
       name: 'file_read',
-      description:
-        'Read the content of a local file. Only files under the allowed directory can be read.',
+      description: 'Read the content of a local file.',
       parameters: {
         type: 'object',
         properties: {
@@ -284,24 +283,108 @@ export function createToolService(deps: ToolServiceDeps) {
       },
     },
     async execute(args: Record<string, unknown>) {
-      if (!allowedReadDir)
-        throw new Error('file_read: file reading is not allowed (no allowedReadDir configured)');
+      const workDir = args._workDir as string | undefined;
+      const readDir = workDir ?? allowedReadDir;
+      if (!readDir)
+        throw new Error('file_read: file reading is not allowed (no read directory configured)');
       const rawPath = String(args.path ?? '');
       if (!rawPath) throw new Error('file_read: path is required');
       const pathMod = await import('node:path');
       const fsMod = await import('node:fs/promises');
-      const resolved = pathMod.resolve(allowedReadDir, rawPath);
+      const resolved = pathMod.resolve(readDir, rawPath);
       const normalized = pathMod.normalize(resolved);
-      const allowedNorm = pathMod.normalize(allowedReadDir);
-      if (!normalized.startsWith(allowedNorm + '/') && normalized !== allowedNorm) {
+      const allowedNorm = pathMod.normalize(readDir);
+      if (!normalized.startsWith(allowedNorm + pathMod.sep) && normalized !== allowedNorm) {
         throw new Error(`file_read: path "${rawPath}" is outside allowed directory`);
       }
       const content = await fsMod.readFile(normalized, 'utf-8');
       const maxLen = 10000;
       return {
         path: normalized,
-        content: content.length > maxLen ? content.slice(0, maxLen) + '…(truncated)' : content,
+        content: content.length > maxLen ? content.slice(0, maxLen) + '\u2026(truncated)' : content,
       };
+    },
+  };
+
+  /** file_write：写入本地文件 */
+  const fileWriteTool: ToolImpl = {
+    descriptor: {
+      name: 'file_write',
+      description: 'Write content to a local file. Creates parent directories if needed.',
+      parameters: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Absolute or relative path to the file' },
+          content: { type: 'string', description: 'The content to write' },
+        },
+        required: ['path', 'content'],
+      },
+    },
+    async execute(args: Record<string, unknown>) {
+      const workDir = args._workDir as string | undefined;
+      const rawPath = String(args.path ?? '');
+      const content = String(args.content ?? '');
+      if (!rawPath) throw new Error('file_write: path is required');
+      const pathMod = await import('node:path');
+      const fsMod = await import('node:fs/promises');
+
+      let resolved: string;
+      if (workDir) {
+        resolved = pathMod.resolve(workDir, rawPath);
+        const normalized = pathMod.normalize(resolved);
+        const allowedNorm = pathMod.normalize(workDir);
+        if (!normalized.startsWith(allowedNorm + pathMod.sep) && normalized !== allowedNorm) {
+          throw new Error(`file_write: path "${rawPath}" is outside work directory`);
+        }
+      } else {
+        resolved = pathMod.resolve(rawPath);
+      }
+
+      await fsMod.mkdir(pathMod.dirname(resolved), { recursive: true });
+      await fsMod.writeFile(resolved, content, 'utf-8');
+      return { path: resolved, written: content.length };
+    },
+  };
+
+  /** run_shell：执行命令行 */
+  const runShellTool: ToolImpl = {
+    descriptor: {
+      name: 'run_shell',
+      description: 'Execute a shell command and return stdout/stderr. Use with caution.',
+      parameters: {
+        type: 'object',
+        properties: {
+          command: { type: 'string', description: 'The shell command to execute' },
+        },
+        required: ['command'],
+      },
+    },
+    async execute(args: Record<string, unknown>) {
+      const workDir = args._workDir as string | undefined;
+      const command = String(args.command ?? '');
+      if (!command) throw new Error('run_shell: command is required');
+      const cpMod = await import('node:child_process');
+      const { execFile } = cpMod;
+
+      return new Promise<{ stdout: string; stderr: string; exitCode: number | null }>((resolve) => {
+        const child = execFile(
+          process.platform === 'win32' ? 'cmd.exe' : '/bin/sh',
+          [process.platform === 'win32' ? '/c' : '-c', command],
+          {
+            cwd: workDir || process.cwd(),
+            timeout: 30000,
+            maxBuffer: 1024 * 1024,
+            windowsHide: true,
+          },
+          (err, stdout, stderr) => {
+            resolve({
+              stdout: stdout.slice(0, 10000),
+              stderr: stderr.slice(0, 5000),
+              exitCode: err ? ((err as any).code ?? 1) : 0,
+            });
+          },
+        );
+      });
     },
   };
 
@@ -665,6 +748,8 @@ export function createToolService(deps: ToolServiceDeps) {
   registry.set(echoTool.descriptor.name, echoTool);
   registry.set(fetchTool.descriptor.name, fetchTool);
   registry.set(fileReadTool.descriptor.name, fileReadTool);
+  registry.set(fileWriteTool.descriptor.name, fileWriteTool);
+  registry.set(runShellTool.descriptor.name, runShellTool);
   registry.set(searchTool.descriptor.name, searchTool);
   registry.set(fetchPageTool.descriptor.name, fetchPageTool);
   registry.set(runJsTool.descriptor.name, runJsTool);

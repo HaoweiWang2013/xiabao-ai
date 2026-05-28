@@ -62,7 +62,7 @@ export function ModelSelector({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 p-1">
-        <ScrollArea className="scroll-thin max-h-72">
+        <ScrollArea className="scroll-thin h-72 max-h-72">
           {models.length === 0 ? (
             <div className="text-muted-foreground px-3 py-4 text-xs">
               没有可用模型，先到设置中启用 Provider 与模型。

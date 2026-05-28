@@ -172,6 +172,7 @@ export const activeTabIdAtom = createPersistedAtom<string | null>('chat.activeTa
 /** 全局 setSettingsTab */
 export type SettingsSection =
   | 'models'
+  | 'aiRename'
   | 'appearance'
   | 'shortcuts'
   | 'data'
@@ -222,6 +223,14 @@ export const agentStepsAtom = atom<AgentStepState[]>([]);
 export type AgentPanelMode = 'cards' | 'split' | 'canvas';
 export const agentPanelModeAtom = createPersistedAtom<AgentPanelMode>('agent.panelMode', 'cards');
 
+export interface AgentModelSelection {
+  providerId: string;
+  modelId: string;
+  modelDisplay: string;
+  providerName: string;
+}
+export const agentModelAtom = createPersistedAtom<AgentModelSelection | null>('agent.model', null);
+
 // ── MCP ──
 
 export interface McpServerState {
@@ -258,3 +267,24 @@ export const voiceAutoSendAtom = createPersistedAtom<boolean>('voice.autoSend', 
 
 export const syncEnabledAtom = createPersistedAtom<boolean>('sync.enabled', false);
 export const syncConfiguredAtom = createPersistedAtom<boolean>('sync.configured', false);
+
+// ── 分屏 ──
+
+export interface SplitPaneState {
+  id: string;
+  activeTabId: string | null;
+}
+
+export interface SplitLayoutState {
+  direction: 'horizontal' | 'vertical';
+  panes: SplitPaneState[];
+  sizes: number[];
+}
+
+export const splitLayoutAtom = createPersistedAtom<SplitLayoutState>('chat.splitLayout', {
+  direction: 'horizontal',
+  panes: [{ id: 'main', activeTabId: null }],
+  sizes: [100],
+});
+
+export const focusedPaneIdAtom = atom<string | null>(null);

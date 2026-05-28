@@ -17,6 +17,8 @@ export const conversations = sqliteTable(
     folder: text('folder'),
     pinned: integer('pinned', { mode: 'boolean' }).notNull().default(false),
     archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
+    favorite: integer('favorite', { mode: 'boolean' }).notNull().default(false),
+    autoRenamed: integer('auto_renamed', { mode: 'boolean' }).notNull().default(false),
     color: text('color'),
     icon: text('icon'),
     kind: text('kind', { enum: ['chat', 'translate', 'image', 'voice', 'agent'] })

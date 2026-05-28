@@ -153,6 +153,70 @@ export const chatRouter = router({
       return { ok: true as const };
     }),
 
+  renameConversation: procedure
+    .input(z.object({ id: z.string(), title: z.string().min(1).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      const conv = await ctx.repos.conversations.rename(input.id, input.title);
+      return conv;
+    }),
+
+  toggleFavorite: procedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    const conv = await ctx.repos.conversations.toggleFavorite(input.id);
+    return conv;
+  }),
+
+  autoRenameConversation: procedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const title = await ctx.services.chat.autoRenameConversation(input.id);
+      return { title };
+    }),
+
+  translateText: procedure
+    .input(
+      z.object({
+        text: z.string().min(1),
+        sourceLang: z.string().optional(),
+        targetLang: z.string(),
+        modelId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.services.chat.translateText(input);
+      return { text: result };
+    }),
+
+  translateTextStream: procedure
+    .input(
+      z.object({
+        text: z.string().min(1),
+        sourceLang: z.string().optional(),
+        targetLang: z.string(),
+        modelId: z.string(),
+        temperature: z.number().min(0).max(2).optional(),
+        customSystemPrompt: z.string().optional(),
+      }),
+    )
+    .subscription(({ ctx, input }) => {
+      return observable<ChatStreamEvent>((emit) => {
+        let cancelled = false;
+        void (async () => {
+          try {
+            for await (const evt of ctx.services.chat.translateTextStream(input)) {
+              if (cancelled) return;
+              emit.next(evt);
+            }
+            if (!cancelled) emit.complete();
+          } catch (err) {
+            if (!cancelled) emit.error(err);
+          }
+        })();
+        return () => {
+          cancelled = true;
+        };
+      });
+    }),
+
   importConversation: procedure
     .input(ImportConversationInputSchema)
     .mutation(({ ctx, input }) => ctx.services.chat.importConversation(input)),

@@ -1,32 +1,55 @@
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button, Textarea } from '@xiabao/ui';
 
+import { ModelSelector, type ModelOption } from '../../components/ModelSelector';
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
 import { ImageGallery } from './ImageGallery';
 
-const DEFAULT_MODELS = [
-  { id: 'dall-e-3', label: 'DALL·E 3' },
-  { id: 'dall-e-2', label: 'DALL·E 2' },
+const SIZES_VALUES: { value: string; key: string }[] = [
+  { value: '1024x1024', key: 'sizeSquare' },
+  { value: '1792x1024', key: 'sizeLandscape' },
+  { value: '1024x1792', key: 'sizePortrait' },
 ];
 
-const SIZES: { label: string; value: string }[] = [
-  { label: '1024×1024（方形）', value: '1024x1024' },
-  { label: '1792×1024（横幅）', value: '1792x1024' },
-  { label: '1024×1792（竖幅）', value: '1024x1792' },
-];
-
-const QUALITIES: { label: string; value: string }[] = [
-  { label: '标准', value: 'standard' },
-  { label: '高清（HD）', value: 'hd' },
+const QUALITIES_VALUES: { value: string; key: string }[] = [
+  { value: 'standard', key: 'qualityStandard' },
+  { value: 'hd', key: 'qualityHD' },
 ];
 
 export function ImageWorkspace() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
+  const providersQ = trpc.provider.listWithModels.useQuery();
+
+  const modelOptions: ModelOption[] = useMemo(
+    () =>
+      (providersQ.data ?? [])
+        .filter((p) => p.provider.enabled)
+        .flatMap((p) =>
+          p.models
+            .filter((m) => m.enabled && m.capability?.imageGeneration)
+            .map<ModelOption>((m) => ({
+              providerId: p.provider.id,
+              providerName: p.provider.name,
+              modelId: m.id,
+              modelDisplay: m.display,
+              capabilities: Object.entries(m.capability ?? {})
+                .filter(([, v]) => v)
+                .map(([k]) => k),
+            })),
+        ),
+    [providersQ.data],
+  );
+
   const [prompt, setPrompt] = useState('');
-  const [modelId, setModelId] = useState('dall-e-3');
+  const [selectedModel, setSelectedModel] = useState<{
+    providerId: string;
+    modelId: string;
+  } | null>(null);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
   const [activeOp, setActiveOp] = useState<{
@@ -50,7 +73,17 @@ export function ImageWorkspace() {
   const [guidance, setGuidance] = useState<number | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const isDalle3 = modelId === 'dall-e-3';
+  const selectedModelInfo = useMemo(
+    () =>
+      selectedModel
+        ? (modelOptions.find(
+            (m) => m.providerId === selectedModel.providerId && m.modelId === selectedModel.modelId,
+          ) ?? null)
+        : null,
+    [selectedModel, modelOptions],
+  );
+
+  const isDalle3 = selectedModelInfo?.modelId.toLowerCase().includes('dall-e-3') ?? false;
 
   trpc.image.generate.useSubscription(activeOp ?? { prompt: '', modelId: '' }, {
     enabled: activeOp != null,
@@ -74,13 +107,13 @@ export function ImageWorkspace() {
 
   function handleGenerate() {
     const text = prompt.trim();
-    if (!text || generating) return;
+    if (!text || generating || !selectedModel) return;
 
     setGenError(null);
     setGenerating(true);
     setActiveOp({
       prompt: text,
-      modelId,
+      modelId: selectedModel.modelId,
       size,
       quality: isDalle3 ? quality : undefined,
       n,
@@ -98,6 +131,23 @@ export function ImageWorkspace() {
     }
   }
 
+  const SIZES = useMemo(
+    () =>
+      SIZES_VALUES.map((s) => ({
+        label: t(`image.${s.key}`, { defaultValue: s.key }),
+        value: s.value,
+      })),
+    [t],
+  );
+  const QUALITIES = useMemo(
+    () =>
+      QUALITIES_VALUES.map((q) => ({
+        label: t(`image.${q.key}`, { defaultValue: q.key }),
+        value: q.value,
+      })),
+    [t],
+  );
+
   return (
     <div className="bg-background flex h-full min-h-0 flex-col">
       <header className="border-border/40 bg-background/95 supports-[backdrop-filter]:bg-background/80 flex h-12 shrink-0 items-center border-b px-5 backdrop-blur-sm">
@@ -105,7 +155,9 @@ export function ImageWorkspace() {
           <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
             <ImageIcon className="text-primary h-3.5 w-3.5" strokeWidth={2} />
           </div>
-          <h2 className="text-sm font-semibold tracking-tight">图像生成</h2>
+          <h2 className="text-sm font-semibold tracking-tight">
+            {t('image.title', { defaultValue: '图像生成' })}
+          </h2>
         </div>
       </header>
 
@@ -116,7 +168,9 @@ export function ImageWorkspace() {
           {sidebarOpen && (
             <div className="flex h-full flex-col overflow-y-auto p-3">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs font-medium">参数</span>
+                <span className="text-xs font-medium">
+                  {t('image.params', { defaultValue: '参数' })}
+                </span>
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(false)}
@@ -127,7 +181,7 @@ export function ImageWorkspace() {
               </div>
 
               <div className="flex flex-col gap-4">
-                <Field label="尺寸">
+                <Field label={t('image.size', { defaultValue: '尺寸' })}>
                   <SelectField
                     value={size}
                     onChange={setSize}
@@ -137,7 +191,7 @@ export function ImageWorkspace() {
                 </Field>
 
                 {isDalle3 && (
-                  <Field label="质量">
+                  <Field label={t('image.quality', { defaultValue: '质量' })}>
                     <SelectField
                       value={quality}
                       onChange={setQuality}
@@ -147,7 +201,7 @@ export function ImageWorkspace() {
                   </Field>
                 )}
 
-                <Field label="数量">
+                <Field label={t('image.count', { defaultValue: '数量' })}>
                   <input
                     type="number"
                     min={1}
@@ -159,18 +213,20 @@ export function ImageWorkspace() {
                   />
                 </Field>
 
-                <Field label="负面提示词">
+                <Field label={t('image.negative', { defaultValue: '负面提示词' })}>
                   <textarea
                     value={negative}
                     onChange={(e) => setNegative(e.target.value)}
-                    placeholder="不希望在图像中出现的内容…"
+                    placeholder={t('image.negativePh', {
+                      defaultValue: '不希望在图像中出现的内容…',
+                    })}
                     rows={2}
                     disabled={generating}
                     className="bg-muted/50 text-muted-foreground hover:text-foreground border-border/50 placeholder:text-muted-foreground/50 focus-visible:ring-ring w-full resize-none rounded-md border px-2 py-1.5 text-[11px] leading-relaxed transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50"
                   />
                 </Field>
 
-                <Field label="Steps">
+                <Field label={t('image.steps', { defaultValue: 'Steps' })}>
                   <input
                     type="number"
                     min={1}
@@ -180,13 +236,13 @@ export function ImageWorkspace() {
                       const v = e.target.value;
                       setSteps(v ? Math.max(1, Math.min(150, Number(v))) : undefined);
                     }}
-                    placeholder="自动"
+                    placeholder={t('image.auto', { defaultValue: '自动' })}
                     disabled={generating}
                     className="bg-muted/50 text-muted-foreground hover:text-foreground border-border/50 focus-visible:ring-ring h-7 w-full rounded-md border px-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50"
                   />
                 </Field>
 
-                <Field label="Seed">
+                <Field label={t('image.seed', { defaultValue: 'Seed' })}>
                   <input
                     type="number"
                     value={seed ?? ''}
@@ -194,13 +250,13 @@ export function ImageWorkspace() {
                       const v = e.target.value;
                       setSeed(v ? Number(v) : undefined);
                     }}
-                    placeholder="随机"
+                    placeholder={t('image.seedRandom', { defaultValue: '随机' })}
                     disabled={generating}
                     className="bg-muted/50 text-muted-foreground hover:text-foreground border-border/50 focus-visible:ring-ring h-7 w-full rounded-md border px-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50"
                   />
                 </Field>
 
-                <Field label="Guidance">
+                <Field label={t('image.guidance', { defaultValue: 'Guidance' })}>
                   <input
                     type="number"
                     min={0}
@@ -216,14 +272,17 @@ export function ImageWorkspace() {
                       const num = Number(v);
                       setGuidance(Math.max(0, Math.min(20, num)));
                     }}
-                    placeholder="自动"
+                    placeholder={t('image.auto', { defaultValue: '自动' })}
                     disabled={generating}
                     className="bg-muted/50 text-muted-foreground hover:text-foreground border-border/50 focus-visible:ring-ring h-7 w-full rounded-md border px-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:opacity-50"
                   />
                 </Field>
 
                 <p className="text-muted-foreground/50 text-[10px] leading-relaxed">
-                  Steps / Seed / Guidance 用于兼容 SD / Flux 等本地模型，DALL·E 下仅存储不参与生成。
+                  {t('image.footerHint', {
+                    defaultValue:
+                      'Steps / Seed / Guidance 用于兼容 SD / Flux 等本地模型，DALL·E 下仅存储不参与生成。',
+                  })}
                 </p>
               </div>
             </div>
@@ -270,40 +329,41 @@ export function ImageWorkspace() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="描述你想生成的图像，越详细越好…"
+                placeholder={t('image.promptPh', {
+                  defaultValue: '描述你想生成的图像，越详细越好…',
+                })}
                 rows={2}
                 className="border-border/40 bg-background/80 focus:border-primary/40 focus:ring-primary/15 flex-1 resize-none rounded-xl text-sm leading-relaxed shadow-sm transition-all duration-150 focus:ring-2"
                 disabled={generating}
               />
-              <div className="flex shrink-0 flex-col gap-2">
-                <select
-                  value={modelId}
-                  onChange={(e) => setModelId(e.target.value)}
-                  className="bg-muted/50 text-muted-foreground hover:text-foreground border-border/50 focus-visible:ring-ring h-9 cursor-pointer appearance-none rounded-lg border px-3 py-1.5 pr-7 text-[12px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-50"
-                  disabled={generating}
-                >
-                  {DEFAULT_MODELS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex shrink-0 flex-col items-stretch gap-2">
+                <ModelSelector
+                  models={modelOptions}
+                  value={selectedModel}
+                  onChange={(m) =>
+                    setSelectedModel({
+                      providerId: m.providerId,
+                      modelId: m.modelId,
+                    })
+                  }
+                  placeholder={t('image.modelPh', { defaultValue: '选择图像模型…' })}
+                />
                 <Button
                   size="sm"
                   variant="primary"
                   onClick={handleGenerate}
-                  disabled={!prompt.trim() || generating}
+                  disabled={!prompt.trim() || generating || !selectedModel}
                   className="gap-1.5 rounded-lg px-4 font-medium shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {generating ? (
                     <>
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span>生成中…</span>
+                      <span>{t('image.generating', { defaultValue: '生成中…' })}</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>生成</span>
+                      <span>{t('image.generate', { defaultValue: '生成' })}</span>
                     </>
                   )}
                 </Button>
@@ -320,7 +380,9 @@ export function ImageWorkspace() {
                   Enter
                 </kbd>
               </div>
-              <span className="text-[13px]">快速生成</span>
+              <span className="text-[13px]">
+                {t('image.shortcutHint', { defaultValue: '快速生成' })}
+              </span>
             </div>
           </div>
         </div>

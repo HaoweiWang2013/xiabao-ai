@@ -13,11 +13,14 @@ import { MessageSquare, Plus, Sparkles, X } from 'lucide-react';
 import { activeTabIdAtom, openTabsAtom } from '@xiabao/state';
 import { IconButton, cn } from '@xiabao/ui';
 
+import { useTranslation } from '../lib/useTranslation';
+
 interface Props {
   onNewTab?: () => void;
 }
 
 export function TabBar({ onNewTab }: Props) {
+  const { t } = useTranslation();
   const [tabs, setTabs] = useAtom(openTabsAtom);
   const [active, setActive] = useAtom(activeTabIdAtom);
 
@@ -35,7 +38,9 @@ export function TabBar({ onNewTab }: Props) {
     <div className="app-page-header glass border-border/40 flex h-9 shrink-0 items-center gap-0 border-b">
       <div className="flex h-full flex-1 items-center overflow-x-auto">
         {tabs.length === 0 ? (
-          <div className="text-muted-foreground px-3 text-xs">未打开任何会话</div>
+          <div className="text-muted-foreground px-3 text-xs">
+            {t('tabBar.empty', { defaultValue: '未打开任何会话' })}
+          </div>
         ) : (
           tabs.map((tab) => {
             const isActive = active === tab.id;
@@ -61,7 +66,7 @@ export function TabBar({ onNewTab }: Props) {
                   <MessageSquare className="h-3 w-3 shrink-0 opacity-60" />
                 )}
                 <span className="truncate" title={tab.title}>
-                  {tab.title || '未命名'}
+                  {tab.title || t('tabBar.unnamed', { defaultValue: '未命名' })}
                 </span>
                 <button
                   type="button"

@@ -4,7 +4,7 @@
  * 统一管理 ChatPanel 中所有流式传输操作（send、regenerate、editAndResend）。
  * 封装重复的 subscription 逻辑和状态管理。
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import type { ChatStreamEvent } from '@xiabao/server';
 import { trpc } from '../lib/trpc';
@@ -43,7 +43,7 @@ interface UseChatStreamResult {
   utils: ReturnType<typeof trpc.useUtils>;
 }
 
-export function useChatStream(convId: string): UseChatStreamResult {
+export function useChatStream(convId: string, onStreamDone?: () => void): UseChatStreamResult {
   const utils = trpc.useUtils();
   const [streaming, setStreaming] = useState(false);
   const [pending, setPending] = useState<{ id: string; text: string; reasoning: string } | null>(
@@ -51,6 +51,9 @@ export function useChatStream(convId: string): UseChatStreamResult {
   );
   const [error, setError] = useState<string | null>(null);
   const [activeOperation, setActiveOperation] = useState<StreamOperation | null>(null);
+
+  const onStreamDoneRef = useRef(onStreamDone);
+  onStreamDoneRef.current = onStreamDone;
 
   const invalidateChain = useCallback(() => {
     void utils.chat.listActiveChain.invalidate({ conversationId: convId });
@@ -75,6 +78,7 @@ export function useChatStream(convId: string): UseChatStreamResult {
         setActiveOperation(null);
         invalidateChain();
         void utils.chat.listConversations.invalidate();
+        if (evt.type === 'done') onStreamDoneRef.current?.();
       }
     },
     [invalidateChain, utils],

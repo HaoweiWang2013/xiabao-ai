@@ -13,6 +13,8 @@ import remarkGfm from 'remark-gfm';
 
 import { cn } from '@xiabao/ui';
 
+import { useTranslation } from '../lib/useTranslation';
+
 import type { Components } from 'react-markdown';
 
 interface Props {
@@ -114,6 +116,7 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ language, text, children }: CodeBlockProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   function handleCopy() {
     void navigator.clipboard.writeText(text).then(() => {
@@ -134,11 +137,11 @@ export function CodeBlock({ language, text, children }: CodeBlockProps) {
         >
           {copied ? (
             <>
-              <Check className="h-3 w-3" /> 已复制
+              <Check className="h-3 w-3" /> {t('markdown.copied', { defaultValue: '已复制' })}
             </>
           ) : (
             <>
-              <Copy className="h-3 w-3" /> 复制
+              <Copy className="h-3 w-3" /> {t('markdown.copy', { defaultValue: '复制' })}
             </>
           )}
         </button>

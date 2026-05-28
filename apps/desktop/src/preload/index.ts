@@ -12,6 +12,7 @@ const xiabao = {
   platform: process.platform,
   arch: process.arch,
   versions: process.versions,
+  pickDirectory: () => ipcRenderer.invoke('dialog:openDirectory') as Promise<string | null>,
   onThemeChange: (cb: (theme: 'light' | 'dark') => void) => {
     const listener = (_: unknown, theme: 'light' | 'dark') => cb(theme);
     ipcRenderer.on('xiabao:theme-changed', listener);

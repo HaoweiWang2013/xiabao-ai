@@ -64,6 +64,8 @@ export function createConversationRepo({ db, now, deviceId = null }: Conversatio
         folder: input.folder ?? null,
         pinned: false,
         archived: false,
+        favorite: false,
+        autoRenamed: false,
         color: input.color ?? null,
         icon: input.icon ?? null,
         kind: input.kind ?? 'chat',
@@ -96,6 +98,8 @@ export function createConversationRepo({ db, now, deviceId = null }: Conversatio
       if (input.folder !== undefined) patch.folder = input.folder ?? null;
       if (input.pinned !== undefined) patch.pinned = input.pinned;
       if (input.archived !== undefined) patch.archived = input.archived;
+      if (input.favorite !== undefined) patch.favorite = input.favorite;
+      if (input.autoRenamed !== undefined) patch.autoRenamed = input.autoRenamed;
       if (input.color !== undefined) patch.color = input.color ?? null;
       if (input.icon !== undefined) patch.icon = input.icon ?? null;
       if (input.kind !== undefined) patch.kind = input.kind;
@@ -129,6 +133,39 @@ export function createConversationRepo({ db, now, deviceId = null }: Conversatio
         .set({ deletedAt: ts, updatedAt: ts })
         .where(eq(conversations.id, id));
     },
+
+    async rename(id: string, title: string): Promise<Conversation> {
+      const ts = now();
+      await db.update(conversations).set({ title, updatedAt: ts }).where(eq(conversations.id, id));
+      const row = await this.findById(id);
+      if (!row) throw new Error(`ConversationRepo.rename: conversation not found (${id})`);
+      return row;
+    },
+
+    async toggleFavorite(id: string): Promise<Conversation> {
+      const row = await this.findById(id);
+      if (!row) throw new Error(`ConversationRepo.toggleFavorite: conversation not found (${id})`);
+      const ts = now();
+      await db
+        .update(conversations)
+        .set({ favorite: !row.favorite, updatedAt: ts })
+        .where(eq(conversations.id, id));
+      const updated = await this.findById(id);
+      if (!updated)
+        throw new Error(`ConversationRepo.toggleFavorite: conversation not found (${id})`);
+      return updated;
+    },
+
+    async markAutoRenamed(id: string): Promise<Conversation> {
+      const ts = now();
+      await db
+        .update(conversations)
+        .set({ autoRenamed: true, updatedAt: ts })
+        .where(eq(conversations.id, id));
+      const row = await this.findById(id);
+      if (!row) throw new Error(`ConversationRepo.markAutoRenamed: conversation not found (${id})`);
+      return row;
+    },
   };
 }
 
@@ -146,6 +183,8 @@ function rowToConversation(row: ConversationRow): Conversation {
     folder: row.folder,
     pinned: Boolean(row.pinned),
     archived: Boolean(row.archived),
+    favorite: Boolean(row.favorite),
+    autoRenamed: Boolean(row.autoRenamed),
     color: row.color,
     icon: row.icon,
     kind: row.kind,

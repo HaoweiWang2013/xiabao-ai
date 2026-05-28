@@ -18,6 +18,7 @@ import { commandPaletteOpenAtom, primaryNavAtom, settingsSectionAtom } from '@xi
 import { Dialog, DialogContent, DialogPortal, cn } from '@xiabao/ui';
 
 import type { ReactNode } from 'react';
+import { useTranslation } from '../lib/useTranslation';
 
 export interface CommandConversationItem {
   id: string;
@@ -35,6 +36,7 @@ export function CommandPalette({
   onSelectConversation,
   onCreateConversation,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useAtom(commandPaletteOpenAtom);
   const [, setNav] = useAtom(primaryNavAtom);
   const [, setSettingsSection] = useAtom(settingsSectionAtom);
@@ -61,16 +63,18 @@ export function CommandPalette({
               <Search className="text-muted-foreground h-3.5 w-3.5" />
               <CommandPrimitive.Input
                 autoFocus
-                placeholder="Search commands, conversations..."
+                placeholder={t('commandPalette.searchPlaceholder', {
+                  defaultValue: 'Search commands, conversations...',
+                })}
                 className="placeholder:text-muted-foreground h-11 w-full bg-transparent py-3 text-sm outline-none"
               />
             </div>
             <CommandPrimitive.List className="scroll-thin max-h-[40vh] overflow-auto px-2 py-2">
               <CommandPrimitive.Empty className="text-muted-foreground px-2 py-4 text-center text-xs">
-                没有匹配项
+                {t('commandPalette.noResults', { defaultValue: '没有匹配项' })}
               </CommandPrimitive.Empty>
 
-              <CmdGroup heading="命令">
+              <CmdGroup heading={t('commandPalette.commands', { defaultValue: '命令' })}>
                 <CmdItem
                   onSelect={() => {
                     onCreateConversation?.();
@@ -79,7 +83,7 @@ export function CommandPalette({
                   icon={<Sparkles className="h-3.5 w-3.5" />}
                   shortcut="Ctrl+N"
                 >
-                  新建对话
+                  {t('commandPalette.newConversation', { defaultValue: '新建对话' })}
                 </CmdItem>
                 <CmdItem
                   onSelect={() => {
@@ -89,7 +93,7 @@ export function CommandPalette({
                   icon={<SettingsIcon className="h-3.5 w-3.5" />}
                   shortcut="Ctrl+,"
                 >
-                  打开设置
+                  {t('commandPalette.openSettings', { defaultValue: '打开设置' })}
                 </CmdItem>
                 <CmdItem
                   onSelect={() => {
@@ -99,7 +103,7 @@ export function CommandPalette({
                   }}
                   icon={<Sliders className="h-3.5 w-3.5" />}
                 >
-                  模型供应商
+                  {t('commandPalette.models', { defaultValue: '模型供应商' })}
                 </CmdItem>
                 <CmdItem
                   onSelect={() => {
@@ -109,12 +113,12 @@ export function CommandPalette({
                   }}
                   icon={<Wrench className="h-3.5 w-3.5" />}
                 >
-                  查看工具
+                  {t('commandPalette.viewTools', { defaultValue: '查看工具' })}
                 </CmdItem>
               </CmdGroup>
 
               {conversations.length > 0 && (
-                <CmdGroup heading="会话">
+                <CmdGroup heading={t('commandPalette.conversations', { defaultValue: '会话' })}>
                   {conversations.slice(0, 50).map((c) => (
                     <CmdItem
                       key={c.id}
@@ -124,7 +128,9 @@ export function CommandPalette({
                       }}
                       icon={<MessageSquare className="h-3.5 w-3.5" />}
                     >
-                      <span className="truncate">{c.title || '未命名'}</span>
+                      <span className="truncate">
+                        {c.title || t('commandPalette.unnamed', { defaultValue: '未命名' })}
+                      </span>
                     </CmdItem>
                   ))}
                 </CmdGroup>

@@ -34,9 +34,11 @@ import {
   Skeleton,
 } from '@xiabao/ui';
 
+import { useTranslation } from '../../lib/useTranslation';
 import { trpc } from '../../lib/trpc';
 
 export function McpSettings() {
+  const { t } = useTranslation();
   const [servers, setServers] = useAtom(mcpServersAtom);
   const [tools, setTools] = useAtom(mcpToolsAtom);
   const [expandedServer, setExpandedServer] = useState<string | null>(null);
@@ -95,14 +97,18 @@ export function McpSettings() {
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
         <div>
-          <h2 className="text-sm font-semibold">MCP 服务器</h2>
+          <h2 className="text-sm font-semibold">
+            {t('mcp.title', { defaultValue: 'MCP 服务器' })}
+          </h2>
           <p className="text-muted-foreground text-[11px]">
-            管理 Model Context Protocol 服务器连接和工具授权
+            {t('mcp.subtitle', {
+              defaultValue: '管理 Model Context Protocol 服务器连接和工具授权',
+            })}
           </p>
         </div>
         <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
           <Plus className="mr-1 h-3.5 w-3.5" />
-          添加服务器
+          {t('mcp.addBtn', { defaultValue: '添加服务器' })}
         </Button>
       </header>
 
@@ -126,8 +132,12 @@ export function McpSettings() {
           ) : servers.length === 0 ? (
             <div className="border-border/40 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-12 text-center">
               <Plug className="text-muted-foreground h-8 w-8" />
-              <p className="text-muted-foreground text-sm">暂无 MCP 服务器</p>
-              <p className="text-muted-foreground text-xs">添加 MCP 服务器以扩展 AI 的工具能力</p>
+              <p className="text-muted-foreground text-sm">
+                {t('mcp.emptyTitle', { defaultValue: '暂无 MCP 服务器' })}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {t('mcp.emptyDesc', { defaultValue: '添加 MCP 服务器以扩展 AI 的工具能力' })}
+              </p>
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
@@ -149,7 +159,9 @@ export function McpSettings() {
                             variant={server.enabled ? 'success' : 'default'}
                             className="text-[10px]"
                           >
-                            {server.enabled ? '已启用' : '已禁用'}
+                            {server.enabled
+                              ? t('mcp.enabled', { defaultValue: '已启用' })
+                              : t('mcp.disabled', { defaultValue: '已禁用' })}
                           </Badge>
                           <Badge variant="outline" className="text-[10px]">
                             {server.transport}
@@ -177,7 +189,7 @@ export function McpSettings() {
                             ) : (
                               <RefreshCw className="mr-1 h-3.5 w-3.5" />
                             )}
-                            连接
+                            {t('mcp.connect', { defaultValue: '连接' })}
                           </Button>
                           <Button
                             size="sm"
@@ -185,7 +197,7 @@ export function McpSettings() {
                             onClick={() => disconnectMut.mutate({ id: server.id })}
                           >
                             <Unplug className="mr-1 h-3.5 w-3.5" />
-                            断开
+                            {t('mcp.disconnect', { defaultValue: '断开' })}
                           </Button>
                           <Button
                             size="sm"
@@ -197,7 +209,9 @@ export function McpSettings() {
                               })
                             }
                           >
-                            {server.enabled ? '禁用' : '启用'}
+                            {server.enabled
+                              ? t('mcp.disable', { defaultValue: '禁用' })
+                              : t('mcp.enable', { defaultValue: '启用' })}
                           </Button>
                           <Button
                             size="sm"
@@ -206,7 +220,7 @@ export function McpSettings() {
                             className="text-destructive"
                           >
                             <Trash2 className="mr-1 h-3.5 w-3.5" />
-                            删除
+                            {t('mcp.delete', { defaultValue: '删除' })}
                           </Button>
                           {sTools.length > 0 && (
                             <Button
@@ -219,7 +233,9 @@ export function McpSettings() {
                               ) : (
                                 <ChevronRight className="mr-1 h-3.5 w-3.5" />
                               )}
-                              工具 ({sTools.length})
+                              {t('mcp.toolsBadge', {
+                                defaultValue: '工具 ({sTools.length})',
+                              }).replace('{sTools.length}', String(sTools.length))}
                             </Button>
                           )}
                         </div>
@@ -238,12 +254,12 @@ export function McpSettings() {
                                       {tool.authorized ? (
                                         <Badge variant="success" className="text-[10px]">
                                           <ShieldCheck className="mr-0.5 h-3 w-3" />
-                                          已授权
+                                          {t('mcp.authorized', { defaultValue: '已授权' })}
                                         </Badge>
                                       ) : (
                                         <Badge variant="outline" className="text-[10px]">
                                           <Shield className="mr-0.5 h-3 w-3" />
-                                          未授权
+                                          {t('mcp.notAuthorized', { defaultValue: '未授权' })}
                                         </Badge>
                                       )}
                                     </div>
@@ -266,10 +282,10 @@ export function McpSettings() {
                                     {tool.authorized ? (
                                       <>
                                         <Check className="mr-1 h-3 w-3" />
-                                        撤销
+                                        {t('mcp.revoke', { defaultValue: '撤销' })}
                                       </>
                                     ) : (
-                                      '授权'
+                                      t('mcp.grant', { defaultValue: '授权' })
                                     )}
                                   </Button>
                                 </li>
@@ -291,6 +307,7 @@ export function McpSettings() {
 }
 
 function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [transport, setTransport] = useState<'stdio' | 'http' | 'sse'>('stdio');
   const [command, setCommand] = useState('');
@@ -315,13 +332,17 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
   return (
     <Card className="mb-4">
       <CardHeader>
-        <CardTitle className="text-sm">添加 MCP 服务器</CardTitle>
+        <CardTitle className="text-sm">
+          {t('mcp.dialogTitle', { defaultValue: '添加 MCP 服务器' })}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-muted-foreground mb-1 block text-xs">名称</label>
+              <label className="text-muted-foreground mb-1 block text-xs">
+                {t('mcp.nameLabel', { defaultValue: '名称' })}
+              </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -330,15 +351,19 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
               />
             </div>
             <div>
-              <label className="text-muted-foreground mb-1 block text-xs">传输方式</label>
+              <label className="text-muted-foreground mb-1 block text-xs">
+                {t('mcp.transportLabel', { defaultValue: '传输方式' })}
+              </label>
               <select
                 value={transport}
                 onChange={(e) => setTransport(e.target.value as 'stdio' | 'http' | 'sse')}
                 className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               >
-                <option value="stdio">stdio</option>
+                <option value="stdio">
+                  {t('mcp.transportStdio', { defaultValue: 'stdio（命令行）' })}
+                </option>
                 <option value="http">HTTP</option>
-                <option value="sse">SSE</option>
+                <option value="sse">{t('mcp.transportSse', { defaultValue: 'SSE' })}</option>
               </select>
             </div>
           </div>
@@ -346,7 +371,9 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
           {transport === 'stdio' ? (
             <>
               <div>
-                <label className="text-muted-foreground mb-1 block text-xs">命令</label>
+                <label className="text-muted-foreground mb-1 block text-xs">
+                  {t('mcp.commandLabel', { defaultValue: '命令' })}
+                </label>
                 <Input
                   value={command}
                   onChange={(e) => setCommand(e.target.value)}
@@ -355,7 +382,9 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
                 />
               </div>
               <div>
-                <label className="text-muted-foreground mb-1 block text-xs">参数 (JSON)</label>
+                <label className="text-muted-foreground mb-1 block text-xs">
+                  {t('mcp.argsLabel', { defaultValue: '参数 (JSON)' })}
+                </label>
                 <Input
                   value={args}
                   onChange={(e) => setArgs(e.target.value)}
@@ -365,7 +394,9 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
             </>
           ) : (
             <div>
-              <label className="text-muted-foreground mb-1 block text-xs">URL</label>
+              <label className="text-muted-foreground mb-1 block text-xs">
+                {t('mcp.urlLabel', { defaultValue: 'URL' })}
+              </label>
               <Input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -377,11 +408,11 @@ function AddServerForm({ onClose, onAdded }: { onClose: () => void; onAdded: () 
 
           <div className="flex justify-end gap-2">
             <Button type="button" size="sm" variant="outline" onClick={onClose}>
-              取消
+              {t('mcp.cancel', { defaultValue: '取消' })}
             </Button>
             <Button type="submit" size="sm" disabled={addMut.isLoading || !name}>
               {addMut.isLoading && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
-              添加
+              {t('mcp.createBtn', { defaultValue: '添加' })}
             </Button>
           </div>
         </form>

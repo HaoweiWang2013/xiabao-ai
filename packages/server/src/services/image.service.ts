@@ -22,7 +22,7 @@ import {
 } from '@xiabao/core';
 
 import type { ProviderService } from './provider.service';
-import type { ImageRepo } from '../repos';
+import type { ImageRepo, ModelRepo } from '../repos';
 
 export type ImageGenEvent =
   | { type: 'queued'; id: string }
@@ -57,6 +57,7 @@ export interface ImageServiceDeps {
   providerService: ProviderService;
   repos: {
     images: ImageRepo;
+    models: ModelRepo;
   };
 }
 
@@ -97,9 +98,14 @@ export function createImageService(deps: ImageServiceDeps) {
     try {
       await repos.images.updateStatus(id, { status: 'running' });
 
-      const provider = await providerService.get(input.modelId);
+      const model = await repos.models.findById(input.modelId);
+      if (!model) {
+        throw new Error(`Model not found: ${input.modelId}`);
+      }
+
+      const provider = await providerService.get(model.providerId);
       if (!provider) {
-        throw new Error(`Provider not found for model: ${input.modelId}`);
+        throw new Error(`Provider not found: ${model.providerId}`);
       }
 
       const instance = await providerService.instantiate(provider);
@@ -154,7 +160,7 @@ export function createImageService(deps: ImageServiceDeps) {
 
   return {
     async generate(input: ImageGenerateInput): Promise<{ id: string }> {
-      const model = await providerService.get(input.modelId);
+      const model = await repos.models.findById(input.modelId);
       if (!model) {
         throw new Error(`Model not found: ${input.modelId}`);
       }

@@ -24,12 +24,14 @@ import { type ModelOption } from '../../components/ModelSelector';
 import { ToolMessage } from '../../components/ToolMessage';
 import { TabBar } from '../../layout/TabBar';
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 import { useChatStream } from '../../hooks/useChatStream';
 
 import { KnowledgeBaseSelector } from './KnowledgeBaseSelector';
 import { KnowledgeDocSelector } from './KnowledgeDocSelector';
 import { KnowledgeHitsPanel } from './KnowledgeHitsPanel';
 import { Launcher } from './Launcher';
+import { usePaneContext } from './SplitChatView';
 
 type ChainMessageBundle = MessageWithParts;
 
@@ -40,13 +42,21 @@ interface SelectedModel {
   providerName: string;
 }
 
-export function ChatPanel() {
+export function ChatPanel({ hideTabBar = false }: { hideTabBar?: boolean } = {}) {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const conversationsQ = trpc.chat.listConversations.useQuery();
   const providersQ = trpc.provider.listWithModels.useQuery();
 
-  const [active, setActive] = useAtom(activeTabIdAtom);
-  const [tabs, setTabs] = useAtom(openTabsAtom);
+  const paneCtx = usePaneContext();
+  const [globalActive, setGlobalActive] = useAtom(activeTabIdAtom);
+  const [globalTabs, setGlobalTabs] = useAtom(openTabsAtom);
+
+  const active = paneCtx ? paneCtx.activeTabId : globalActive;
+  const tabs = paneCtx ? paneCtx.tabs : globalTabs;
+  const setActive = paneCtx ? paneCtx.setActiveTabId : setGlobalActive;
+  const setTabs = paneCtx ? paneCtx.setTabs : setGlobalTabs;
+
   const [, setNav] = useAtom(primaryNavAtom);
   const [, setSettingsSection] = useAtom(settingsSectionAtom);
 
@@ -110,8 +120,12 @@ export function ChatPanel() {
    * 用户在起始页里点应用图标，再决定下一步动作（建对话 / 跳模块）。
    */
   function handleNewTab() {
+    const { t } = useTranslation();
     const id = `launcher:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    setTabs((prev) => [...prev, { id, title: '起始页', type: 'launcher' }]);
+    setTabs((prev) => [
+      ...prev,
+      { id, title: t('chatMain.newTab', { defaultValue: '起始页' }), type: 'launcher' },
+    ]);
     setActive(id);
   }
 
@@ -142,7 +156,10 @@ export function ChatPanel() {
 
   // ── Launcher 跳转：能跳的直接跳，没占位 toast ──
   function launcherCreateChat() {
-    createConv.mutate({ title: `新对话 ${new Date().toLocaleTimeString()}` });
+    const { t } = useTranslation();
+    createConv.mutate({
+      title: `${t('chatMain.newConvPrefix', { defaultValue: '新对话' })} ${new Date().toLocaleTimeString()}`,
+    });
   }
   function launcherOpenKnowledge() {
     setNav('knowledge');
@@ -181,7 +198,7 @@ export function ChatPanel() {
 
   return (
     <div className="flex h-full flex-col">
-      <TabBar onNewTab={handleNewTab} />
+      {!paneCtx && !hideTabBar && <TabBar onNewTab={handleNewTab} />}
       {activeIsLauncher ? (
         <Launcher
           onCreateChat={launcherCreateChat}
@@ -250,23 +267,31 @@ export function ChatPanel() {
 }
 
 function NoModelState({ error, onOpenSettings }: { error?: string; onOpenSettings: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-full items-center justify-center px-6">
       <Card className="max-w-md p-6 text-center">
         <div className="bg-primary/10 text-primary mx-auto flex h-12 w-12 items-center justify-center rounded-2xl">
           <span className="text-lg">🤖</span>
         </div>
-        <h2 className="mt-4 text-lg font-semibold">还没有可用模型</h2>
+        <h2 className="mt-4 text-lg font-semibold">
+          {t('chatMain.noModelTitle', { defaultValue: '还没有可用模型' })}
+        </h2>
         <p className="text-muted-foreground mt-2 text-sm">
           {error
-            ? `模型配置加载失败：${error}`
-            : '已配置 Provider 但模型列表为空？请到设置 → Providers，点击 Provider 卡片上的 🔄 按钮从远端拉取模型列表。'}
+            ? `${t('chatMain.noModelError', { defaultValue: '模型配置加载失败：' })}${error}`
+            : t('chatMain.noModelHint', {
+                defaultValue:
+                  '已配置 Provider 但模型列表为空？请到设置 → Providers，点击 Provider 卡片上的 🔄 按钮从远端拉取模型列表。',
+              })}
         </p>
         <p className="text-muted-foreground/80 mt-1 text-xs">
-          注意：local-embedder 类型仅用于知识库向量化，不会出现在对话模型选择器。
+          {t('chatMain.localEmbedderNote', {
+            defaultValue: '注意：local-embedder 类型仅用于知识库向量化，不会出现在对话模型选择器。',
+          })}
         </p>
         <Button className="mt-5" onClick={onOpenSettings}>
-          打开模型设置
+          {t('chatMain.openModelSettings', { defaultValue: '打开模型设置' })}
         </Button>
       </Card>
     </div>
@@ -284,6 +309,7 @@ function ChatRoom({
   modelOptions: ModelOption[];
   onSelectModel: (m: ModelOption) => void;
 }) {
+  const { t } = useTranslation();
   const {
     streaming,
     pending,
@@ -293,7 +319,11 @@ function ChatRoom({
     clearError,
     invalidateChain,
     utils,
-  } = useChatStream(convId);
+  } = useChatStream(convId, () => {
+    if (conversationQ.data && !conversationQ.data.autoRenamed) {
+      autoRenameMut.mutate({ id: convId });
+    }
+  });
 
   const chainQ = trpc.chat.listActiveChain.useQuery({ conversationId: convId });
   const messages = useMemo(() => chainQ.data ?? [], [chainQ.data]);
@@ -305,6 +335,13 @@ function ChatRoom({
     [conversationQ.data?.knowledgeBases],
   );
   const updateConv = trpc.chat.updateConversation.useMutation({
+    onSuccess: () => {
+      void utils.chat.getConversation.invalidate({ id: convId });
+      void utils.chat.listConversations.invalidate();
+    },
+  });
+
+  const autoRenameMut = trpc.chat.autoRenameConversation.useMutation({
     onSuccess: () => {
       void utils.chat.getConversation.invalidate({ id: convId });
       void utils.chat.listConversations.invalidate();
@@ -525,7 +562,7 @@ function ChatRoom({
           )}
           {messages.length === 0 && !pending ? (
             <div className="text-muted-foreground py-10 text-center text-xs">
-              发出第一条消息开始对话
+              {t('chatMain.firstMsgHint', { defaultValue: '发出第一条消息开始对话' })}
             </div>
           ) : null}
         </div>
@@ -533,21 +570,24 @@ function ChatRoom({
       {streamError ? (
         <div className="mx-auto w-full max-w-3xl px-4">
           <div className="border-destructive/40 bg-destructive/5 text-destructive flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-xs">
-            <span className="truncate">生成失败：{streamError}</span>
+            <span className="truncate">
+              {t('chatMain.streamError', { defaultValue: '生成失败：' })}
+              {streamError}
+            </span>
             <div className="flex shrink-0 gap-2">
               <button
                 type="button"
                 className="hover:bg-destructive/10 rounded px-2 py-0.5"
                 onClick={retryLastAssistant}
               >
-                重试
+                {t('chatMain.retry', { defaultValue: '重试' })}
               </button>
               <button
                 type="button"
                 className="hover:bg-destructive/10 rounded px-2 py-0.5"
                 onClick={clearError}
               >
-                关闭
+                {t('chatMain.close', { defaultValue: '关闭' })}
               </button>
             </div>
           </div>

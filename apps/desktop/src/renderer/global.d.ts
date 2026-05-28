@@ -6,6 +6,7 @@ declare global {
       platform: NodeJS.Platform;
       arch: string;
       versions: NodeJS.ProcessVersions;
+      pickDirectory: () => Promise<string | null>;
       onThemeChange: (cb: (theme: 'light' | 'dark') => void) => () => void;
     };
   }

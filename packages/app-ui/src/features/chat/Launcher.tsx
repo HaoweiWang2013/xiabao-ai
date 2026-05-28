@@ -7,6 +7,8 @@
 
 import { Braces, Brush, MessageSquare, Settings, Sparkles, Wrench } from 'lucide-react';
 
+import { useTranslation } from '../../lib/useTranslation';
+
 interface LauncherProps {
   onCreateChat: () => void;
   onOpenKnowledge: () => void;
@@ -16,13 +18,13 @@ interface LauncherProps {
   onOpenAbout: () => void;
 }
 
-const apps = [
-  { icon: MessageSquare, label: '聊天', bg: 'bg-green-500', action: 'chat' as const },
-  { icon: Braces, label: '知识库', bg: 'bg-blue-500', action: 'knowledge' as const },
-  { icon: Settings, label: '模型供应商', bg: 'bg-purple-500', action: 'providers' as const },
-  { icon: Wrench, label: '工具', bg: 'bg-orange-500', action: 'tools' as const },
-  { icon: Brush, label: '外观', bg: 'bg-pink-500', action: 'appearance' as const },
-  { icon: Sparkles, label: '关于', bg: 'bg-cyan-500', action: 'about' as const },
+const appConfig = [
+  { icon: MessageSquare, bg: 'bg-green-500', action: 'chat' as const },
+  { icon: Braces, bg: 'bg-blue-500', action: 'knowledge' as const },
+  { icon: Settings, bg: 'bg-purple-500', action: 'providers' as const },
+  { icon: Wrench, bg: 'bg-orange-500', action: 'tools' as const },
+  { icon: Brush, bg: 'bg-pink-500', action: 'appearance' as const },
+  { icon: Sparkles, bg: 'bg-cyan-500', action: 'about' as const },
 ];
 
 export function Launcher({
@@ -33,6 +35,7 @@ export function Launcher({
   onOpenAppearance,
   onOpenAbout,
 }: LauncherProps) {
+  const { t } = useTranslation();
   const actionMap = {
     chat: onCreateChat,
     knowledge: onOpenKnowledge,
@@ -45,13 +48,23 @@ export function Launcher({
   return (
     <div className="flex h-full items-center justify-center px-6">
       <div className="w-full max-w-lg">
-        <h2 className="text-muted-foreground mb-6 text-center text-sm font-medium">应用</h2>
+        <h2 className="text-muted-foreground mb-6 text-center text-sm font-medium">
+          {t('chatLaunch.app', { defaultValue: '应用' })}
+        </h2>
         <div className="grid grid-cols-3 gap-4">
-          {apps.map((app) => {
+          {appConfig.map((app) => {
             const Icon = app.icon;
+            const labels: Record<string, string> = {
+              chat: t('chatLaunch.chat', { defaultValue: '聊天' }),
+              knowledge: t('chatLaunch.knowledge', { defaultValue: '知识库' }),
+              providers: t('chatLaunch.providers', { defaultValue: '模型供应商' }),
+              tools: t('chatLaunch.tools', { defaultValue: '工具' }),
+              appearance: t('chatLaunch.appearance', { defaultValue: '外观' }),
+              about: t('chatLaunch.about', { defaultValue: '关于' }),
+            };
             return (
               <button
-                key={app.label}
+                key={app.action}
                 type="button"
                 onClick={() => actionMap[app.action as keyof typeof actionMap]()}
                 className="hover:bg-secondary/50 group flex flex-col items-center gap-2 rounded-2xl p-3 transition-colors"
@@ -61,7 +74,7 @@ export function Launcher({
                 >
                   <Icon className="h-7 w-7 text-white" />
                 </div>
-                <span className="text-foreground text-sm font-medium">{app.label}</span>
+                <span className="text-foreground text-sm font-medium">{labels[app.action]}</span>
               </button>
             );
           })}

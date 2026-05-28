@@ -22,6 +22,7 @@ import { useState } from 'react';
 
 import { Badge, IconButton, cn } from '@xiabao/ui';
 
+import { useTranslation } from '../lib/useTranslation';
 import { BranchSwitcher } from './BranchSwitcher';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -72,6 +73,7 @@ export function MessageDocAssistant({
   disabled,
   footer,
 }: Props) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [reasoningOpen, setReasoningOpen] = useState(false);
 
@@ -100,7 +102,7 @@ export function MessageDocAssistant({
               disabled={streaming}
             >
               <Sparkles className="h-3 w-3 text-amber-500" />
-              <span>深度思考</span>
+              <span>{t('messageDocAssistant.deepThink', { defaultValue: '深度思考' })}</span>
               {reasoningOpen ? (
                 <ChevronUp className="h-3 w-3" />
               ) : (
@@ -167,7 +169,12 @@ export function MessageDocAssistant({
             />
           ) : null}
           <div className="flex-1" />
-          <IconButton size="sm" variant="ghost" onClick={copy} aria-label="复制">
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={copy}
+            aria-label={t('common.copy', { defaultValue: '复制' })}
+          >
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
           </IconButton>
           {onRegenerate && (
@@ -176,7 +183,7 @@ export function MessageDocAssistant({
               variant="ghost"
               onClick={onRegenerate}
               disabled={disabled}
-              aria-label="重新生成"
+              aria-label={t('common.retry', { defaultValue: '重新生成' })}
             >
               <RefreshCcw className="h-3 w-3" />
             </IconButton>
@@ -187,7 +194,7 @@ export function MessageDocAssistant({
               variant="ghost"
               onClick={onDelete}
               disabled={disabled}
-              aria-label="删除"
+              aria-label={t('common.delete', { defaultValue: '删除' })}
             >
               <Trash2 className="h-3 w-3" />
             </IconButton>
