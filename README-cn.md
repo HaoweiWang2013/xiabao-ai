@@ -1,5 +1,7 @@
 # XiabaoAI
 
+[🇺🇸 English](./README.md)
+
 > 聚合型 AI 客户端 · 一个 App 统一接入多家 AI 服务 · 本地优先 · 三端可用
 
 **XiabaoAI** 是一款面向个人与团队的 AI 聚合客户端，通过统一的**三栏 IDE-Tab 工作台**界面接入 OpenAI、Anthropic、Google、DeepSeek、Ollama 等多家模型服务商，数据本地持久化、可选端到端加密云同步，跨 Desktop / Web / Android 三端。

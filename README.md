@@ -1,5 +1,7 @@
 # XiabaoAI
 
+[🇨🇳 中文文档](./README-cn.md)
+
 > Aggregated AI Client · One app, all AI services · Local-first · Cross-platform
 
 **XiabaoAI** is an AI aggregation client for individuals and teams, connecting OpenAI, Anthropic, Google, DeepSeek, Ollama and more through a unified **three-panel IDE-Tab workspace**. Data is persisted locally with optional end-to-end encrypted cloud sync, available across Desktop / Web / Android.
