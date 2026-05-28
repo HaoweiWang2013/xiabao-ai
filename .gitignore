@@ -91,6 +91,10 @@ dist-server/
 # typescript cache
 .tsbuildinfo
 
+# AI assistant workspace data
+.xiabaoai/
+.trae/
+
 # misc
 .cache/
 .temp/
