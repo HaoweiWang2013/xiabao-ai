@@ -9,8 +9,6 @@ directories:
 asar: true
 asarUnpack:
   - '**/*.node'
-  - '**/node_modules/@libsql/client/**'
-  - '**/node_modules/@libsql/core/**'
 
 files:
   - 'dist/**/*'
@@ -29,11 +27,9 @@ mac:
       arch: [universal]
     - target: zip
       arch: [universal]
-  hardenedRuntime: true
+  hardenedRuntime: false
   gatekeeperAssess: false
-  entitlements: build/entitlements.mac.plist
-  entitlementsInherit: build/entitlements.mac.plist
-  notarize: true
+  identity: null
 
 dmg:
   contents:
@@ -52,10 +48,7 @@ win:
     - target: portable
       arch: [x64]
   artifactName: '${productName}-Setup-${version}-${arch}.${ext}'
-  certificateFile: '${env.WIN_CSC_LINK}'
-  certificatePassword: '${env.WIN_CSC_KEY_PASSWORD}'
-  signingHashAlgorithms: [sha256]
-  signDlls: true
+  publisherName: XiabaoAI
 
 nsis:
   oneClick: false
@@ -81,6 +74,6 @@ linux:
 
 publish:
   provider: github
-  owner: xiabaoai
-  repo: xiabaoai
+  owner: HaoweiWang2013
+  repo: xiabao-ai
   releaseType: release
