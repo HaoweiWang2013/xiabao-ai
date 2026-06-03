@@ -232,7 +232,7 @@ export function Composer({
             {extraTools}
             <Tooltip>
               <TooltipTrigger asChild>
-                <IconButton size="sm" variant="ghost" disabled>
+                <IconButton size="sm" variant="ghost" disabled className="hidden sm:inline-flex">
                   <Slash className="h-3.5 w-3.5" />
                 </IconButton>
               </TooltipTrigger>
@@ -240,7 +240,7 @@ export function Composer({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <IconButton size="sm" variant="ghost" disabled>
+                <IconButton size="sm" variant="ghost" disabled className="hidden sm:inline-flex">
                   <Paperclip className="h-3.5 w-3.5" />
                 </IconButton>
               </TooltipTrigger>
@@ -297,7 +297,7 @@ export function Composer({
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <IconButton size="sm" variant="ghost" disabled>
+                  <IconButton size="sm" variant="ghost" disabled className="hidden sm:inline-flex">
                     <Mic className="h-3.5 w-3.5" />
                   </IconButton>
                 </TooltipTrigger>
@@ -313,7 +313,7 @@ export function Composer({
             {contextUsage && (
               <div
                 className={cn(
-                  'text-xs tabular-nums',
+                  'mr-1 text-xs tabular-nums sm:mr-2',
                   contextUsage.percentage <= 10
                     ? 'text-red-500'
                     : contextUsage.percentage <= 30
@@ -325,14 +325,26 @@ export function Composer({
               </div>
             )}
             {busy ? (
-              <Button variant="destructive" size="sm" onClick={onStop} disabled={!onStop}>
-                <Square className="h-3.5 w-3.5 fill-current" />
-                {t('chat.stopGenerating')}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={onStop}
+                disabled={!onStop}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-0 sm:w-auto sm:px-3 sm:py-1.5"
+              >
+                <Square className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
+                <span className="ml-1.5 hidden text-xs sm:inline">{t('chat.stopGenerating')}</span>
               </Button>
             ) : (
-              <Button variant="primary" size="sm" onClick={() => onSend()} disabled={!value.trim()}>
-                <Send className="h-3.5 w-3.5" />
-                {t('chat.sendButton')}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onSend()}
+                disabled={!value.trim()}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-0 sm:w-auto sm:px-3 sm:py-1.5"
+              >
+                <Send className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                <span className="ml-1.5 hidden text-xs sm:inline">{t('chat.sendButton')}</span>
               </Button>
             )}
           </div>

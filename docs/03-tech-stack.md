@@ -195,14 +195,13 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 | **vite-plugin-pwa**      | 最新    | Service Worker + manifest |
 | **@vitejs/plugin-react** | 最新    | —                         |
 
-### Mobile（RN）
+### Mobile（Capacitor）
 
-| 项                   | 版本      | 用途                            |
-| -------------------- | --------- | ------------------------------- |
-| **React Native**     | **0.74+** | 新架构（Fabric / TurboModules） |
-| **Metro**            | RN 默认   | —                               |
-| **NativeWind**       | **4.x**   | Tailwind for RN                 |
-| **React Navigation** | **6.x**   | 底部 Tab + Drawer               |
+| 项                     | 版本     | 用途                                                               |
+| ---------------------- | -------- | ------------------------------------------------------------------ |
+| **Capacitor Core**     | **6.x**  | 标准原生 H5 WebView 容器包装；共享全部 `@xiabao/app-ui` 设计与代码 |
+| **@capacitor/android** | **6.x**  | Android 平台原生支持与运行时包                                     |
+| **Vite / SPA**         | 共享 Web | 100% 共享前端编译出的 H5 静态资源                                  |
 
 ### Cloudflare Worker（web-proxy）
 

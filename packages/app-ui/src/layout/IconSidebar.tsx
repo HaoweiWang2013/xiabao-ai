@@ -4,9 +4,14 @@
  * 见 docs/12-ui-design.md §4.2 IconBar。
  */
 import { useAtom } from 'jotai';
-import { Brain, Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } from 'lucide-react';
+import { Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } from 'lucide-react';
 
-import { primaryNavAtom, settingsSectionAtom, type PrimaryNav } from '@xiabao/state';
+import {
+  primaryNavAtom,
+  settingsSectionAtom,
+  sidebarCollapsedAtom,
+  type PrimaryNav,
+} from '@xiabao/state';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, cn } from '@xiabao/ui';
 
 import { useTranslation } from '../lib/useTranslation';
@@ -20,7 +25,6 @@ interface NavItem {
 
 const TOP_ITEMS: NavItem[] = [
   { id: 'home', icon: <Home className="h-[18px] w-[18px]" /> },
-  { id: 'agent', icon: <Brain className="h-[18px] w-[18px]" /> },
   { id: 'image', icon: <Image className="h-[18px] w-[18px]" /> },
   { id: 'miniapp', icon: <Puzzle className="h-[18px] w-[18px]" /> },
   { id: 'translate', icon: <Globe className="h-[18px] w-[18px]" /> },
@@ -34,17 +38,31 @@ const BOTTOM_ITEMS: NavItem[] = [
 export function IconSidebar() {
   const [active, setActive] = useAtom(primaryNavAtom);
   const [section, setSection] = useAtom(settingsSectionAtom);
+  const [sidebarCollapsed, setSidebarCollapsed] = useAtom(sidebarCollapsedAtom);
   const { t } = useTranslation();
 
   function activate(id: PrimaryNav) {
     if (id === 'providers') {
       setSection('models');
       setActive('settings');
+      setSidebarCollapsed(false);
     } else if (id === 'tools') {
       setSection('tools');
       setActive('settings');
+      setSidebarCollapsed(false);
     } else {
-      setActive(id);
+      if (active === id) {
+        // 点击当前激活的 tab，如果是聊天或设置，则切换折叠状态
+        if (id === 'chat' || id === 'settings') {
+          setSidebarCollapsed(!sidebarCollapsed);
+        }
+      } else {
+        setActive(id);
+        // 切换到有侧边菜单的 tab，自动展开侧边栏方便用户直接操作
+        if (id === 'chat' || id === 'settings') {
+          setSidebarCollapsed(false);
+        }
+      }
     }
   }
 

@@ -157,6 +157,8 @@ asarUnpack:
   - '**/*.node'
   - 'node_modules/better-sqlite3/**'
   - 'node_modules/sqlite-vec/**'
+  - '**/node_modules/@libsql/client/**'
+  - '**/node_modules/@libsql/core/**'
 
 files:
   - 'dist/**/*'

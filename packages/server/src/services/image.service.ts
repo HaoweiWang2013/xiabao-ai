@@ -184,7 +184,7 @@ export function createImageService(deps: ImageServiceDeps) {
       return { id: created.id };
     },
 
-    async list(input: ImageListInput = {}): Promise<ReturnType<typeof repos.images.list>> {
+    async list(input: ImageListInput = {}): Promise<Awaited<ReturnType<typeof repos.images.list>>> {
       return repos.images.list({
         limit: input.limit,
         offset: input.offset,
@@ -192,7 +192,7 @@ export function createImageService(deps: ImageServiceDeps) {
       });
     },
 
-    async getById(id: string): Promise<ReturnType<typeof repos.images.getById>> {
+    async getById(id: string): Promise<Awaited<ReturnType<typeof repos.images.getById>>> {
       return repos.images.getById(id);
     },
 

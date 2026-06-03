@@ -59,6 +59,33 @@ function createMainWindow(): BrowserWindow {
     },
   });
 
+  // 绕过 iframe 的 X-Frame-Options 和 Content-Security-Policy 限制，以完美支持在小程序中嵌套大模型官网
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const headers = { ...details.responseHeaders };
+
+    // 移除 X-Frame-Options 与 Content-Security-Policy-Report-Only 响应头
+    for (const key of Object.keys(headers)) {
+      const lowerKey = key.toLowerCase();
+      if (lowerKey === 'x-frame-options' || lowerKey === 'content-security-policy-report-only') {
+        delete headers[key];
+      }
+    }
+
+    // 放宽 Content-Security-Policy 中的 frame-ancestors，允许在任何地方 iframe 嵌入
+    const cspKeys = Object.keys(headers).filter(
+      (k) => k.toLowerCase() === 'content-security-policy',
+    );
+    for (const key of cspKeys) {
+      let cspValues = headers[key] || [];
+      cspValues = cspValues.map((val) => {
+        return val.replace(/frame-ancestors\s+[^;]+(;|$)/gi, '');
+      });
+      headers[key] = cspValues;
+    }
+
+    callback({ responseHeaders: headers });
+  });
+
   // ready-to-show 触发即显示；同时设置 5s 兜底，避免渲染器异常导致窗口永远不显示
   let shown = false;
   const showOnce = () => {

@@ -1,5 +1,3 @@
-import path from 'node:path';
-
 import { Menu, nativeImage, Tray } from 'electron';
 
 import type { BrowserWindow } from 'electron';
@@ -27,7 +25,7 @@ export function createTray(mainWindow: BrowserWindow): void {
         mainWindow.hide();
       },
     },
-    { type: 'separator' },
+    { type: 'separator' as const },
     {
       label: '退出',
       click: () => {

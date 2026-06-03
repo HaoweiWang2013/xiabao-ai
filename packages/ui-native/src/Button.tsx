@@ -11,6 +11,7 @@ type ButtonSize = 'sm' | 'default' | 'lg';
 interface ButtonProps extends Omit<TouchableOpacityProps, 'onPress'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  className?: string;
   children: React.ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
 }

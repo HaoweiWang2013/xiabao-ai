@@ -5,10 +5,7 @@
  */
 import { router } from '../trpc';
 
-import { agentRouter } from './agent';
 import { auditRouter } from './audit';
-import { voiceRouter } from './voice';
-import { syncRouter } from './sync';
 import { chatRouter } from './chat';
 import { imageRouter } from './image';
 import { knowledgeRouter } from './knowledge';
@@ -18,8 +15,10 @@ import { promptRouter } from './prompt';
 import { providerRouter } from './provider';
 import { searchRouter } from './search';
 import { settingsRouter } from './settings';
+import { syncRouter } from './sync';
 import { systemRouter } from './system';
 import { toolRouter } from './tool';
+import { voiceRouter } from './voice';
 
 export const appRouter = router({
   provider: providerRouter,
@@ -33,7 +32,6 @@ export const appRouter = router({
   search: searchRouter,
   settings: settingsRouter,
   mcp: mcpRouter,
-  agent: agentRouter,
   audit: auditRouter,
   voice: voiceRouter,
   sync: syncRouter,

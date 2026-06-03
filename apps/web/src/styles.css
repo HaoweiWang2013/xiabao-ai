@@ -9,11 +9,25 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    overscroll-behavior-y: none; /* 禁用系统级边缘回弹、橡皮筋与下拉刷新 */
+    -webkit-tap-highlight-color: transparent; /* 消除移动端点击蓝色/灰色高亮阴影 */
+    user-select: none; /* 禁用系统级文本选择（让长按更像原生应用，输入框与特定内容除外） */
   }
   body {
     font-family: 'Inter', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  /* 允许用户输入、阅读文章、看代码等需要文本操作的地方进行正常选择 */
+  input,
+  textarea,
+  [selectable],
+  [contenteditable='true'],
+  .markdown-body,
+  pre,
+  code,
+  .selection-enabled {
+    user-select: text;
   }
   *:focus-visible {
     outline: 2px solid hsl(var(--ring));

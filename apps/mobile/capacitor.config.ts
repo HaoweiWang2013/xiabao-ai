@@ -11,6 +11,10 @@ const config: CapacitorConfig = {
     CapacitorNodeJS: {
       nodeDir: 'nodejs',
     },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
   },
 };
 

@@ -21,7 +21,7 @@ export const conversations = sqliteTable(
     autoRenamed: integer('auto_renamed', { mode: 'boolean' }).notNull().default(false),
     color: text('color'),
     icon: text('icon'),
-    kind: text('kind', { enum: ['chat', 'translate', 'image', 'voice', 'agent'] })
+    kind: text('kind', { enum: ['chat', 'translate', 'image', 'voice'] })
       .notNull()
       .default('chat'),
     extra: text('extra').notNull().default('{}'),

@@ -34,6 +34,17 @@ export async function createStorageAdapter(
   const filePath = options.filePath ?? path.join(app.getPath('userData'), 'xiabao.db');
   const client = createClient({ url: `file:${filePath}` });
 
+  // SQLite/libsql 高端性能调优
+  try {
+    await client.execute('PRAGMA journal_mode = WAL;');
+    await client.execute('PRAGMA synchronous = NORMAL;');
+    await client.execute('PRAGMA busy_timeout = 5000;');
+    await client.execute('PRAGMA temp_store = MEMORY;');
+    await client.execute('PRAGMA foreign_keys = ON;');
+  } catch {
+    // 忽略部分不支持 PRAGMA 的内存/远程等测试客户端
+  }
+
   if (options.ensureKv !== false) {
     await client.execute(
       `CREATE TABLE IF NOT EXISTS kv_store (

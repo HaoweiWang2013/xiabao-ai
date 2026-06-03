@@ -12,8 +12,6 @@ export * from './knowledgeDocs';
 export * from './knowledgeChunks';
 export * from './prompts';
 export * from './imageGenerations';
-export * from './agentRuns';
-export * from './agentSteps';
 export * from './mcpServers';
 export * from './mcpTools';
 export * from './auditLog';

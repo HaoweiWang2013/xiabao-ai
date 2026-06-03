@@ -2,7 +2,6 @@ import { useAtom } from 'jotai';
 import { useEffect } from 'react';
 
 import {
-  AgentWorkspace,
   AppShell,
   ChatPanel,
   CommandPalette,
@@ -14,7 +13,6 @@ import {
   Onboarding,
   PromptPanel,
   SettingsPage,
-  SplitChatView,
   TranslatePage,
   trpc,
   useAppShortcuts,
@@ -113,8 +111,6 @@ export function App() {
           <PromptPanel />
         ) : nav === 'image' ? (
           <ImageWorkspace />
-        ) : nav === 'agent' ? (
-          <AgentWorkspace />
         ) : nav === 'translate' ? (
           <TranslatePage />
         ) : nav === 'miniapp' ? (

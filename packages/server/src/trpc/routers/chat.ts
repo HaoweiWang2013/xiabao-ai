@@ -18,7 +18,7 @@ const ConversationCreateInputSchema = z.object({
   temperature: z.number().min(0).max(2).nullable().optional(),
   topP: z.number().min(0).max(1).nullable().optional(),
   maxOutputTokens: z.number().int().positive().nullable().optional(),
-  kind: z.enum(['chat', 'translate', 'image', 'voice', 'agent']).optional(),
+  kind: z.enum(['chat', 'translate', 'image', 'voice']).optional(),
   folder: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),

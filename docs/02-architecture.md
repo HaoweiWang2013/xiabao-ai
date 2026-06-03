@@ -6,13 +6,13 @@
 
 XiabaoAI 三端共享 **Core 业务层 + Schema + 状态原子 + UI 组件**。Monorepo 的必要性：
 
-| 收益               | 说明                                                                            |
-| ------------------ | ------------------------------------------------------------------------------- |
-| **原子级共享**     | `@xiabao/core` 的类型一处定义，三端共用，编辑器直跳                             |
-| **端到端类型安全** | Main ↔ Preload ↔ Renderer 经 tRPC 全类型；Desktop/Web/RN 共享同一份 Port 契约 |
-| **统一发版**       | Changesets 管理每个包的版本，原子 PR 更新多包                                   |
-| **CI 增量**        | Turborepo 的缓存让只改 UI 时不重跑 Core 测试                                    |
-| **重构安全**       | 改 Port 接口时编译器自动标红所有 Adapter                                        |
+| 收益               | 说明                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| **原子级共享**     | `@xiabao/core` 的类型一处定义，三端共用，编辑器直跳                                 |
+| **端到端类型安全** | Main ↔ Preload ↔ Renderer 经 tRPC 全类型；Desktop/Web/Mobile 共享同一份 Port 契约 |
+| **统一发版**       | Changesets 管理每个包的版本，原子 PR 更新多包                                       |
+| **CI 增量**        | Turborepo 的缓存让只改 UI 时不重跑 Core 测试                                        |
+| **重构安全**       | 改 Port 接口时编译器自动标红所有 Adapter                                            |
 
 ## 2. 选型：pnpm workspaces + Turborepo
 
@@ -56,8 +56,8 @@ xiabaoai/
 │
 ├── packages/                       # ★ 平台无关或跨端共用的库
 │   ├── core/                       # 纯 TS 业务层（不依赖任何平台 API）
-│   ├── ui/                         # 跨 Desktop/Web 的 React 组件（Tailwind）
-│   ├── ui-native/                  # RN 组件（NativeWind，部分复用 ui 的 hooks）
+│   ├── ui/                         # 跨三端 (Desktop / Web / Mobile) 的 React 组件（Tailwind）
+│   ├── ui-native/                  # RN 组件（已归档弃用，由 Capacitor 统一 Web 架构代替）
 │   ├── state/                      # Jotai 原子（跨端共享）
 │   ├── i18n/                       # 文案资源（zh-CN / en-US ...）
 │   ├── crypto/                     # 端到端加密工具（AES-GCM + Argon2id）
@@ -115,16 +115,10 @@ xiabaoai/
 │   │   ├── tsconfig.json
 │   │   └── package.json
 │   │
-│   ├── mobile/                     # React Native
-│   │   ├── android/                # 原生工程
-│   │   ├── ios/                    # 预留
-│   │   ├── src/
-│   │   │   ├── App.tsx
-│   │   │   ├── navigation/
-│   │   │   ├── screens/
-│   │   │   └── adapters/           # op-sqlite / secure-store / fetch
-│   │   ├── metro.config.js
-│   │   ├── babel.config.js
+│   ├── mobile/                     # Capacitor 移动端容器
+│   │   ├── android/                # Android 原生工程（支持本地 Node.js 运行时）
+│   │   ├── ios/                    # iOS 原生工程（预留）
+│   │   ├── capacitor.config.ts     # Capacitor 配置文件（物理键盘与 local Node 映射）
 │   │   ├── tsconfig.json
 │   │   └── package.json
 │   │
@@ -174,12 +168,11 @@ xiabaoai/
 
 **依赖**：React 18、Tailwind、Lucide、Shiki、KaTeX、Mermaid、Framer Motion、Radix Primitives、`@xiabao/state`、`@xiabao/core`（仅类型 import）
 
-### `packages/ui-native`（RN 组件）
+### `packages/ui-native`（已归档弃用）
 
-- 与 `packages/ui` **接口对齐**（同名组件、同样 props）但实现基于 RN 原生
-- NativeWind 做样式（Tailwind for RN）
-- 复用 `packages/ui` 的 **hooks**（纯逻辑部分）
-- 底部 Tab、抽屉、原生 Modal、原生 ActionSheet
+- **状态**：已归档弃用。
+- **原因**：移动端更改为了全新的 **Capacitor + Node.js 离线本地服务端** 架构，前端部分通过 Capacitor WebView 渲染，因此 **100% 完美复用** 了 `@xiabao/ui`（基于 React + Tailwind）的整套桌面/网页端组件库。
+- **收益**：无需再开发和维护一套 React Native 的 NativeWind UI 层，消除了跨平台视觉与交互表现不一致的隐患，节省了 50% 以上的前端代码开发与维护工作量。
 
 ### `packages/state`（Jotai）
 
@@ -301,15 +294,15 @@ export interface FilePort {
 
 ### 各端 Adapter 清单
 
-| Port          | Desktop                       | Web                                          | RN                                   |
-| ------------- | ----------------------------- | -------------------------------------------- | ------------------------------------ |
-| `StoragePort` | better-sqlite3 + Drizzle      | Dexie + OPFS (wa-sqlite 可选)                | op-sqlite + Drizzle                  |
-| `HttpPort`    | `undici` / node fetch         | `fetch` → Cloudflare Worker                  | RN `fetch`                           |
-| `SecretPort`  | `safeStorage` → `secrets.bin` | Web Crypto + passphrase                      | `expo-secure-store`                  |
-| `FilePort`    | Node `fs` / `dialog`          | File System Access API + `<input type=file>` | `expo-file-system` + document picker |
-| `LoggerPort`  | winston / 自写结构化          | console + sentry（opt-in）                   | console + sentry                     |
-| `ClockPort`   | `Date`                        | `Date`                                       | `Date`                               |
-| `CryptoPort`  | Node `crypto`                 | Web Crypto                                   | `react-native-quick-crypto`          |
+| Port          | Desktop                       | Web                                          | Mobile (Android Local Server)     |
+| ------------- | ----------------------------- | -------------------------------------------- | --------------------------------- |
+| `StoragePort` | better-sqlite3 + Drizzle      | Dexie + OPFS (wa-sqlite 可选)                | better-sqlite3 + Drizzle          |
+| `HttpPort`    | `undici` / node fetch         | `fetch` → Cloudflare Worker                  | Node `fetch`                      |
+| `SecretPort`  | `safeStorage` → `secrets.bin` | Web Crypto + passphrase                      | SQLite encryption / bridge store  |
+| `FilePort`    | Node `fs` / `dialog`          | File System Access API + `<input type=file>` | Node `fs` / Capacitor File system |
+| `LoggerPort`  | winston / 自写结构化          | console + sentry（opt-in）                   | console + Node Logger             |
+| `ClockPort`   | `Date`                        | `Date`                                       | `Date`                            |
+| `CryptoPort`  | Node `crypto`                 | Web Crypto                                   | Node `crypto`                     |
 
 ### 组装示例（Desktop 主进程）
 
@@ -469,28 +462,28 @@ Desktop 冷启动目标 **< 2s**（MacBook M1）。关键优化：
 | 包                                 | 预估 LOC     | 说明                           |
 | ---------------------------------- | ------------ | ------------------------------ |
 | `core`                             | 8–12 k       | Provider 适配、Services、Ports |
-| `ui`                               | 10–15 k      | 聊天/IDE/shadcn 组件           |
-| `ui-native`                        | 5–8 k        | RN 对应组件                    |
+| `ui`                               | 15–20 k      | 跨三端通用 React UI 组件集     |
+| `ui-native`                        | 0 k          | (弃用，节省工作量)             |
 | `state`                            | 1–2 k        | Jotai 原子                     |
 | `sync`                             | 2–3 k        | libsql 同步引擎                |
 | `crypto`                           | 0.5 k        | 加密工具                       |
 | `theme` + `i18n` + `eslint-config` | 2 k          | 配置                           |
 | `apps/desktop`                     | 10–15 k      | 主/预/渲 + IPC 路由            |
-| `apps/web`                         | 5–8 k        | 路由 + adapter + SW            |
-| `apps/mobile`                      | 5–8 k        | 导航 + screens + adapter       |
+| `apps/web`                         | 8–10 k       | 路由 + 服务端 + 适配器 + PWA   |
+| `apps/mobile`                      | 1–2 k        | Capacitor 壳容器 + Android 桥  |
 | `apps/web-proxy`                   | 0.3 k        | CF Worker                      |
-| **合计**                           | **~50–75 k** | 不含测试、docs                 |
+| **合计**                           | **~45–60 k** | 不含测试、docs                 |
 
-单人完整交付 **M0-M8 需 12-18 个月**，3 人小团队 **约 6-9 个月**。M2 桌面 MVP 可 **3-4 个月**独立交付。
+单人完整交付 **M0-M8 需 10-14 个月**（得益于移动端 Capacitor 统一架构节约了 UI 与本地逻辑的重复开发时间），3 人小团队 **约 5-7 个月**。M2 桌面 MVP 可 **2-3 个月**独立交付。
 
 ## 12. 风险与对策
 
-| 风险                                 | 影响 | 对策                                                    |
-| ------------------------------------ | ---- | ------------------------------------------------------- |
-| 原生模块 (better-sqlite3) 跨平台构建 | 高   | 使用 prebuilds；CI 矩阵覆盖 Win/Mac Intel/Mac ARM/Linux |
-| Electron 版本升级破坏 API            | 中   | 锁定 major 版本，升级前跑全量 e2e                       |
-| RN 端与桌面 UI 差异大                | 中   | `ui-native` 与 `ui` 接口对齐；共享 hooks                |
-| Web 端 CORS 与 PWA 离线              | 中   | Cloudflare Worker + Service Worker 缓存策略             |
-| E2E 加密同步的用户体验               | 高   | 助记词丢失 = 数据丢失；必须做本地导出备份提示           |
-| MCP 协议演进                         | 中   | 抽象 `McpClient` 接口，协议变化只改一处                 |
-| AGPL 合规                            | 低   | 文档明确双许可；修改需开源                              |
+| 风险                                 | 影响 | 对策                                                      |
+| ------------------------------------ | ---- | --------------------------------------------------------- |
+| 原生模块 (better-sqlite3) 跨平台构建 | 高   | 使用 prebuilds；移动端采用 Node.js local server 统层      |
+| Electron 版本升级破坏 API            | 中   | 锁定 major 版本，升级前跑全量 e2e                         |
+| 移动 WebView 交互与性能短板          | 中   | Capacitor 下进行 CSS tap-highlight 与 overscroll 专属优化 |
+| Web 端 CORS 与 PWA 离线              | 中   | Cloudflare Worker + Service Worker 缓存策略               |
+| E2E 加密同步的用户体验               | 高   | 助记词丢失 = 数据丢失；必须做本地导出备份提示             |
+| MCP 协议演进                         | 中   | 抽象 `McpClient` 接口，协议变化只改一处                   |
+| AGPL 合规                            | 低   | 文档明确双许可；修改需开源                                |

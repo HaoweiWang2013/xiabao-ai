@@ -354,8 +354,8 @@ export function TranslatePage() {
             )}
           </div>
 
-          <div className="mt-3 flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-1">
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+            <div className="flex min-w-[180px] flex-1 flex-col gap-1 sm:flex-initial">
               <span className="text-muted-foreground text-[10px] font-medium">
                 {t('translate.modelLabel', { defaultValue: '翻译模型' })}
               </span>

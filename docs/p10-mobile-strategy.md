@@ -20,16 +20,21 @@
 跨端共享（直接 import）                  ┃ mobile 重写
 ─────────────────────────────────────────╂──────────────────────────────────
 @xiabao/core                              ┃ @xiabao/ui (Radix + DOM)
-@xiabao/server (services / routers)       ┃ @xiabao/app-ui (DOM features)
+@xiabao/server (services / routers / db)  ┃ @xiabao/app-ui (DOM features) — 仅复用业务契约
 @xiabao/state (本期已抽象)                ┃ apps/desktop/src/main/adapters/*
 @xiabao/i18n / theme / sync / crypto      ┃   → mobile 端在 apps/mobile/src/adapters/
                                           ┃ extractors/node-binary.ts (Node-only)
 ```
 
-**重写工程量估算**：
+**核心建议与重写工程量估算**：
 
-- ui-native 业务组件 ≈ `@xiabao/app-ui` 的 60%（聊天 / 知识 / 设置 / 启动器；不含命令面板 / 多 Tab / 拖拽分屏）
-- adapters：约 8 个 port 实装（storage / secret / fs / http / clock / random / logger / db）
+直接承认移动端是一个**独立的 UI 层**。不要纠结于组件或布局的代码复用。
+
+- **桌面端是三栏式 IDE 布局**（IconBar + ConversationList + Split Tab），而**移动端是底部 Tab + 左侧抽屉 + Push/Pop 单页栈**。这并非简单的样式微调，而是整个导航交互范式的完全重画。
+- 每个 `Screen.tsx` 均需从零重写，因为两端的交互逻辑存在根本差异（例如：桌面的 Cmd+K 命令面板在移动端需要被替换为专用的搜索 Tab，底层交互、焦点和键盘流程完全不同）。
+- 尽管 NativeWind 与 Tailwind 语法基本一致，但 Flexbox 在 React Native 下的排版引擎行为（Flex 方向、默认伸缩、高度计算）与浏览器 CSS 差异巨大。
+- 因此，估算 **ui-native 业务组件的纯代码复用率下调至更真实的 30%**。跨端真正高比例共享的是逻辑层：`@xiabao/core` / `@xiabao/state` / `@xiabao/i18n` 以及 Zod Schema。
+- 此外，adapters 模块需要实装约 8 个底层 Port（storage / secret / fs / http / clock / random / logger / db）。
 
 ## 3. 持久化策略
 
@@ -64,14 +69,32 @@ setPersistStringStorage({
 });
 ```
 
-**关键时序**：必须在 atom 首次读之前注入。具体地说——`apps/mobile/src/index.ts` 的副作用模块（在 import `App.tsx` 之前）调用 `setPersistStringStorage`。
+**⚠️ 关键时序与时序陷阱**：
+由于 `@xiabao/state` 的 `createPersistedAtom` 是在**模块首次加载（评估）阶段**立即尝试从底层存储中读取初始化数据的。
+这意味着任何包含持久化 atom 的文件被 import 时，若底层存储尚未注入，就会瞬间 fallback 到 `memoryStorage` 从而导致移动端持久化失效或丢失状态。
+
+因此，在 React Native 的标准入口 `apps/mobile/index.js`（或 `index.ts`）中，**必须将 `import './src/storage'` 的副作用导入放在第一行**。它必须排在 `import App from './src/App'` 或任何其他业务模块导入的前面，以确保所有 atom 被实例化前，MMKV 已经被正确挂载：
+
+```ts
+// apps/mobile/index.js
+import './src/storage'; // 绝对第一行！
+import { AppRegistry } from 'react-native';
+import App from './src/App';
+// ...
+```
 
 ### 3.3 主数据库
 
-| 端     | 存储                                         | 备注                                                                                                                  |
-| ------ | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| 桌面   | `better-sqlite3` + Drizzle + `libsql_vector` | 现状                                                                                                                  |
-| mobile | `op-sqlite` + Drizzle + 内存 cosine（M8 起） | libsql native vector 在 op-sqlite 暂未支持，回退 memory store；KB 数据量上限按 `MemoryVectorStore.maxItemsPerKb` 兜底 |
+| 端     | 存储                                                         | 备注                                                                                                                  |
+| ------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| 桌面   | `better-sqlite3` + Drizzle + `libsql_vector`                 | 现状                                                                                                                  |
+| mobile | `@op-engineering/op-sqlite` + Drizzle + 内存 cosine（M8 起） | libsql native vector 在 op-sqlite 暂未支持，回退 memory store；KB 数据量上限按 `MemoryVectorStore.maxItemsPerKb` 兜底 |
+
+**⚠️ 数据库稳定性与备用路径（op-sqlite 的坑）**：
+
+- `@op-engineering/op-sqlite` (npm 包名非 `op-sqlite`) 性能卓越，但相比 `expo-sqlite` 而言，其社区体量偏小，且在 **Android 14+** 上存在个别 migration 兼容性 Issue。
+- 其与 `drizzle-orm` 的最新组合在 React Native 环境下并没有经过海量高并发业务的长期压测。
+- **攻坚与降级策略**：在 M8 的第 2-3 周中，必须拉出一个独立的 `spike-db` 分支，专门验证真机环境下 op-sqlite + Drizzle 的所有 CRUD 与 Drizzle Migration。如果真机调试期间遇到无法轻易绕过的 native 崩溃，必须果断、迅速地回退到 **`expo-sqlite`**（Expo 官方维护，虽然由于同步桥接开销性能略低，但其生态健壮，完全能支撑聊天数据的场景，能将阻塞业务开发的风险降到最低）。
 
 ## 4. 导航与 UI 结构
 
@@ -94,6 +117,21 @@ setPersistStringStorage({
 - **不复用**：依赖 DOM event / mouse / keyboard / window / contextMenu 的组件
 - **复用契约**：所有 service 调用、Jotai atom、i18n key、theme token、Zod schema
 - **新增一致性**：每个桌面新页面（如 KnowledgePanel、ProviderSettings）都应在 `@xiabao/ui-native/src/contracts/` 留 JSDoc stub（本期已加，详见 §9.3）
+
+### 4.3 移动端头号 UX 杀手：键盘与输入区管理
+
+桌面端完全没有键盘遮挡的问题，但移动端聊天页（ChatScreen）的键盘管理是绝对的体验胜负手。在 M8 第一周中，**必须优先做出一个最简的键盘交互原型**，重点验证真机上的流畅度：
+
+1. **输入框弹起与消息列表联动**：
+   - 消息流列表必须使用 **`@shopify/flash-list`** 虚拟化列表（性能远超 RN 自带的 `FlatList`），并开启 `inverted`（倒序）模式。
+   - 当键盘弹起时，列表内容应该无缝跟随键盘向上顶起滚动，绝不能出现白屏、跳闪。
+2. **Keyboard Avoiding 策略**：
+   - 在 Android 上，内置的 `KeyboardAvoidingView` 的 `behavior="height"` 经常发生高度计算失误、键盘遮挡。
+   - 解决方案：在 `AndroidManifest.xml` 中将对应 Activity 的 `android:windowSoftInputMode` 锁定为 `adjustResize`。如果这仍然不够，在 M8 中积极评估并集成新架构下同步性极佳的 **`react-native-keyboard-controller`**。
+3. **语音按住说话与键盘切换**：
+   - 当用户从文本输入切换到“按住说话”时，需要有逻辑强制收起键盘，且输入区高度应平滑回弹。
+4. **`#` 文档 Mention BottomSheet 与键盘的共存**：
+   - 点击 `#` 弹出 Mention 底层抽屉（`@gorhom/bottom-sheet`）时，系统应该先关闭软键盘（`Keyboard.dismiss()`），或者该 BottomSheet 的输入框能自动承接软键盘焦点，确保遮挡和焦点顺序逻辑严密。
 
 ## 5. 二进制解析策略
 
@@ -161,7 +199,19 @@ mobile 没有跨进程开销，反而更快。renderer 代码层面，对 mobile
 | `CommandPalette`                                                         | ✗ 无（移动端用搜索 Tab）                         | —      | 0d   |
 | `Onboarding`                                                             | `screens/OnboardingScreen.tsx`（首次启动）       | P1     | 3d   |
 
-**总估时 ≈ 41 工作日**，加 adapters / 集成 / 调优 ≈ 8 周（与 M8 预算吻合）。
+**总估时与实施排期**：
+
+- 纯代码/页面重写：41 工作日
+- 前置技术探索与验证 Spike（op-sqlite + server import） ≈ 2 周
+- 移动端真机适配与不同屏幕/键盘管理调优 ≈ 1 周
+- 端到端集成测试、性能优化与 Bug 修复 ≈ 1 周
+- 应用商店（Google Play / 侧载）发布准备（隐私政策、打包签名、应用截图等） ≈ 1 周
+
+**实际落地预计工期**：约 **10-12 周**。
+为了确保快速上线和敏捷迭代，采用**敏捷侧载、分批交付**策略：
+
+- **第 6 周**：完成 P0 里程碑（包含 Chat 聊天 + Launcher 启动器 + Provider 供应商配置与 ModelManager），打出可侧载（Sideload）的内部测试级 APK 开启公开内测。
+- **第 7-12 周**：逐步补齐 P1-P2 阶段功能（Knowledge 知识库、提及 BottonSheet、静默同步及应用商店最终合规上架工作）。
 
 ## 9. 本期已落地的"提前播种"
 
@@ -205,7 +255,30 @@ mobile 没有跨进程开销，反而更快。renderer 代码层面，对 mobile
 | P10-Q4 | 推送通知（MCP 异步任务、Agent 完成）做不做？                     | 体验         | M8 P2，可推迟               |
 | P10-Q5 | mobile 端 Provider Key 输入 UX（无键盘 paste 友好）？            | UX           | M8 实施时定                 |
 
-## 11. 决策日志
+## 11. M8 Android 实施深化建议
+
+### 11.1 启动前必须攻克的 3 个 Spike
+
+在 M8 启动前，必须集中精力在前两周攻克以下核心技术探索点，避免带病开发导致中后期大返工：
+
+1. **Hermes 兼容性 Dry-Run (第 1 周)**：
+   直接在 `apps/mobile` 中引入并实例化 `@xiabao/server` 核心 service。重点测试 `drizzle-orm`、`zod`、`nanoid` 在 Hermes 引擎下的编译与加载情况。如果 native 或 node 特性报错，迅速确定 Polyfill 或替代方案。
+2. **op-sqlite 稳定性与压力测试 (第 1 周)**：
+   针对 op-sqlite 编写专门的数据库压测脚本，单次快速写入 1000+ 条消息，测试 App 在前后台切换、进程异常崩溃后的数据库连接自愈恢复与 WAL 日志增长限制。
+3. **导航骨架先行搭建 (第 1-2 周)**：
+   在真正编写 UI 页面前，必须先在 `navigation/` 目录中利用 `react-navigation` 编织好底部的 `BottomTab` 与左侧抽屉（`ConversationsDrawer`）的组合栈。导航结构是后续所有 Screen UI 的唯一挂载点。
+
+### 11.2 补充优化策略
+
+在具体实施过程中，以下优化点能显著提升 Android 端的最终体验与交付质量：
+
+- **离线优先网络层**：在渲染层 adapter 增加 `NetworkStatusPort`。网络状态由 `NetInfo` 写入全局 Jotai atom，离线时输入区直接置灰或标记“离线”，恢复后自动重试并同步。
+- **图像智能选择与压缩**：使用 `expo-image-picker` 获取原图后，通过 `expo-image-manipulator` 将分辨率等比限制在 2048px 以下，并采用 JPEG 85% 质量压缩，严格限制发送体积。
+- **键盘遮挡与滚动管理**：集成 `react-native-keyboard-controller` 来精确获取键盘动画，并在 `AndroidManifest.xml` 中将 `android:windowSoftInputMode` 锁定为 `adjustResize`。
+- **后台静默同步**：利用 `react-native-background-fetch`（调用 Android WorkManager）实现 15 分钟/WiFi 或 1 小时/移动数据下的后台静默同步，解决设备长久未启动导致的数据空洞。
+- **多端 Schema 一致性保证**：在 CI 流水线中编写校验脚本，将桌面端 `better-sqlite3` 运行的 Drizzle Schema 与移动端 `op-sqlite` 使用的 Schema 进行跨端对齐校验，预防因 Schema 不匹配导致的同步崩盘。
+
+## 12. 决策日志
 
 | 日期       | 决策                                                          | 理由                                             |
 | ---------- | ------------------------------------------------------------- | ------------------------------------------------ |

@@ -3,7 +3,7 @@
  */
 import { z } from 'zod';
 
-export const ConversationKindSchema = z.enum(['chat', 'translate', 'image', 'voice', 'agent']);
+export const ConversationKindSchema = z.enum(['chat', 'translate', 'image', 'voice']);
 export type ConversationKind = z.infer<typeof ConversationKindSchema>;
 
 export const ConversationSchema = z.object({

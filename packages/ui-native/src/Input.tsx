@@ -5,6 +5,7 @@ interface InputProps extends TextInputProps {
   placeholder?: string;
   secureTextEntry?: boolean;
   multiline?: boolean;
+  className?: string;
 }
 
 export function Input({

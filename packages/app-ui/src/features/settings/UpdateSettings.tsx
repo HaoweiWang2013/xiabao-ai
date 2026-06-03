@@ -1,7 +1,6 @@
 /**
  * UpdateSettings · 自动更新设置
  */
-import { useAtom } from 'jotai';
 import { Cloud, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,13 +38,6 @@ export function UpdateSettings() {
       setStatus('检查更新时出错');
     } finally {
       setChecking(false);
-    }
-  }
-
-  function installUpdate() {
-    if (window.electronAPI?.updaterInstall) {
-      window.electronAPI.updaterInstall();
-      setStatus('正在安装更新，应用将重启…');
     }
   }
 

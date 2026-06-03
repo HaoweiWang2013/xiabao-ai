@@ -17,7 +17,7 @@ export { ProviderSettings } from './features/provider-settings/index';
 export { ToolSettings } from './features/tool-settings/index';
 export { SettingsPage } from './features/settings/index';
 export { ImageWorkspace } from './features/image/index';
-export { AgentWorkspace } from './features/agent/index';
+// AgentWorkspace removed — agent features merged into regular chat
 export { McpSettings } from './features/mcp-settings/index';
 export { TranslatePage } from './features/translate/index';
 export { HomePage } from './features/home/index';

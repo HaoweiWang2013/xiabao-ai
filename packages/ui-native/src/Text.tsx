@@ -8,6 +8,7 @@ interface TextProps extends RNTextProps {
   size?: TextSize;
   weight?: TextWeight;
   color?: string;
+  className?: string;
   children: React.ReactNode;
 }
 

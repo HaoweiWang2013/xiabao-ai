@@ -10,6 +10,6 @@
     "baseUrl": ".",
     "types": ["react-native", "node"]
   },
-  "include": ["src", "index.js"],
+  "include": ["src/**/*", "index.js"],
   "exclude": ["node_modules", "android", "ios"]
 }

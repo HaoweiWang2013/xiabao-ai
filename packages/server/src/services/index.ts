@@ -13,19 +13,15 @@ import type {
   VectorStore,
 } from '@xiabao/core';
 
-import type { Client } from '@libsql/client';
-
-import { createAgentService, type AgentService } from './agent.service';
 import { createChatService, type ChatService } from './chat.service';
 import { createImageService, type ImageService } from './image.service';
 import { createKnowledgeService, type KnowledgeService } from './knowledge.service';
 import { createLocalEmbedderService, type LocalEmbedderService } from './local-embedder.service';
 import { createMcpService, type McpService } from './mcp.service';
-import { createVoiceService, type VoiceService } from './voice.service';
-import { createSyncService, type SyncService } from './sync.service';
 import { createPromptService, type PromptService } from './prompt.service';
 import { createProviderService, type ProviderService } from './provider.service';
 import { createSearchService, type SearchService } from './search.service';
+import { createSyncService, type SyncService } from './sync.service';
 import {
   createSystemService,
   type SystemAppInfo,
@@ -33,9 +29,11 @@ import {
   type SystemService,
 } from './system.service';
 import { createToolService, type ToolService } from './tool.service';
+import { createVoiceService, type VoiceService } from './voice.service';
 
 import type { AppDb } from '../db';
 import type { Repos } from '../repos';
+import type { Client } from '@libsql/client';
 
 export interface Services {
   provider: ProviderService;
@@ -48,7 +46,6 @@ export interface Services {
   image: ImageService;
   search: SearchService;
   mcp: McpService;
-  agent: AgentService;
   voice: VoiceService;
   sync: SyncService;
 }
@@ -101,12 +98,19 @@ export function createServices(deps: ServicesDeps): Services {
     vectorStore: deps.vectorStore,
   });
 
+  const mcp = createMcpService({
+    logger: deps.logger,
+    http: deps.http,
+    repos: { mcp: deps.repos.mcp },
+  });
+
   const chat = createChatService({
     logger: deps.logger,
     clock: deps.clock,
     providerService: provider,
     toolService: tool,
     knowledgeService: knowledge,
+    mcpService: mcp,
     getSetting: async (key: string) => deps.repos.settings.get(key as never),
     repos: {
       conversations: deps.repos.conversations,
@@ -145,21 +149,6 @@ export function createServices(deps: ServicesDeps): Services {
     messages: deps.repos.messages,
   });
 
-  const mcp = createMcpService({
-    logger: deps.logger,
-    http: deps.http,
-    repos: { mcp: deps.repos.mcp },
-  });
-
-  const agent = createAgentService({
-    logger: deps.logger,
-    clock: deps.clock,
-    providerService: provider,
-    toolService: tool,
-    mcpService: mcp,
-    repos: { agents: deps.repos.agents, models: deps.repos.models, audit: deps.repos.audit },
-  });
-
   const voice = createVoiceService({
     logger: deps.logger,
     clock: deps.clock,
@@ -185,7 +174,6 @@ export function createServices(deps: ServicesDeps): Services {
     image,
     search,
     mcp,
-    agent,
     voice,
     sync,
   };
@@ -207,7 +195,6 @@ export type {
   IngestQueueOptions,
 } from './ingest-queue';
 export type {
-  AgentService,
   ChatService,
   ImageService,
   KnowledgeService,

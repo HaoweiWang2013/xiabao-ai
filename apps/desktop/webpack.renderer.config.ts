@@ -73,7 +73,7 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
             "img-src 'self' data: blob: https:",
             "font-src 'self' data:",
             "connect-src 'self' ws://localhost:* http://localhost:* https:",
-            "frame-src 'none'",
+            'frame-src https: http:',
             "object-src 'none'",
             "base-uri 'self'",
           ].join('; ') + ';',

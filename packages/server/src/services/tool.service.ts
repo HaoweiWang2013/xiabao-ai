@@ -367,7 +367,7 @@ export function createToolService(deps: ToolServiceDeps) {
       const { execFile } = cpMod;
 
       return new Promise<{ stdout: string; stderr: string; exitCode: number | null }>((resolve) => {
-        const child = execFile(
+        execFile(
           process.platform === 'win32' ? 'cmd.exe' : '/bin/sh',
           [process.platform === 'win32' ? '/c' : '-c', command],
           {

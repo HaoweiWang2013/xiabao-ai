@@ -22,10 +22,10 @@ import { MessageBubble } from '../../components/MessageBubble';
 import { MessageDocAssistant } from '../../components/MessageDocAssistant';
 import { type ModelOption } from '../../components/ModelSelector';
 import { ToolMessage } from '../../components/ToolMessage';
+import { useChatStream } from '../../hooks/useChatStream';
 import { TabBar } from '../../layout/TabBar';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
-import { useChatStream } from '../../hooks/useChatStream';
 
 import { KnowledgeBaseSelector } from './KnowledgeBaseSelector';
 import { KnowledgeDocSelector } from './KnowledgeDocSelector';
@@ -131,7 +131,7 @@ export function ChatPanel({ hideTabBar = false }: { hideTabBar?: boolean } = {})
 
   function handlePromptClick(p: RecommendedPrompt) {
     createConv.mutate(
-      { title: p.title },
+      { title: p.title ?? '' },
       {
         onSuccess: () => {
           // 提示词由 ChatRoom 内部首次渲染读取（暂用 sessionStorage 传递）
@@ -156,7 +156,6 @@ export function ChatPanel({ hideTabBar = false }: { hideTabBar?: boolean } = {})
 
   // ── Launcher 跳转：能跳的直接跳，没占位 toast ──
   function launcherCreateChat() {
-    const { t } = useTranslation();
     createConv.mutate({
       title: `${t('chatMain.newConvPrefix', { defaultValue: '新对话' })} ${new Date().toLocaleTimeString()}`,
     });
@@ -497,7 +496,7 @@ function ChatRoom({
 
   return (
     <>
-      <div ref={scrollerRef} className="scroll-thin flex-1 overflow-auto px-6 py-6">
+      <div ref={scrollerRef} className="scroll-thin flex-1 overflow-auto px-4 py-4 sm:px-6 sm:py-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-6">
           {messages.map((m) => {
             const isPending = pending?.id === m.message.id;

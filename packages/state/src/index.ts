@@ -117,7 +117,6 @@ export const SETTINGS_STORAGE_KEYS = [
 
 export type PrimaryNav =
   | 'home'
-  | 'agent'
   | 'image'
   | 'miniapp'
   | 'translate'
@@ -185,52 +184,6 @@ export type SettingsSection =
   | 'webSearch';
 export const settingsSectionAtom = atom<SettingsSection>('models');
 
-// ── Agent ──
-
-export type AgentRunStatus = 'queued' | 'running' | 'paused' | 'done' | 'error' | 'aborted';
-export type AgentStepKind = 'think' | 'tool' | 'observe' | 'respond';
-
-export interface AgentRunState {
-  id: string;
-  convId: string | null;
-  goal: string | null;
-  status: AgentRunStatus;
-  stepsCount: number;
-  tokensTotal: number | null;
-  createdAt: number;
-  endedAt: number | null;
-}
-
-export interface AgentStepState {
-  id: string;
-  runId: string;
-  seq: number;
-  kind: AgentStepKind;
-  content: string | null;
-  toolName: string | null;
-  toolArgs: string | null;
-  toolResult: string | null;
-  durationMs: number | null;
-  tokensIn: number | null;
-  tokensOut: number | null;
-  createdAt: number;
-}
-
-export const activeAgentRunIdAtom = atom<string | null>(null);
-
-export const agentStepsAtom = atom<AgentStepState[]>([]);
-
-export type AgentPanelMode = 'cards' | 'split' | 'canvas';
-export const agentPanelModeAtom = createPersistedAtom<AgentPanelMode>('agent.panelMode', 'cards');
-
-export interface AgentModelSelection {
-  providerId: string;
-  modelId: string;
-  modelDisplay: string;
-  providerName: string;
-}
-export const agentModelAtom = createPersistedAtom<AgentModelSelection | null>('agent.model', null);
-
 // ── MCP ──
 
 export interface McpServerState {
@@ -288,3 +241,30 @@ export const splitLayoutAtom = createPersistedAtom<SplitLayoutState>('chat.split
 });
 
 export const focusedPaneIdAtom = atom<string | null>(null);
+
+// ── 小程序 ──
+
+export interface MiniApp {
+  id: string;
+  name: string;
+  url: string;
+  icon?: string; // emoji or brand icon name
+  color?: string; // bg color for icon
+  desc?: string;
+}
+
+export interface MiniAppTab {
+  id: string;
+  type: 'market' | 'app';
+  appId?: string;
+  title: string;
+  url?: string;
+}
+
+export const customMiniAppsAtom = createPersistedAtom<MiniApp[]>('miniapp.custom', []);
+
+export const miniAppTabsAtom = createPersistedAtom<MiniAppTab[]>('miniapp.tabs', [
+  { id: 'market', type: 'market', title: '小程序' },
+]);
+
+export const activeMiniAppTabIdAtom = createPersistedAtom<string>('miniapp.activeTabId', 'market');

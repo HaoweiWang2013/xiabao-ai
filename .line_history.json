@@ -1,0 +1,319 @@
+[
+  {
+    "date": "2026-05-28",
+    "files": 1196,
+    "lines": 498942,
+    "languages": {
+      "json": {
+        "files": 72,
+        "lines": 49880
+      },
+      "editorconfig": {
+        "files": 1,
+        "lines": 15
+      },
+      "gitattributes": {
+        "files": 1,
+        "lines": 25
+      },
+      "gitignore": {
+        "files": 1,
+        "lines": 101
+      },
+      "npmrc": {
+        "files": 1,
+        "lines": 36
+      },
+      "nvmrc": {
+        "files": 1,
+        "lines": 1
+      },
+      "prettierignore": {
+        "files": 1,
+        "lines": 14
+      },
+      "prettierrc": {
+        "files": 1,
+        "lines": 15
+      },
+      "js": {
+        "files": 21,
+        "lines": 9521
+      },
+      "py": {
+        "files": 750,
+        "lines": 338863
+      },
+      "mjs": {
+        "files": 3,
+        "lines": 271
+      },
+      "yaml": {
+        "files": 2,
+        "lines": 24987
+      },
+      "yml": {
+        "files": 1,
+        "lines": 84
+      },
+      "ts": {
+        "files": 196,
+        "lines": 26692
+      },
+      "tsx": {
+        "files": 97,
+        "lines": 14323
+      },
+      "html": {
+        "files": 5,
+        "lines": 30573
+      },
+      "css": {
+        "files": 10,
+        "lines": 2036
+      },
+      "gradle": {
+        "files": 3,
+        "lines": 105
+      },
+      "properties": {
+        "files": 4,
+        "lines": 17
+      },
+      "bat": {
+        "files": 5,
+        "lines": 67
+      },
+      "xml": {
+        "files": 8,
+        "lines": 401
+      },
+      "kt": {
+        "files": 2,
+        "lines": 53
+      },
+      "toml": {
+        "files": 2,
+        "lines": 75
+      },
+      "sh": {
+        "files": 5,
+        "lines": 202
+      },
+      "java": {
+        "files": 2,
+        "lines": 579
+      },
+      "cjs": {
+        "files": 1,
+        "lines": 6
+      }
+    }
+  },
+  {
+    "date": "2026-05-30",
+    "files": 408,
+    "lines": 81250,
+    "languages": {
+      "json": {
+        "files": 44,
+        "lines": 2775
+      },
+      "editorconfig": {
+        "files": 1,
+        "lines": 15
+      },
+      "gitattributes": {
+        "files": 1,
+        "lines": 25
+      },
+      "gitignore": {
+        "files": 1,
+        "lines": 105
+      },
+      "npmrc": {
+        "files": 1,
+        "lines": 36
+      },
+      "nvmrc": {
+        "files": 1,
+        "lines": 1
+      },
+      "prettierignore": {
+        "files": 1,
+        "lines": 14
+      },
+      "prettierrc": {
+        "files": 1,
+        "lines": 15
+      },
+      "js": {
+        "files": 14,
+        "lines": 6056
+      },
+      "py": {
+        "files": 1,
+        "lines": 275
+      },
+      "mjs": {
+        "files": 3,
+        "lines": 271
+      },
+      "yaml": {
+        "files": 2,
+        "lines": 24987
+      },
+      "yml": {
+        "files": 2,
+        "lines": 165
+      },
+      "ts": {
+        "files": 207,
+        "lines": 28062
+      },
+      "tsx": {
+        "files": 105,
+        "lines": 17623
+      },
+      "html": {
+        "files": 2,
+        "lines": 29
+      },
+      "css": {
+        "files": 4,
+        "lines": 494
+      },
+      "gradle": {
+        "files": 3,
+        "lines": 105
+      },
+      "properties": {
+        "files": 3,
+        "lines": 13
+      },
+      "bat": {
+        "files": 1,
+        "lines": 62
+      },
+      "xml": {
+        "files": 6,
+        "lines": 48
+      },
+      "kt": {
+        "files": 2,
+        "lines": 53
+      },
+      "cjs": {
+        "files": 1,
+        "lines": 6
+      },
+      "toml": {
+        "files": 1,
+        "lines": 15
+      }
+    }
+  },
+  {
+    "date": "2026-05-31",
+    "files": 393,
+    "lines": 75910,
+    "languages": {
+      "json": {
+        "files": 46,
+        "lines": 2833
+      },
+      "editorconfig": {
+        "files": 1,
+        "lines": 15
+      },
+      "gitattributes": {
+        "files": 1,
+        "lines": 25
+      },
+      "gitignore": {
+        "files": 3,
+        "lines": 208
+      },
+      "npmrc": {
+        "files": 1,
+        "lines": 36
+      },
+      "nvmrc": {
+        "files": 1,
+        "lines": 1
+      },
+      "prettierignore": {
+        "files": 1,
+        "lines": 14
+      },
+      "prettierrc": {
+        "files": 1,
+        "lines": 15
+      },
+      "js": {
+        "files": 11,
+        "lines": 5835
+      },
+      "py": {
+        "files": 1,
+        "lines": 275
+      },
+      "mjs": {
+        "files": 3,
+        "lines": 271
+      },
+      "yaml": {
+        "files": 2,
+        "lines": 23965
+      },
+      "yml": {
+        "files": 2,
+        "lines": 165
+      },
+      "ts": {
+        "files": 191,
+        "lines": 26104
+      },
+      "tsx": {
+        "files": 94,
+        "lines": 14923
+      },
+      "html": {
+        "files": 2,
+        "lines": 29
+      },
+      "css": {
+        "files": 4,
+        "lines": 494
+      },
+      "gradle": {
+        "files": 8,
+        "lines": 192
+      },
+      "properties": {
+        "files": 2,
+        "lines": 29
+      },
+      "bat": {
+        "files": 1,
+        "lines": 92
+      },
+      "java": {
+        "files": 3,
+        "lines": 49
+      },
+      "xml": {
+        "files": 12,
+        "lines": 319
+      },
+      "cjs": {
+        "files": 1,
+        "lines": 6
+      },
+      "toml": {
+        "files": 1,
+        "lines": 15
+      }
+    }
+  }
+]

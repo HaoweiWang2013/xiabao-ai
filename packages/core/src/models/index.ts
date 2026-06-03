@@ -13,5 +13,4 @@ export * from './setting';
 export * from './tool';
 export * from './knowledge';
 export * from './prompt';
-export * from './agent';
 export * from './mcp';

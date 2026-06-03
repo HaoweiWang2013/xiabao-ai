@@ -7,7 +7,7 @@
  * 见 docs/p9-cherry-ux.md §1.3 / `docs/12-ui-design.md`（顶导航模式）。
  */
 import { useAtom } from 'jotai';
-import { Brain, Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } from 'lucide-react';
+import { Globe, Home, Image, MessageSquare, Puzzle, Settings, Sparkles } from 'lucide-react';
 
 import { primaryNavAtom, settingsSectionAtom, type PrimaryNav } from '@xiabao/state';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, cn } from '@xiabao/ui';
@@ -23,7 +23,6 @@ interface NavItem {
 
 const TOP_ITEMS: NavItem[] = [
   { id: 'home', icon: <Home className="h-[18px] w-[18px]" /> },
-  { id: 'agent', icon: <Brain className="h-[18px] w-[18px]" /> },
   { id: 'image', icon: <Image className="h-[18px] w-[18px]" /> },
   { id: 'miniapp', icon: <Puzzle className="h-[18px] w-[18px]" /> },
   { id: 'translate', icon: <Globe className="h-[18px] w-[18px]" /> },

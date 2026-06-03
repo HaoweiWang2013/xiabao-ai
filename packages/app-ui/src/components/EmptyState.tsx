@@ -17,8 +17,10 @@ import type { ReactNode } from 'react';
 
 export interface RecommendedPrompt {
   id: string;
-  title: string;
-  description: string;
+  title?: string;
+  titleKey?: string;
+  description?: string;
+  descriptionKey?: string;
   icon?: ReactNode;
   prompt: string;
 }
@@ -77,10 +79,10 @@ export function EmptyState({
 
   const resolvedPrompts = prompts.map((p) => ({
     ...p,
-    title: p.titleKey ? t(p.titleKey, { defaultValue: p.title }) : p.title,
+    title: p.titleKey ? t(p.titleKey, { defaultValue: p.title }) : (p.title ?? ''),
     description: p.descriptionKey
       ? t(p.descriptionKey, { defaultValue: p.description })
-      : p.description,
+      : (p.description ?? ''),
   }));
 
   return (

@@ -43,22 +43,22 @@ export function ModelSelector({
         <button
           type="button"
           className={cn(
-            'focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2',
+            'focus-visible:ring-ring inline-flex max-w-full items-center gap-1.5 truncate whitespace-nowrap rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2',
             compact
               ? 'border-border/40 bg-secondary/40 hover:bg-secondary border px-2 py-1 text-xs'
               : 'border-border/40 bg-card/40 hover:bg-card border px-3 py-1.5 text-xs',
           )}
         >
-          <Cpu className="h-3.5 w-3.5 opacity-60" />
+          <Cpu className="h-3.5 w-3.5 shrink-0 opacity-60" />
           {selected ? (
-            <>
-              <span className="text-muted-foreground">{selected.providerName}</span>
-              <span className="text-foreground font-medium">{selected.modelDisplay}</span>
-            </>
+            <span className="flex items-center gap-1 truncate">
+              <span className="text-muted-foreground truncate">{selected.providerName}</span>
+              <span className="text-foreground truncate font-medium">{selected.modelDisplay}</span>
+            </span>
           ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
+            <span className="text-muted-foreground truncate">{placeholder}</span>
           )}
-          <ChevronDown className="h-3 w-3 opacity-60" />
+          <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 p-1">

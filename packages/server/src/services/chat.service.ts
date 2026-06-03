@@ -23,6 +23,7 @@ import {
 } from '@xiabao/core';
 
 import type { KnowledgeService, SearchHit } from './knowledge.service';
+import type { McpService } from './mcp.service';
 import type { ProviderService } from './provider.service';
 import type { ToolService } from './tool.service';
 import type {
@@ -122,6 +123,7 @@ export interface ChatServiceDeps {
   clock: ClockPort;
   providerService: ProviderService;
   toolService: ToolService;
+  mcpService?: McpService;
   /** M4-D：可选注入；未注入时 KB 字段被忽略，行为与 M4-C 之前一致 */
   knowledgeService?: KnowledgeService;
   repos: {
@@ -135,7 +137,16 @@ export interface ChatServiceDeps {
 }
 
 export function createChatService(deps: ChatServiceDeps) {
-  const { logger, clock, providerService, toolService, knowledgeService, repos, getSetting } = deps;
+  const {
+    logger,
+    clock,
+    providerService,
+    toolService,
+    knowledgeService,
+    mcpService,
+    repos,
+    getSetting,
+  } = deps;
   const log = logger.child({ mod: 'chat.service' });
 
   /**
@@ -268,7 +279,23 @@ export function createChatService(deps: ChatServiceDeps) {
     signal?: AbortSignal;
   }): AsyncIterable<ChatStreamEvent> {
     const startedAt = clock.now();
-    const tools = toolService.list();
+
+    // 加载内置工具 + 授权的 MCP 工具
+    let tools = toolService.list();
+    let mcpServerIds: string[] = [];
+    if (mcpService) {
+      try {
+        const enabledServers = await mcpService.listServers();
+        mcpServerIds = enabledServers.filter((s) => s.enabled).map((s) => s.id);
+        const mcpToolSpecs = await mcpService.getAuthorizedToolSpecs(mcpServerIds);
+        tools = [...tools, ...mcpToolSpecs];
+      } catch (err) {
+        log.warn('chat: failed to load MCP tools', {
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
     let currentTurns = opts.turns;
 
     let currentAssistantId = opts.assistantMessageId;
@@ -365,7 +392,26 @@ export function createChatService(deps: ChatServiceDeps) {
                 /* keep {} */
               }
               try {
-                const result = await toolService.execute(tc.toolName, args);
+                let result: unknown;
+                if (toolService.get(tc.toolName)) {
+                  result = await toolService.execute(tc.toolName, args);
+                } else if (mcpService) {
+                  let executed = false;
+                  for (const sid of mcpServerIds) {
+                    const sTools = await mcpService.listTools(sid);
+                    if (sTools.some((t) => t.name === tc.toolName)) {
+                      result = await mcpService.executeTool(sid, tc.toolName, args);
+                      executed = true;
+                      break;
+                    }
+                  }
+                  if (!executed) {
+                    throw new Error(`Tool not found: ${tc.toolName}`);
+                  }
+                } else {
+                  throw new Error(`Tool not found: ${tc.toolName}`);
+                }
+
                 toolResults.push({
                   toolCallId: tcId,
                   resultJson: JSON.stringify(result),

@@ -1,8 +1,8 @@
 import { useAtom } from 'jotai';
-import { Bookmark, Pencil, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { Bookmark, PanelLeftClose, Pencil, Plus, Search, Star, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { activeTabIdAtom, openTabsAtom } from '@xiabao/state';
+import { activeTabIdAtom, openTabsAtom, sidebarCollapsedAtom } from '@xiabao/state';
 import {
   Button,
   IconButton,
@@ -58,6 +58,7 @@ export function ConversationList({
   const { t } = useTranslation();
   const [active, setActive] = useAtom(activeTabIdAtom);
   const [, setTabs] = useAtom(openTabsAtom);
+  const [, setSidebarCollapsed] = useAtom(sidebarCollapsedAtom);
   const [keyword, setKeyword] = useState('');
   const lower = keyword.trim().toLowerCase();
 
@@ -94,15 +95,32 @@ export function ConversationList({
         aria-label="Conversations"
         className="glass border-border/40 flex h-full w-[260px] shrink-0 flex-col border-r"
       >
-        <div className="border-border/40 flex h-11 items-center gap-2 border-b px-3">
-          <Search className="text-muted-foreground h-3.5 w-3.5" />
-          <Input
-            type="search"
-            placeholder={t('conversations.searchPh', { defaultValue: '搜索会话…' })}
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            className="h-7 border-none bg-transparent px-0 text-xs focus-visible:ring-0"
-          />
+        <div className="border-border/40 flex h-11 items-center justify-between gap-2 border-b px-3">
+          <div className="flex flex-1 items-center gap-2">
+            <Search className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            <Input
+              type="search"
+              placeholder={t('conversations.searchPh', { defaultValue: '搜索会话…' })}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="h-7 flex-1 border-none bg-transparent px-0 text-xs focus-visible:ring-0"
+            />
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                size="sm"
+                variant="ghost"
+                onClick={() => setSidebarCollapsed(true)}
+                className="text-muted-foreground hover:text-foreground h-7 w-7 shrink-0"
+              >
+                <PanelLeftClose className="h-3.5 w-3.5" />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {t('conversations.collapseSidebar', { defaultValue: '折叠侧栏 (Ctrl+B)' })}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <ScrollArea className="scroll-thin flex-1">

@@ -107,6 +107,7 @@ export async function bootstrapDesktopContainer(
   const secret = createSecretAdapter();
   const file = createFileAdapter();
   const clock = createClockAdapter();
+  const crypto = createCryptoAdapter();
 
   const repos = createRepos({ db, clock });
 

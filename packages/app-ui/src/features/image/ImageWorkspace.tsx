@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { Button, Textarea } from '@xiabao/ui';
+import { Button, Textarea, cn } from '@xiabao/ui';
 
 import { ModelSelector, type ModelOption } from '../../components/ModelSelector';
 import { trpc } from '../../lib/trpc';
@@ -72,6 +72,12 @@ export function ImageWorkspace() {
   const [seed, setSeed] = useState<number | undefined>(undefined);
   const [guidance, setGuidance] = useState<number | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   const selectedModelInfo = useMemo(
     () =>
@@ -161,9 +167,14 @@ export function ImageWorkspace() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
         <aside
-          className={sidebarOpen ? 'border-border/40 w-60 shrink-0 border-r' : 'w-0 border-none'}
+          className={cn(
+            'transition-all duration-200',
+            sidebarOpen
+              ? 'border-border/40 bg-background max-md:bg-background/95 w-60 shrink-0 border-r max-md:absolute max-md:bottom-0 max-md:left-0 max-md:top-0 max-md:z-30 max-md:shadow-2xl max-md:backdrop-blur-sm'
+              : 'w-0 overflow-hidden border-none',
+          )}
         >
           {sidebarOpen && (
             <div className="flex h-full flex-col overflow-y-auto p-3">
@@ -289,6 +300,14 @@ export function ImageWorkspace() {
           )}
         </aside>
 
+        {/* Mobile overlay with blur and dim click-to-close */}
+        {sidebarOpen && (
+          <div
+            className="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] transition-all duration-200 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {!sidebarOpen && (
           <button
             type="button"
@@ -324,7 +343,7 @@ export function ImageWorkspace() {
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="border-border/40 bg-background/80 flex flex-col gap-2.5 rounded-xl border p-2.5 shadow-sm">
               <Textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -332,22 +351,37 @@ export function ImageWorkspace() {
                 placeholder={t('image.promptPh', {
                   defaultValue: '描述你想生成的图像，越详细越好…',
                 })}
-                rows={2}
-                className="border-border/40 bg-background/80 focus:border-primary/40 focus:ring-primary/15 flex-1 resize-none rounded-xl text-sm leading-relaxed shadow-sm transition-all duration-150 focus:ring-2"
+                rows={3}
+                className="min-h-[60px] w-full resize-none border-0 bg-transparent p-1 text-sm leading-relaxed shadow-none outline-none focus:ring-0 focus-visible:ring-0"
                 disabled={generating}
               />
-              <div className="flex shrink-0 flex-col items-stretch gap-2">
-                <ModelSelector
-                  models={modelOptions}
-                  value={selectedModel}
-                  onChange={(m) =>
-                    setSelectedModel({
-                      providerId: m.providerId,
-                      modelId: m.modelId,
-                    })
-                  }
-                  placeholder={t('image.modelPh', { defaultValue: '选择图像模型…' })}
-                />
+              <div className="border-border/10 flex flex-wrap items-center justify-between gap-2 border-t pt-2">
+                <div className="flex items-center gap-2">
+                  <ModelSelector
+                    models={modelOptions}
+                    value={selectedModel}
+                    onChange={(m) =>
+                      setSelectedModel({
+                        providerId: m.providerId,
+                        modelId: m.modelId,
+                      })
+                    }
+                    placeholder={t('image.modelPh', { defaultValue: '选择图像模型…' })}
+                  />
+                  <div className="text-muted-foreground/50 border-border/20 bg-muted/40 hidden items-center gap-1.5 rounded-md border px-2 py-1 sm:flex">
+                    <kbd className="bg-background/80 font-mono text-[10px] font-medium shadow-sm">
+                      Ctrl
+                    </kbd>
+                    <span className="text-muted-foreground/30 text-[10px]">+</span>
+                    <kbd className="bg-background/80 font-mono text-[10px] font-medium shadow-sm">
+                      Enter
+                    </kbd>
+                    <span className="text-muted-foreground/40 ml-1 text-[10px]">
+                      {t('image.shortcutHint', { defaultValue: '快速生成' })}
+                    </span>
+                  </div>
+                </div>
+
                 <Button
                   size="sm"
                   variant="primary"
@@ -368,21 +402,6 @@ export function ImageWorkspace() {
                   )}
                 </Button>
               </div>
-            </div>
-
-            <div className="text-muted-foreground/50 mt-2 flex items-center gap-2">
-              <div className="border-border/30 bg-muted/40 flex items-center gap-1.5 rounded-md border px-2 py-1">
-                <kbd className="bg-background/80 font-mono text-[11px] font-medium shadow-sm">
-                  Ctrl
-                </kbd>
-                <span className="text-muted-foreground/40 text-[11px]">+</span>
-                <kbd className="bg-background/80 font-mono text-[11px] font-medium shadow-sm">
-                  Enter
-                </kbd>
-              </div>
-              <span className="text-[13px]">
-                {t('image.shortcutHint', { defaultValue: '快速生成' })}
-              </span>
             </div>
           </div>
         </div>

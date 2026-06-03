@@ -1,14 +1,17 @@
 // .wrangler/tmp/bundle-AvDnY0/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
-  const url = request instanceof URL ? request : new URL((typeof request === "string" ? new Request(request, init) : request).url);
-  if (url.port && url.port !== "443" && url.protocol === "https:") {
+  const url =
+    request instanceof URL
+      ? request
+      : new URL((typeof request === 'string' ? new Request(request, init) : request).url);
+  if (url.port && url.port !== '443' && url.protocol === 'https:') {
     if (!urls.has(url.toString())) {
       urls.add(url.toString());
       console.warn(
         `WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:
  - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.
-`
+`,
       );
     }
   }
@@ -18,22 +21,22 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
     const [request, init] = argArray;
     checkURL(request, init);
     return Reflect.apply(target, thisArg, argArray);
-  }
+  },
 });
 
 // src/index.ts
 var corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Upstream-Url, X-Upstream-Auth, X-Upstream-Headers",
-  "Access-Control-Max-Age": "86400"
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'Content-Type, X-Upstream-Url, X-Upstream-Auth, X-Upstream-Headers',
+  'Access-Control-Max-Age': '86400',
 };
 function isAllowed(url, allowList) {
   try {
     const u = new URL(url);
-    if (u.protocol !== "https:")
-      return false;
-    const allowed = allowList.split(",").map((s) => s.trim().toLowerCase());
+    if (u.protocol !== 'https:') return false;
+    const allowed = allowList.split(',').map((s) => s.trim().toLowerCase());
     return allowed.includes(u.hostname.toLowerCase());
   } catch {
     return false;
@@ -41,60 +44,57 @@ function isAllowed(url, allowList) {
 }
 var src_default = {
   async fetch(req, env) {
-    if (req.method === "OPTIONS") {
+    if (req.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
-    if (req.method !== "POST") {
-      return new Response("Method Not Allowed", {
+    if (req.method !== 'POST') {
+      return new Response('Method Not Allowed', {
         status: 405,
-        headers: corsHeaders
+        headers: corsHeaders,
       });
     }
-    const upstreamUrl = req.headers.get("X-Upstream-Url");
+    const upstreamUrl = req.headers.get('X-Upstream-Url');
     if (!upstreamUrl) {
-      return new Response("Missing X-Upstream-Url", {
+      return new Response('Missing X-Upstream-Url', {
         status: 400,
-        headers: corsHeaders
+        headers: corsHeaders,
       });
     }
     if (!isAllowed(upstreamUrl, env.ALLOWED_UPSTREAMS)) {
-      return new Response("Upstream not in allow list", {
+      return new Response('Upstream not in allow list', {
         status: 403,
-        headers: corsHeaders
+        headers: corsHeaders,
       });
     }
-    const auth = req.headers.get("X-Upstream-Auth") ?? "";
-    const contentType = req.headers.get("Content-Type") ?? "application/json";
+    const auth = req.headers.get('X-Upstream-Auth') ?? '';
+    const contentType = req.headers.get('Content-Type') ?? 'application/json';
     const upstreamHeaders = {
-      "Content-Type": contentType
+      'Content-Type': contentType,
     };
-    if (auth)
-      upstreamHeaders.Authorization = auth;
-    const extra = req.headers.get("X-Upstream-Headers");
+    if (auth) upstreamHeaders.Authorization = auth;
+    const extra = req.headers.get('X-Upstream-Headers');
     if (extra) {
       try {
         const parsed = JSON.parse(extra);
         for (const [k, v] of Object.entries(parsed)) {
-          if (/^[a-z0-9-]+$/i.test(k))
-            upstreamHeaders[k] = v;
+          if (/^[a-z0-9-]+$/i.test(k)) upstreamHeaders[k] = v;
         }
-      } catch {
-      }
+      } catch {}
     }
     let upstreamRes;
     try {
       upstreamRes = await fetch(upstreamUrl, {
-        method: "POST",
+        method: 'POST',
         headers: upstreamHeaders,
-        body: req.body
+        body: req.body,
       });
     } catch (err) {
       return new Response(
-        JSON.stringify({ error: "Upstream fetch failed", message: String(err) }),
+        JSON.stringify({ error: 'Upstream fetch failed', message: String(err) }),
         {
           status: 502,
-          headers: { "Content-Type": "application/json", ...corsHeaders }
-        }
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        },
       );
     }
     const respHeaders = new Headers(upstreamRes.headers);
@@ -102,9 +102,9 @@ var src_default = {
     return new Response(upstreamRes.body, {
       status: upstreamRes.status,
       statusText: upstreamRes.statusText,
-      headers: respHeaders
+      headers: respHeaders,
     });
-  }
+  },
 };
 
 // ../../node_modules/.pnpm/wrangler@3.65.1_@cloudflare+workers-types@4.20240725.0/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
@@ -115,11 +115,10 @@ var drainBody = async (request, env, _ctx, middlewareCtx) => {
     try {
       if (request.body !== null && !request.bodyUsed) {
         const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
-        }
+        while (!(await reader.read()).done) {}
       }
     } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
+      console.error('Failed to drain the unused request body.', e);
     }
   }
 };
@@ -131,7 +130,7 @@ function reduceError(e) {
     name: e?.name,
     message: e?.message ?? String(e),
     stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
+    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause),
   };
 }
 var jsonError = async (request, env, _ctx, middlewareCtx) => {
@@ -141,7 +140,7 @@ var jsonError = async (request, env, _ctx, middlewareCtx) => {
     const error = reduceError(e);
     return Response.json(error, {
       status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
+      headers: { 'MF-Experimental-Error-Stack': 'true' },
     });
   }
 };
@@ -150,7 +149,7 @@ var middleware_miniflare3_json_error_default = jsonError;
 // .wrangler/tmp/bundle-AvDnY0/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
-  middleware_miniflare3_json_error_default
+  middleware_miniflare3_json_error_default,
 ];
 var middleware_insertion_facade_default = src_default;
 
@@ -165,14 +164,14 @@ function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
     dispatch,
     next(newRequest, newEnv) {
       return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
-    }
+    },
   };
   return head(request, env, ctx, middlewareCtx);
 }
 function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   return __facade_invokeChain__(request, env, ctx, dispatch, [
     ...__facade_middleware__,
-    finalMiddleware
+    finalMiddleware,
   ]);
 }
 
@@ -186,44 +185,49 @@ var __Facade_ScheduledController__ = class {
   #noRetry;
   noRetry() {
     if (!(this instanceof __Facade_ScheduledController__)) {
-      throw new TypeError("Illegal invocation");
+      throw new TypeError('Illegal invocation');
     }
     this.#noRetry();
   }
 };
 function wrapExportedHandler(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
+  ) {
     return worker;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
     __facade_register__(middleware);
   }
-  const fetchDispatcher = function(request, env, ctx) {
+  const fetchDispatcher = function (request, env, ctx) {
     if (worker.fetch === void 0) {
-      throw new Error("Handler does not export a fetch() function.");
+      throw new Error('Handler does not export a fetch() function.');
     }
     return worker.fetch(request, env, ctx);
   };
   return {
     ...worker,
     fetch(request, env, ctx) {
-      const dispatcher = function(type, init) {
-        if (type === "scheduled" && worker.scheduled !== void 0) {
+      const dispatcher = function (type, init) {
+        if (type === 'scheduled' && worker.scheduled !== void 0) {
           const controller = new __Facade_ScheduledController__(
             Date.now(),
-            init.cron ?? "",
-            () => {
-            }
+            init.cron ?? '',
+            () => {},
           );
           return worker.scheduled(controller, env, ctx);
         }
       };
       return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-    }
+    },
   };
 }
 function wrapWorkerEntrypoint(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
+  ) {
     return klass;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
@@ -234,17 +238,16 @@ function wrapWorkerEntrypoint(klass) {
       this.env = env;
       this.ctx = ctx;
       if (super.fetch === void 0) {
-        throw new Error("Entrypoint class does not define a fetch() function.");
+        throw new Error('Entrypoint class does not define a fetch() function.');
       }
       return super.fetch(request);
     };
     #dispatcher = (type, init) => {
-      if (type === "scheduled" && super.scheduled !== void 0) {
+      if (type === 'scheduled' && super.scheduled !== void 0) {
         const controller = new __Facade_ScheduledController__(
           Date.now(),
-          init.cron ?? "",
-          () => {
-          }
+          init.cron ?? '',
+          () => {},
         );
         return super.scheduled(controller);
       }
@@ -255,20 +258,17 @@ function wrapWorkerEntrypoint(klass) {
         this.env,
         this.ctx,
         this.#dispatcher,
-        this.#fetchDispatcher
+        this.#fetchDispatcher,
       );
     }
   };
 }
 var WRAPPED_ENTRY;
-if (typeof middleware_insertion_facade_default === "object") {
+if (typeof middleware_insertion_facade_default === 'object') {
   WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
-} else if (typeof middleware_insertion_facade_default === "function") {
+} else if (typeof middleware_insertion_facade_default === 'function') {
   WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
 }
 var middleware_loader_entry_default = WRAPPED_ENTRY;
-export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default as default
-};
+export { __INTERNAL_WRANGLER_MIDDLEWARE__, middleware_loader_entry_default as default };
 //# sourceMappingURL=index.js.map

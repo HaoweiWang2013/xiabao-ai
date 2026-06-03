@@ -55,7 +55,7 @@ export function createApplicationMenu({ isDev, mainWindow }: MenuOptions): void 
                   mainWindow?.webContents.send('navigate-settings');
                 },
               },
-              { type: 'separator' },
+              { type: 'separator' as const },
             ]),
         isMac ? { role: 'close' } : { role: 'quit', label: '退出(&X)', accelerator: 'Alt+F4' },
       ],
@@ -65,7 +65,7 @@ export function createApplicationMenu({ isDev, mainWindow }: MenuOptions): void 
       submenu: [
         { role: 'undo' },
         { role: 'redo' },
-        { type: 'separator' },
+        { type: 'separator' as const },
         { role: 'cut' },
         { role: 'copy' },
         { role: 'paste' },
@@ -79,17 +79,17 @@ export function createApplicationMenu({ isDev, mainWindow }: MenuOptions): void 
       submenu: [
         ...(isDev
           ? [
-              { role: 'reload' },
-              { role: 'forceReload' },
-              { role: 'toggleDevTools' },
-              { type: 'separator' } as const,
+              { role: 'reload' as const },
+              { role: 'forceReload' as const },
+              { role: 'toggleDevTools' as const },
+              { type: 'separator' as const },
             ]
           : []),
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' },
+        { role: 'resetZoom' as const },
+        { role: 'zoomIn' as const },
+        { role: 'zoomOut' as const },
+        { type: 'separator' as const },
+        { role: 'togglefullscreen' as const },
       ],
     }),
     new MenuItem({
@@ -98,8 +98,13 @@ export function createApplicationMenu({ isDev, mainWindow }: MenuOptions): void 
         { role: 'minimize' },
         { role: 'zoom' },
         ...(isMac
-          ? [{ type: 'separator' }, { role: 'front' }, { type: 'separator' }, { role: 'window' }]
-          : [{ role: 'close' }]),
+          ? [
+              { type: 'separator' as const },
+              { role: 'front' as const },
+              { type: 'separator' as const },
+              { role: 'window' as const },
+            ]
+          : [{ role: 'close' as const }]),
       ],
     }),
   ];

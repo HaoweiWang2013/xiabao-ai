@@ -471,7 +471,7 @@ Agent 初版：聊天流内展示步骤卡片；MCP 协议初步支持。
 
 ---
 
-## 10. M8 · Android RN 端（8 周）
+## 10. M8 · Android RN 端（8-12 周）
 
 ### 目标
 
@@ -485,16 +485,17 @@ Android 1.0。完整策略与实施清单详见 [`p10-mobile-strategy.md`](./p10
 
 ### 交付清单
 
-- [ ] `apps/mobile` RN 工程
+- [ ] `apps/mobile` RN 工程与适配
+- [ ] 攻克 3 大前置技术 Spike（Hermes 兼容性、op-sqlite 稳定性压测、导航骨架搭建）
 - [ ] `@xiabao/ui-native`（NativeWind 版组件）
 - [ ] 底部 Tab + 左抽屉导航
 - [ ] 会话列表（FlatList 虚拟化）
 - [ ] 聊天界面（user 气泡 + assistant 文档流）
-- [ ] 输入框（多行 + 图片 + 语音）
+- [ ] 输入框（多行 + 图片 + 语音 + 键盘避让与滚动管理）
 - [ ] op-sqlite + Drizzle + 本地持久化
 - [ ] expo-secure-store API Key
-- [ ] libsql 同步（启用后与桌面同步）
-- [ ] 推送通知（MCP 异步任务完成、Agent 结束）
+- [ ] libsql 同步（启用后与桌面同步并进行多端 Schema 一致性自动校验）
+- [ ] 推送通知与后台静默同步功能（WorkManager）
 
 ### 验收
 
