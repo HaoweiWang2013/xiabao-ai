@@ -7,7 +7,7 @@
  * 下半区：会话内固定快捷键（只读速查）
  */
 import { useAtom } from 'jotai';
-import { Keyboard, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Keyboard, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -29,6 +29,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  IconButton,
   ScrollArea,
 } from '@xiabao/ui';
 
@@ -55,7 +56,7 @@ const READONLY_TIPS: { keys: string; descKey: string; defaultDesc: string }[] = 
   { keys: 'Esc', descKey: 'settings.shortcuts.tip.cancel', defaultDesc: '取消编辑 / 关闭弹层' },
 ];
 
-export function ShortcutsSettings() {
+export function ShortcutsSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const [bindings, setBindings] = useAtom(shortcutBindingsAtom);
   const [editingId, setEditingId] = useState<ShortcutId | null>(null);
@@ -87,9 +88,22 @@ export function ShortcutsSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
-        <h2 className="text-sm font-semibold">
-          {t('settings.sections.shortcuts', { defaultValue: '快捷键' })}
-        </h2>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <IconButton
+              size="sm"
+              variant="ghost"
+              onClick={onBack}
+              className="-ml-2 mr-1 h-7 w-7"
+              aria-label="返回分类"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </IconButton>
+          )}
+          <h2 className="text-sm font-semibold">
+            {t('settings.sections.shortcuts', { defaultValue: '快捷键' })}
+          </h2>
+        </div>
         <Button variant="ghost" size="sm" onClick={resetAll}>
           <RotateCcw className="h-3.5 w-3.5" />
           {t('settings.shortcuts.resetAll', { defaultValue: '全部恢复默认' })}

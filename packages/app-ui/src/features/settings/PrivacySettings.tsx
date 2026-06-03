@@ -1,11 +1,16 @@
 import { useAtom } from 'jotai';
-import { Cloud, Loader2, RotateCw, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronLeft, Loader2, Shield } from 'lucide-react';
 
 import { crashReportingEnabledAtom } from '@xiabao/state';
-import { Card, CardContent, CardHeader, CardTitle, ScrollArea, Switch, cn } from '@xiabao/ui';
-
-import { trpc } from '../../lib/trpc';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  IconButton,
+  ScrollArea,
+  Switch,
+} from '@xiabao/ui';
 
 declare global {
   interface Window {
@@ -17,13 +22,24 @@ declare global {
   }
 }
 
-export function PrivacySettings() {
+export function PrivacySettings({ onBack }: { onBack?: () => void } = {}) {
   const [crashReporting, setCrashReporting] = useAtom(crashReportingEnabledAtom);
-  const [saving, setSaving] = useState(false);
+  const saving = false;
 
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+        {onBack && (
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={onBack}
+            className="-ml-2 mr-1 h-7 w-7"
+            aria-label="返回分类"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+        )}
         <h2 className="text-sm font-semibold">隐私</h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">

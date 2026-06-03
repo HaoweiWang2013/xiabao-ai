@@ -1,14 +1,25 @@
 /**
  * AboutSettings · 关于
  */
-import { Sparkles } from 'lucide-react';
+import { ChevronLeft, Sparkles } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle, ScrollArea } from '@xiabao/ui';
+import { Card, CardContent, CardHeader, CardTitle, IconButton, ScrollArea } from '@xiabao/ui';
 
-export function AboutSettings() {
+export function AboutSettings({ onBack }: { onBack?: () => void } = {}) {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+        {onBack && (
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={onBack}
+            className="-ml-2 mr-1 h-7 w-7"
+            aria-label="返回分类"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+        )}
         <h2 className="text-sm font-semibold">关于</h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">

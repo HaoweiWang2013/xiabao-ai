@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { useAtom } from 'jotai';
 import {
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   Plug,
@@ -14,6 +14,7 @@ import {
   Trash2,
   Unplug,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   mcpServersAtom,
@@ -29,15 +30,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   Input,
   ScrollArea,
   Skeleton,
 } from '@xiabao/ui';
 
-import { useTranslation } from '../../lib/useTranslation';
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
-export function McpSettings() {
+export function McpSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const [servers, setServers] = useAtom(mcpServersAtom);
   const [tools, setTools] = useAtom(mcpToolsAtom);
@@ -96,15 +98,28 @@ export function McpSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
-        <div>
-          <h2 className="text-sm font-semibold">
-            {t('mcp.title', { defaultValue: 'MCP 服务器' })}
-          </h2>
-          <p className="text-muted-foreground text-[11px]">
-            {t('mcp.subtitle', {
-              defaultValue: '管理 Model Context Protocol 服务器连接和工具授权',
-            })}
-          </p>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <IconButton
+              size="sm"
+              variant="ghost"
+              onClick={onBack}
+              className="-ml-2 mr-1 h-7 w-7"
+              aria-label="返回分类"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </IconButton>
+          )}
+          <div>
+            <h2 className="text-sm font-semibold">
+              {t('mcp.title', { defaultValue: 'MCP 服务器' })}
+            </h2>
+            <p className="text-muted-foreground text-[11px]">
+              {t('mcp.subtitle', {
+                defaultValue: '管理 Model Context Protocol 服务器连接和工具授权',
+              })}
+            </p>
+          </div>
         </div>
         <Button size="sm" onClick={() => setShowAddForm(!showAddForm)}>
           <Plus className="mr-1 h-3.5 w-3.5" />

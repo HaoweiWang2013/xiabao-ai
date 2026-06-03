@@ -7,7 +7,7 @@
  * Tavily key、allowedReadDir、per-tool toggle 等高级设置由 SettingsPage 提供。
  */
 import { useAtom } from 'jotai';
-import { ArrowRight, Globe, Wrench } from 'lucide-react';
+import { ArrowRight, ChevronLeft, Globe, Wrench } from 'lucide-react';
 
 import { settingsSectionAtom } from '@xiabao/state';
 import {
@@ -18,14 +18,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   ScrollArea,
   Skeleton,
 } from '@xiabao/ui';
 
-import { useTranslation } from '../../lib/useTranslation';
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
-export function ToolSettings() {
+export function ToolSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const toolsQ = trpc.tool.list.useQuery();
   const tools = toolsQ.data ?? [];
@@ -34,15 +35,28 @@ export function ToolSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
-        <div>
-          <h2 className="text-sm font-semibold">
-            {t('toolSettings.title', { defaultValue: '已注册工具' })}
-          </h2>
-          <p className="text-muted-foreground text-[11px]">
-            {t('toolSettings.desc', {
-              defaultValue: '模型在生成回复时可调用以下工具。结果会作为消息追加到对话中。',
-            })}
-          </p>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <IconButton
+              size="sm"
+              variant="ghost"
+              onClick={onBack}
+              className="-ml-2 mr-1 h-7 w-7"
+              aria-label="返回分类"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </IconButton>
+          )}
+          <div>
+            <h2 className="text-sm font-semibold">
+              {t('toolSettings.title', { defaultValue: '已注册工具' })}
+            </h2>
+            <p className="text-muted-foreground text-[11px]">
+              {t('toolSettings.desc', {
+                defaultValue: '模型在生成回复时可调用以下工具。结果会作为消息追加到对话中。',
+              })}
+            </p>
+          </div>
         </div>
       </header>
 

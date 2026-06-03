@@ -8,7 +8,7 @@
  * - 语言：zh-CN / en-US（实时切换界面文案）
  */
 import { useAtom } from 'jotai';
-import { Monitor, Moon, Sun } from 'lucide-react';
+import { ChevronLeft, Monitor, Moon, Sun } from 'lucide-react';
 
 import { localeLabel, supportedLocales, type SupportedLocale } from '@xiabao/i18n';
 import {
@@ -26,6 +26,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   ScrollArea,
   cn,
 } from '@xiabao/ui';
@@ -44,7 +45,7 @@ const ACCENTS: {
   { id: 'gray', hex: '#6b7280' },
 ];
 
-export function AppearanceSettings() {
+export function AppearanceSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const [theme, setTheme] = useAtom(themeAtom);
   const [accent, setAccent] = useAtom(accentAtom);
@@ -56,6 +57,17 @@ export function AppearanceSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+        {onBack && (
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={onBack}
+            className="-ml-2 mr-1 h-7 w-7"
+            aria-label="返回分类"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+        )}
         <h2 className="text-sm font-semibold">{t('settings.sections.appearance')}</h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">

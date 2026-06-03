@@ -4,7 +4,7 @@
  * 只读诊断信息：应用版本 / 平台 / Node 版本 / 数据库路径与大小 / 三张主表行数。
  * 由 server 的 system.getDevInfo 一次查询返回，前端不做任何写操作。
  */
-import { Database, RefreshCw, Server } from 'lucide-react';
+import { ChevronLeft, Database, RefreshCw, Server } from 'lucide-react';
 
 import {
   Button,
@@ -13,6 +13,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   ScrollArea,
 } from '@xiabao/ui';
 
@@ -30,7 +31,7 @@ function formatBytes(n: number | null | undefined): string {
   return `${value.toFixed(idx === 0 ? 0 : 2)} ${SIZE_UNITS[idx]}`;
 }
 
-export function DeveloperSettings() {
+export function DeveloperSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const devInfoQ = trpc.system.getDevInfo.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -43,9 +44,22 @@ export function DeveloperSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
-        <h2 className="text-sm font-semibold">
-          {t('settings.developer.title', { defaultValue: '开发者' })}
-        </h2>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <IconButton
+              size="sm"
+              variant="ghost"
+              onClick={onBack}
+              className="-ml-2 mr-1 h-7 w-7"
+              aria-label="返回分类"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </IconButton>
+          )}
+          <h2 className="text-sm font-semibold">
+            {t('settings.developer.title', { defaultValue: '开发者' })}
+          </h2>
+        </div>
         <Button
           variant="ghost"
           size="sm"

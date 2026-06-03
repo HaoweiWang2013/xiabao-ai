@@ -12,7 +12,16 @@
  * - 新建入口：左栏底部「+ 添加」（已删除原右上角「+ 新建 Provider」按钮）
  * - 创建对话框 = stepper（凭证 → probe 多选 + 手动加行 → create + upsertBulk）
  */
-import { AlertCircle, CheckCircle2, Plus, RefreshCw, Search, Trash2, Zap } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronLeft,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  Zap,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { inferModelCapability, type ProviderListedModel } from '@xiabao/core';
@@ -24,6 +33,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -67,16 +77,35 @@ function kindRequiresEndpoint(k: Kind): boolean {
   return k !== 'local-embedder';
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    function handle() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
+
+  return isMobile;
+}
+
 /**
  * 三栏布局（参 docs/p9-cherry-ux.md §1.2）：
  *   外层 settings 主导航（已存在）│ 左：Provider 列表 │ 右：选中 Provider 详情
  *
  * 删除原右上角「+ 新建 Provider」按钮；新建入口移到左侧列表底部的「+ 添加」行。
  */
-export function ProviderSettings() {
+export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
   const list = trpc.provider.listWithModels.useQuery();
   const utils = trpc.useUtils();
+  const isMobile = useIsMobile();
+  const [mobileActivePanel, setMobileActivePanel] = useState<'list' | 'detail'>('list');
   const [creating, setCreating] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
@@ -119,8 +148,24 @@ export function ProviderSettings() {
     <TooltipProvider delayDuration={200}>
       <div className="flex h-full">
         {/* ── 左栏：Provider 列表 ───────────────────────────── */}
-        <aside className="border-border/40 flex w-64 shrink-0 flex-col border-r">
+        <aside
+          className={cn(
+            'border-border/40 flex w-64 shrink-0 flex-col border-r',
+            isMobile && (mobileActivePanel === 'list' ? 'w-full border-r-0' : 'hidden'),
+          )}
+        >
           <div className="border-border/40 flex items-center gap-2 border-b px-3 py-2">
+            {onBack && (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                onClick={onBack}
+                className="-ml-1 h-7 w-7 shrink-0"
+                aria-label="返回分类"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </IconButton>
+            )}
             <Search className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
             <Input
               value={filter}
@@ -141,10 +186,25 @@ export function ProviderSettings() {
                   const active = provider.id === selectedId;
                   return (
                     <li key={provider.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedId(provider.id)}
-                        className={`hover:bg-secondary/30 group flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${active ? 'bg-secondary/50' : ''}`}
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          setSelectedId(provider.id);
+                          if (isMobile) {
+                            setMobileActivePanel('detail');
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSelectedId(provider.id);
+                            if (isMobile) {
+                              setMobileActivePanel('detail');
+                            }
+                          }
+                        }}
+                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${active ? 'bg-secondary/50' : ''}`}
                       >
                         <span className="bg-muted-foreground/20 text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-medium uppercase">
                           {provider.name.slice(0, 1)}
@@ -159,7 +219,7 @@ export function ProviderSettings() {
                           aria-label={t('providers.enable')}
                           className="scale-75"
                         />
-                      </button>
+                      </div>
                     </li>
                   );
                 })}
@@ -185,7 +245,12 @@ export function ProviderSettings() {
         </aside>
 
         {/* ── 右栏：选中 Provider 详情 ─────────────────────── */}
-        <section className="min-w-0 flex-1">
+        <section
+          className={cn(
+            'min-w-0 flex-1',
+            isMobile && (mobileActivePanel === 'detail' ? 'w-full' : 'hidden'),
+          )}
+        >
           {!selected ? (
             <div className="text-muted-foreground flex h-full items-center justify-center text-xs">
               {list.isLoading ? t('providers.loading') : t('providers.detailEmpty')}
@@ -194,6 +259,17 @@ export function ProviderSettings() {
             <div className="flex h-full flex-col">
               <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
                 <div className="flex items-center gap-2">
+                  {isMobile && (
+                    <IconButton
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setMobileActivePanel('list')}
+                      className="animate-fade-in -ml-2 mr-1 h-7 w-7"
+                      aria-label="返回列表"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </IconButton>
+                  )}
                   <h2 className="text-sm font-semibold">{selected.provider.name}</h2>
                   <Badge variant="outline" className="text-[10px]">
                     {selected.provider.kind}

@@ -5,7 +5,7 @@
  * 导入采用后端 chat.importConversation 接口，线性主链还原。
  */
 import { useAtom } from 'jotai';
-import { AlertTriangle, Download, RotateCcw, Upload } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, Download, RotateCcw, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import { SETTINGS_STORAGE_KEYS, activeTabIdAtom, openTabsAtom } from '@xiabao/state';
@@ -16,12 +16,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   ScrollArea,
 } from '@xiabao/ui';
 
 import { trpc } from '../../lib/trpc';
 
-export function DataSettings() {
+export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
   const utils = trpc.useUtils();
   const conversationsQ = trpc.chat.listConversations.useQuery();
   const deleteConversation = trpc.chat.deleteConversation.useMutation();
@@ -180,6 +181,17 @@ export function DataSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+        {onBack && (
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={onBack}
+            className="-ml-2 mr-1 h-7 w-7"
+            aria-label="返回分类"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+        )}
         <h2 className="text-sm font-semibold">数据</h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">

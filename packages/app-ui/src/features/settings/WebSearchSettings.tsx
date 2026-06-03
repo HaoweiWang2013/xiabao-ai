@@ -6,7 +6,17 @@
  * - API Key 配置：根据选中提供商显示对应输入框（部分引擎无需 API）
  * - 测试按钮：验证 API 连通性
  */
-import { AlertCircle, Check, ExternalLink, Globe, Key, Loader2, TestTube2, X } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  ChevronLeft,
+  ExternalLink,
+  Globe,
+  Key,
+  Loader2,
+  TestTube2,
+  X,
+} from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { trpc } from '../../lib/trpc';
@@ -18,6 +28,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  IconButton,
   Input,
   ScrollArea,
   Switch,
@@ -116,7 +127,7 @@ const PROVIDERS: ProviderOption[] = [
   },
 ];
 
-export function WebSearchSettings() {
+export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [testMsg, setTestMsg] = useState('');
@@ -301,6 +312,17 @@ export function WebSearchSettings() {
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+        {onBack && (
+          <IconButton
+            size="sm"
+            variant="ghost"
+            onClick={onBack}
+            className="-ml-2 mr-1 h-7 w-7"
+            aria-label="返回分类"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </IconButton>
+        )}
         <h2 className="text-sm font-semibold">联网搜索</h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">

@@ -40,7 +40,17 @@ const require = createRequire(import.meta.url);
 
 const PORT = Number(process.env.PORT ?? 4317);
 const HOST = process.env.HOST ?? '127.0.0.1';
-const DB_PATH = process.env.XIABAO_DB ?? join(process.cwd(), '.xiabao', 'web.db');
+let DB_PATH = process.env.XIABAO_DB ?? join(process.cwd(), '.xiabao', 'web.db');
+
+try {
+  const bridge = require('bridge');
+  if (bridge?.channel) {
+    const nativeDataDir = bridge.channel.getDataPath();
+    DB_PATH = join(nativeDataDir, 'web.db');
+  }
+} catch {
+  // Not running inside capacitor-nodejs
+}
 const MIGRATIONS_DIR = (() => {
   // packages/server 的 migrations 目录
   try {
@@ -62,6 +72,18 @@ async function bootstrap() {
     mkdirSync(dbDir, { recursive: true });
   }
   const client = createClient({ url: `file:${DB_PATH}` });
+
+  // SQLite/libsql 高端性能调优
+  try {
+    await client.execute('PRAGMA journal_mode = WAL;');
+    await client.execute('PRAGMA synchronous = NORMAL;');
+    await client.execute('PRAGMA busy_timeout = 5000;');
+    await client.execute('PRAGMA temp_store = MEMORY;');
+    await client.execute('PRAGMA foreign_keys = ON;');
+  } catch {
+    // 忽略异常
+  }
+
   const { db, migrate } = createAppDb(client, MIGRATIONS_DIR);
   await migrate();
   log.info('migrations done');
@@ -177,7 +199,24 @@ async function bootstrap() {
   process.on('SIGTERM', shutdown);
 }
 
-void bootstrap().catch((err) => {
-  console.error('[xiabao-web] bootstrap failed', err);
-  process.exit(1);
-});
+try {
+  const bridge = require('bridge');
+  if (bridge?.channel) {
+    bridge.channel.addListener('start-server', () => {
+      bootstrap().catch((err) => {
+        bridge.channel.send('msg-from-nodejs', 'Server Bootstrap Failed: ' + err.message);
+        process.exit(1);
+      });
+    });
+  } else {
+    void bootstrap().catch((err) => {
+      console.error('[xiabao-web] bootstrap failed', err);
+      process.exit(1);
+    });
+  }
+} catch {
+  void bootstrap().catch((err) => {
+    console.error('[xiabao-web] bootstrap failed', err);
+    process.exit(1);
+  });
+}

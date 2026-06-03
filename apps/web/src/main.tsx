@@ -33,6 +33,27 @@ setTrpcClientFactory(() => {
   });
 });
 
+// @ts-ignore
+const isCapacitor = typeof window !== 'undefined' && window.Capacitor;
+if (isCapacitor) {
+  import('capacitor-nodejs')
+    .then(({ NodeJS }) => {
+      NodeJS.addListener('msg-from-nodejs', (event) => {
+        console.log('[Android Node.js Background Log]', event.args[0]);
+      });
+      NodeJS.whenReady().then(() => {
+        console.log('Capacitor Node.js Engine is ready! Bootstrapping local Fastify Server...');
+        NodeJS.send({
+          eventName: 'start-server',
+          args: [],
+        });
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to load capacitor-nodejs', err);
+    });
+}
+
 const container = document.getElementById('root');
 if (!container) throw new Error('#root not found');
 
