@@ -12,6 +12,8 @@ import {
   Switch,
 } from '@xiabao/ui';
 
+import { useTranslation } from '../../lib/useTranslation';
+
 declare global {
   interface Window {
     electronAPI?: {
@@ -23,6 +25,7 @@ declare global {
 }
 
 export function PrivacySettings({ onBack }: { onBack?: () => void } = {}) {
+  const { t } = useTranslation();
   const [crashReporting, setCrashReporting] = useAtom(crashReportingEnabledAtom);
   const saving = false;
 
@@ -40,7 +43,9 @@ export function PrivacySettings({ onBack }: { onBack?: () => void } = {}) {
             <ChevronLeft className="h-4 w-4" />
           </IconButton>
         )}
-        <h2 className="text-sm font-semibold">隐私</h2>
+        <h2 className="text-sm font-semibold">
+          {t('settings.privacy.title', { defaultValue: '隐私' })}
+        </h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-6 py-6">
@@ -48,18 +53,24 @@ export function PrivacySettings({ onBack }: { onBack?: () => void } = {}) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Shield className="h-4 w-4" />
-                数据与隐私
+                {t('settings.privacy.dataAndPrivacy', { defaultValue: '数据与隐私' })}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 text-xs leading-relaxed">
               <p className="text-muted-foreground">
-                XiabaoAI 将你的数据存储在本地，不会自动上传到任何服务器。
+                {t('settings.privacy.dataAndPrivacyDesc', {
+                  defaultValue: 'XiabaoAI 将你的数据存储在本地，不会自动上传到任何服务器。',
+                })}
               </p>
               <div className="border-border/30 flex items-center justify-between rounded-md border p-3">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">崩溃报告</span>
+                  <span className="font-medium">
+                    {t('settings.privacy.crashReporting', { defaultValue: '崩溃报告' })}
+                  </span>
                   <span className="text-muted-foreground">
-                    启用后将向自托管 Sentry 发送匿名崩溃日志
+                    {t('settings.privacy.crashReportingDesc', {
+                      defaultValue: '启用后将向自托管 Sentry 发送匿名崩溃日志',
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

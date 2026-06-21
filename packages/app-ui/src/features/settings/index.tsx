@@ -113,7 +113,9 @@ export function SettingsPage() {
             )}
           >
             <div className="border-border/40 mb-2 flex h-9 items-center justify-between gap-2 border-b px-2 pb-1">
-              <span className="text-muted-foreground text-xs font-semibold">设置分类</span>
+              <span className="text-muted-foreground text-xs font-semibold">
+                {t('settings.title', { defaultValue: '设置' })}
+              </span>
               {!isMobile && (
                 <Tooltip>
                   <TooltipTrigger asChild>

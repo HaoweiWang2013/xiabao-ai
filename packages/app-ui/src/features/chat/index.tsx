@@ -118,9 +118,16 @@ export function ChatPanel({ hideTabBar = false }: { hideTabBar?: boolean } = {})
   /**
    * P9 · 9-8：Tab bar 的 [+] 不再直接建对话，而是 push 一个『起始页』tab（type='launcher'）。
    * 用户在起始页里点应用图标，再决定下一步动作（建对话 / 跳模块）。
+   * 限制：最多只能开一个 Launcher Tab。
    */
   function handleNewTab() {
-    const { t } = useTranslation();
+    // 检查是否已有 Launcher Tab
+    const existingLauncher = tabs.find((t) => t.type === 'launcher');
+    if (existingLauncher) {
+      // 已存在则直接切换到该 Launcher
+      setActive(existingLauncher.id);
+      return;
+    }
     const id = `launcher:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     setTabs((prev) => [
       ...prev,
@@ -154,28 +161,37 @@ export function ChatPanel({ hideTabBar = false }: { hideTabBar?: boolean } = {})
     setNav('settings');
   }
 
-  // ── Launcher 跳转：能跳的直接跳，没占位 toast ──
+  // ── Launcher 跳转：关闭 Launcher Tab，跳转到目标页面 ─
   function launcherCreateChat() {
+    // 先关闭当前 Launcher Tab
+    if (activeTab?.type === 'launcher') {
+      setTabs((prev) => prev.filter((t) => t.id !== active));
+    }
     createConv.mutate({
       title: `${t('chatMain.newConvPrefix', { defaultValue: '新对话' })} ${new Date().toLocaleTimeString()}`,
     });
   }
   function launcherOpenKnowledge() {
+    if (activeTab?.type === 'launcher') setTabs((prev) => prev.filter((t) => t.id !== active));
     setNav('knowledge');
   }
   function launcherOpenProviders() {
+    if (activeTab?.type === 'launcher') setTabs((prev) => prev.filter((t) => t.id !== active));
     setSettingsSection('models');
     setNav('settings');
   }
   function launcherOpenTools() {
+    if (activeTab?.type === 'launcher') setTabs((prev) => prev.filter((t) => t.id !== active));
     setSettingsSection('tools');
     setNav('settings');
   }
   function launcherOpenAppearance() {
+    if (activeTab?.type === 'launcher') setTabs((prev) => prev.filter((t) => t.id !== active));
     setSettingsSection('appearance');
     setNav('settings');
   }
   function launcherOpenAbout() {
+    if (activeTab?.type === 'launcher') setTabs((prev) => prev.filter((t) => t.id !== active));
     setSettingsSection('about');
     setNav('settings');
   }
@@ -316,6 +332,8 @@ function ChatRoom({
     startStream,
     stopStream,
     clearError,
+    pendingConfirm,
+    respondConfirm,
     invalidateChain,
     utils,
   } = useChatStream(convId, () => {
@@ -587,6 +605,38 @@ function ChatRoom({
                 onClick={clearError}
               >
                 {t('chatMain.close', { defaultValue: '关闭' })}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {pendingConfirm ? (
+        <div className="mx-auto w-full max-w-3xl px-4">
+          <div className="border-warning/40 bg-warning/5 flex items-center justify-between gap-3 rounded-md border px-4 py-3">
+            <div className="flex-1 overflow-hidden">
+              <p className="text-warning mb-0.5 text-xs font-semibold">
+                {t('chat.confirmCommandTitle', { defaultValue: '危险命令确认' })}
+              </p>
+              <p className="text-muted-foreground truncate text-xs">
+                <code className="bg-muted/60 rounded px-1.5 py-0.5 font-mono text-[11px]">
+                  {pendingConfirm.command}
+                </code>
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                className="border-warning/40 bg-warning/10 hover:bg-warning/20 rounded-md px-3 py-1.5 text-xs font-medium"
+                onClick={() => respondConfirm(true)}
+              >
+                {t('chat.allowCommand', { defaultValue: '允许执行' })}
+              </button>
+              <button
+                type="button"
+                className="hover:bg-muted rounded-md px-3 py-1.5 text-xs font-medium"
+                onClick={() => respondConfirm(false)}
+              >
+                {t('chat.rejectCommand', { defaultValue: '拒绝' })}
               </button>
             </div>
           </div>

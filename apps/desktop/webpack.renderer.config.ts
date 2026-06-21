@@ -1,5 +1,6 @@
 import path from 'node:path';
 
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import type { Configuration } from 'webpack';
@@ -78,6 +79,14 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
             "base-uri 'self'",
           ].join('; ') + ';',
       },
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'public/miniapps'),
+          to: path.resolve(__dirname, 'dist/renderer/miniapps'),
+        },
+      ],
     }),
     ...(!isDev
       ? [

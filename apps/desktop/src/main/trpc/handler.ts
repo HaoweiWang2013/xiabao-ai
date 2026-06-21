@@ -14,11 +14,19 @@ export interface TrpcIpcHandle {
   attachWindow: (win: BrowserWindow) => void;
 }
 
-export function createTrpcIpcHandler(services: Services, repos: Repos): TrpcIpcHandle {
+/**
+ * @param ready 解析为 services/repos 的 Promise。
+ *   handler 在窗口创建前就注册，早到的 renderer 请求会在 createContext 处
+ *   挂起等待，直到 container bootstrap 完成 —— 从而让 renderer 加载与
+ *   主进程初始化并行执行。
+ */
+export function createTrpcIpcHandler(
+  ready: Promise<{ services: Services; repos: Repos }>,
+): TrpcIpcHandle {
   const handler = createIPCHandler({
     router: appRouter,
     windows: [],
-    createContext: createContextFactory({ services, repos }),
+    createContext: async () => createContextFactory(await ready)(),
   });
 
   return {

@@ -3,11 +3,13 @@
  *
  * - 列出 tRPC tool router 暴露的所有工具
  * - 展开查看参数 schema
+ * - Shell 安全：危险命令黑名单管理
  *
  * Tavily key、allowedReadDir、per-tool toggle 等高级设置由 SettingsPage 提供。
  */
 import { useAtom } from 'jotai';
-import { ArrowRight, ChevronLeft, Globe, Wrench } from 'lucide-react';
+import { ArrowRight, ChevronLeft, Globe, Plus, ShieldAlert, Wrench, X } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 import { settingsSectionAtom } from '@xiabao/state';
 import {
@@ -19,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
   IconButton,
+  Input,
   ScrollArea,
   Skeleton,
 } from '@xiabao/ui';
@@ -31,6 +34,44 @@ export function ToolSettings({ onBack }: { onBack?: () => void } = {}) {
   const toolsQ = trpc.tool.list.useQuery();
   const tools = toolsQ.data ?? [];
   const [, setSection] = useAtom(settingsSectionAtom);
+
+  // Shell 安全：危险命令黑名单
+  const [dangerousCommands, setDangerousCommands] = useState<string[]>([]);
+  const [newCmd, setNewCmd] = useState('');
+
+  const shellSettingsQ = trpc.settings.getMany.useQuery(
+    { keys: ['shell.dangerousCommands'] },
+    {
+      onSuccess: (data) => {
+        const cmds = data['shell.dangerousCommands'];
+        if (Array.isArray(cmds)) setDangerousCommands(cmds);
+      },
+    },
+  );
+
+  const saveCommandsM = trpc.settings.setMany.useMutation({
+    onSuccess: () => {
+      void shellSettingsQ.refetch();
+    },
+  });
+
+  const handleAddCommand = useCallback(() => {
+    const cmd = newCmd.trim().toLowerCase();
+    if (!cmd || dangerousCommands.includes(cmd)) return;
+    const next = [...dangerousCommands, cmd];
+    setDangerousCommands(next);
+    setNewCmd('');
+    saveCommandsM.mutate({ items: [{ key: 'shell.dangerousCommands', value: next }] });
+  }, [newCmd, dangerousCommands, saveCommandsM]);
+
+  const handleRemoveCommand = useCallback(
+    (cmd: string) => {
+      const next = dangerousCommands.filter((c) => c !== cmd);
+      setDangerousCommands(next);
+      saveCommandsM.mutate({ items: [{ key: 'shell.dangerousCommands', value: next }] });
+    },
+    [dangerousCommands, saveCommandsM],
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -85,6 +126,64 @@ export function ToolSettings({ onBack }: { onBack?: () => void } = {}) {
                 {t('toolSettings.goSettings', { defaultValue: '前往设置' })}
                 <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Shell 安全：危险命令黑名单 */}
+          <Card className="border-warning/20 bg-warning/[0.03] mb-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="text-warning h-4 w-4" />
+                {t('toolSettings.shellSecurityTitle', { defaultValue: 'Shell 安全' })}
+              </CardTitle>
+              <CardDescription>
+                {t('toolSettings.shellSecurityDesc', {
+                  defaultValue: 'AI 执行以下命令前需要用户确认',
+                })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {dangerousCommands.map((cmd) => (
+                  <Badge
+                    key={cmd}
+                    variant="outline"
+                    className="border-warning/40 bg-warning/10 text-warning flex items-center gap-1 pr-1"
+                  >
+                    <span className="font-mono text-[11px]">{cmd}</span>
+                    <button
+                      type="button"
+                      className="hover:bg-warning/20 rounded-full p-0.5"
+                      onClick={() => handleRemoveCommand(cmd)}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newCmd}
+                  onChange={(e) => setNewCmd(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddCommand();
+                  }}
+                  placeholder={t('toolSettings.addCommandPlaceholder', {
+                    defaultValue: '输入命令名称，如 rm',
+                  })}
+                  className="h-8 text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleAddCommand}
+                  disabled={!newCmd.trim()}
+                  className="h-8 px-3"
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  {t('toolSettings.addCommand', { defaultValue: '添加' })}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

@@ -6,6 +6,7 @@
     python count_lines.py --history      查看每日历史变化
     python count_lines.py --diff baseline.json   与基线对比
     python count_lines.py --include-docs         包含文档文件
+CIM License
 """
 
 import os

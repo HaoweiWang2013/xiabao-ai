@@ -57,6 +57,21 @@ export function SplitChatView() {
   }
 
   function handleNewTab(paneId: string) {
+    // 检查是否已有 Launcher Tab
+    const existingLauncher = tabs.find((t) => t.type === 'launcher');
+    if (existingLauncher) {
+      // 已存在则直接切换到该 Launcher
+      if (isSingle) {
+        setGlobalActive(existingLauncher.id);
+      }
+      setLayout((prev) => ({
+        ...prev,
+        panes: prev.panes.map((p) =>
+          p.id === paneId ? { ...p, activeTabId: existingLauncher.id } : p,
+        ),
+      }));
+      return;
+    }
     const id = `launcher:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     setTabs((prev) => [...prev, { id, title: '起始页', type: 'launcher' }]);
     setLayout((prev) => ({

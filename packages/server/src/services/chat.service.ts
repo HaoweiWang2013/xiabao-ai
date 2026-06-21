@@ -9,6 +9,8 @@
  *   - AbortSignal 触发 → assistant 状态置为 aborted，emit error 事件
  *   - Provider 抛错   → assistant 状态置为 error，emit error 事件
  */
+import { randomUUID } from 'node:crypto';
+
 import {
   estimateTokens,
   type ChatProvider,
@@ -25,7 +27,7 @@ import {
 import type { KnowledgeService, SearchHit } from './knowledge.service';
 import type { McpService } from './mcp.service';
 import type { ProviderService } from './provider.service';
-import type { ToolService } from './tool.service';
+import type { ToolService } from './tools/index';
 import type {
   ConversationRepo,
   MessageRepo,
@@ -45,6 +47,12 @@ export type ChatStreamEvent =
       toolName: string;
       argsJson: string;
       done: boolean;
+    }
+  | {
+      type: 'tool-confirm';
+      confirmId: string;
+      toolName: string;
+      command: string;
     }
   | {
       type: 'done';
@@ -392,6 +400,43 @@ export function createChatService(deps: ChatServiceDeps) {
                 /* keep {} */
               }
               try {
+                // 危险命令审批：run_shell 执行前检查黑名单
+                if (tc.toolName === 'run_shell' && typeof args.command === 'string') {
+                  const isDangerous = await toolService.isDangerousCommand(args.command);
+                  if (isDangerous) {
+                    const confirmId = randomUUID();
+                    toolService.requestApproval(confirmId);
+                    yield {
+                      type: 'tool-confirm',
+                      confirmId,
+                      toolName: 'run_shell',
+                      command: args.command,
+                    };
+                    // 轮询等待用户决策（最多 120s）
+                    let status: 'pending' | 'approved' | 'rejected' | undefined = 'pending';
+                    for (let i = 0; i < 240; i++) {
+                      await new Promise<void>((resolve) => setTimeout(resolve, 500));
+                      status = toolService.getApprovalStatus(confirmId);
+                      if (status !== 'pending') break;
+                    }
+                    if (status === 'rejected') {
+                      toolResults.push({
+                        toolCallId: tcId,
+                        resultJson: JSON.stringify({ error: '用户拒绝了此命令执行' }),
+                      });
+                      continue;
+                    }
+                    if (status !== 'approved') {
+                      toolResults.push({
+                        toolCallId: tcId,
+                        resultJson: JSON.stringify({ error: '命令确认超时' }),
+                      });
+                      continue;
+                    }
+                    // approved → 继续正常执行
+                  }
+                }
+
                 let result: unknown;
                 if (toolService.get(tc.toolName)) {
                   result = await toolService.execute(tc.toolName, args);

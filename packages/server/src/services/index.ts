@@ -13,6 +13,7 @@ import type {
   VectorStore,
 } from '@xiabao/core';
 
+import { detectServerCapabilities, type ServerCapabilities } from './capabilities';
 import { createChatService, type ChatService } from './chat.service';
 import { createImageService, type ImageService } from './image.service';
 import { createKnowledgeService, type KnowledgeService } from './knowledge.service';
@@ -28,12 +29,14 @@ import {
   type SystemPaths,
   type SystemService,
 } from './system.service';
-import { createToolService, type ToolService } from './tool.service';
+import { createToolService, type ToolService } from './tools/index';
 import { createVoiceService, type VoiceService } from './voice.service';
 
 import type { AppDb } from '../db';
 import type { Repos } from '../repos';
 import type { Client } from '@libsql/client';
+
+export { detectServerCapabilities, type ServerCapabilities } from './capabilities';
 
 export interface Services {
   provider: ProviderService;
@@ -73,9 +76,16 @@ export interface ServicesDeps {
    * 平台侧（如 desktop）未来可注入 `SqliteVecStore`。
    */
   vectorStore?: VectorStore;
+  /**
+   * 平台能力（省略时自动探测）。移动端组合根可传 `{ canSpawnProcess: false }`
+   * 显式禁用 run_shell / MCP stdio。
+   */
+  capabilities?: ServerCapabilities;
 }
 
 export function createServices(deps: ServicesDeps): Services {
+  const capabilities = deps.capabilities ?? detectServerCapabilities();
+
   const provider = createProviderService({
     http: deps.http,
     secret: deps.secret,
@@ -87,6 +97,7 @@ export function createServices(deps: ServicesDeps): Services {
     logger: deps.logger,
     http: deps.http,
     settings: deps.repos.settings as { get: <K extends string>(key: K) => Promise<unknown> },
+    capabilities,
   });
 
   const knowledge = createKnowledgeService({
@@ -102,6 +113,7 @@ export function createServices(deps: ServicesDeps): Services {
     logger: deps.logger,
     http: deps.http,
     repos: { mcp: deps.repos.mcp },
+    capabilities,
   });
 
   const chat = createChatService({

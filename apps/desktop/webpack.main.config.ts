@@ -56,6 +56,14 @@ const config: Configuration = {
     __dirname: false,
     __filename: false,
   },
+  // @sentry/electron 间接引入的 OpenTelemetry / require-in-the-middle 使用运行时动态 require，
+  // webpack 无法静态分析 → "Critical dependency" 告警。运行时在 Node 主进程正常工作，属良性，精准屏蔽。
+  ignoreWarnings: [
+    {
+      module: /@opentelemetry[/\\]instrumentation|require-in-the-middle/,
+      message: /Critical dependency/,
+    },
+  ],
   devtool: isDev ? 'source-map' : 'source-map',
   optimization: {
     minimize: !isDev,

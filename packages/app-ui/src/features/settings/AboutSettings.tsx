@@ -5,7 +5,10 @@ import { ChevronLeft, Sparkles } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, IconButton, ScrollArea } from '@xiabao/ui';
 
+import { useTranslation } from '../../lib/useTranslation';
+
 export function AboutSettings({ onBack }: { onBack?: () => void } = {}) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-full flex-col">
       <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
@@ -20,7 +23,9 @@ export function AboutSettings({ onBack }: { onBack?: () => void } = {}) {
             <ChevronLeft className="h-4 w-4" />
           </IconButton>
         )}
-        <h2 className="text-sm font-semibold">关于</h2>
+        <h2 className="text-sm font-semibold">
+          {t('settings.about.title', { defaultValue: '关于' })}
+        </h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-6 py-6">
@@ -35,13 +40,25 @@ export function AboutSettings({ onBack }: { onBack?: () => void } = {}) {
             </CardHeader>
             <CardContent className="text-xs leading-relaxed">
               <p className="text-muted-foreground">
-                本地优先的 AI 工作台，桌面与浏览器共享同一套 React + tRPC 代码。许可证
-                AGPL-3.0-or-later。
+                {t('settings.about.desc', {
+                  defaultValue:
+                    '本地优先的 AI 工作台，桌面与浏览器共享同一套 React + tRPC 代码。许可证 AGPL-3.0-or-later。',
+                })}
               </p>
               <ul className="text-muted-foreground mt-3 list-disc pl-5">
-                <li>主进程 / fastify · @xiabao/server</li>
-                <li>UI · @xiabao/app-ui + @xiabao/ui + @xiabao/theme</li>
-                <li>详细架构 · docs/02-architecture.md</li>
+                <li>
+                  {t('settings.about.item1', { defaultValue: '主进程 / fastify · @xiabao/server' })}
+                </li>
+                <li>
+                  {t('settings.about.item2', {
+                    defaultValue: 'UI · @xiabao/app-ui + @xiabao/ui + @xiabao/theme',
+                  })}
+                </li>
+                <li>
+                  {t('settings.about.item3', {
+                    defaultValue: '详细架构 · docs/02-architecture.md',
+                  })}
+                </li>
               </ul>
             </CardContent>
           </Card>

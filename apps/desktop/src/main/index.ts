@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { autoUpdater } from 'electron-updater';
 
 import { bootstrapDesktopContainer, type DesktopContainer } from './adapters';
 import { setupCrashReporter } from './crash-reporter';
@@ -9,12 +10,15 @@ import { createTray } from './menu/tray';
 import { setupProtocolHandlers, onOpenUrl } from './protocols';
 import { createTrpcIpcHandler, type TrpcIpcHandle } from './trpc/handler';
 import { setupAutoUpdater } from './updater';
-import { autoUpdater } from 'electron-updater';
 
 declare const __DEV__: boolean;
 declare const __BUILD_HASH__: string;
 
 const isDev = __DEV__;
+
+const startedAt = performance.now();
+const perf = (label: string) =>
+  console.info(`[xiabao] perf · ${label} · +${(performance.now() - startedAt).toFixed(0)}ms`);
 
 let container: DesktopContainer | null = null;
 let trpcHandle: TrpcIpcHandle | null = null;
@@ -92,6 +96,7 @@ function createMainWindow(): BrowserWindow {
     if (!shown) {
       shown = true;
       win.show();
+      perf('window visible (renderer first paint)');
     }
   };
   win.once('ready-to-show', showOnce);
@@ -128,8 +133,35 @@ function createMainWindow(): BrowserWindow {
 }
 
 void app.whenReady().then(async () => {
+  perf('app.whenReady');
+  // Deferred container：让 renderer 加载与重量级 bootstrap 并行执行
+  let resolveContainer!: (c: DesktopContainer) => void;
+  let rejectContainer!: (err: unknown) => void;
+  const containerReady = new Promise<DesktopContainer>((resolve, reject) => {
+    resolveContainer = resolve;
+    rejectContainer = reject;
+  });
+  // 防止 bootstrap 失败时产生 unhandledRejection 噪音（请求到来时会被 createContext 捕获）
+  void containerReady.catch(() => undefined);
+
+  // 提前注册 tRPC handler：renderer 首渲即发出的请求会挂起等待 container 就绪，而非报错
+  trpcHandle = createTrpcIpcHandler(
+    containerReady.then((c) => ({ services: c.services, repos: c.repos })),
+  );
+
+  // 先创建窗口 → renderer 立刻开始加载（与下方 bootstrap 并行）
+  mainWindow = createMainWindow();
+  trpcHandle.attachWindow(mainWindow);
+  createApplicationMenu({ isDev, mainWindow });
+  createTray(mainWindow);
+  perf('window created (renderer load started)');
+
+  // 并行执行重量级初始化（SQLite / secret / adapters）
   try {
+    const bootStart = performance.now();
     container = await bootstrapDesktopContainer({ dev: isDev });
+    console.info(`[xiabao] perf · bootstrap took ${(performance.now() - bootStart).toFixed(0)}ms`);
+    resolveContainer(container);
     container.logger.info('container ready', {
       userData: app.getPath('userData'),
     });
@@ -137,8 +169,6 @@ void app.whenReady().then(async () => {
     setupCrashReporter(container);
 
     setupProtocolHandlers(container);
-
-    trpcHandle = createTrpcIpcHandler(container.services, container.repos);
 
     ipcMain.handle('dialog:openDirectory', async () => {
       if (!mainWindow) return null;
@@ -149,15 +179,21 @@ void app.whenReady().then(async () => {
       if (result.canceled || result.filePaths.length === 0) return null;
       return result.filePaths[0];
     });
+
+    // 动态更新 Windows titleBarOverlay 颜色（浅色/深色模式）
+    ipcMain.handle('xiabao:set-titlebar-theme', (_e, theme: string) => {
+      if (!mainWindow || process.platform === 'darwin') return;
+      const isLight = theme === 'light';
+      mainWindow.setTitleBarOverlay({
+        color: isLight ? '#F5F5F400' : '#00000000',
+        symbolColor: isLight ? '#1C1917' : '#F4F4F5',
+        height: 36,
+      });
+    });
   } catch (err) {
     console.error('[xiabao] bootstrap failed', err);
+    rejectContainer(err);
   }
-
-  mainWindow = createMainWindow();
-  if (trpcHandle && mainWindow) trpcHandle.attachWindow(mainWindow);
-
-  createApplicationMenu({ isDev, mainWindow });
-  createTray(mainWindow);
 
   setTimeout(() => {
     if (mainWindow && !isDev) {

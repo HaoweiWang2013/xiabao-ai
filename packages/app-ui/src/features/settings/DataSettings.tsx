@@ -21,8 +21,10 @@ import {
 } from '@xiabao/ui';
 
 import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
 export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const conversationsQ = trpc.chat.listConversations.useQuery();
   const deleteConversation = trpc.chat.deleteConversation.useMutation();
@@ -95,7 +97,11 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
         typeof json !== 'object' ||
         !Array.isArray((json as { conversations?: unknown }).conversations)
       ) {
-        throw new Error('文件格式不正确：缺少 conversations 字段');
+        throw new Error(
+          t('settings.data.importFormatErr', {
+            defaultValue: '文件格式不正确：缺少 conversations 字段',
+          }),
+        );
       }
       const items = (json as { conversations: unknown[] }).conversations;
       let ok = 0;
@@ -107,7 +113,9 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
           typeof item !== 'object' ||
           !(item as { conversation?: unknown }).conversation
         ) {
-          failures.push('条目缺少 conversation');
+          failures.push(
+            t('settings.data.importMissingErr', { defaultValue: '条目缺少 conversation' }),
+          );
           continue;
         }
         const entry = item as {
@@ -127,8 +135,21 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
         }
       }
       await utils.chat.listConversations.invalidate();
-      const summary = `已导入 ${ok} / ${items.length} 个会话，共 ${totalMessages} 条消息`;
-      setImportMessage(failures.length > 0 ? `${summary}，${failures.length} 个失败` : summary);
+      const summary = t('settings.data.importSummary', {
+        ok: String(ok),
+        total: String(items.length),
+        msgs: String(totalMessages),
+        defaultValue: `已导入 ${ok} / ${items.length} 个会话，共 ${totalMessages} 条消息`,
+      });
+      setImportMessage(
+        failures.length > 0
+          ? t('settings.data.importSummaryFail', {
+              summary,
+              fail: String(failures.length),
+              defaultValue: `${summary}，${failures.length} 个失败`,
+            })
+          : summary,
+      );
       if (failures.length > 0) {
         setImportError(failures.slice(0, 3).join('、'));
       }
@@ -144,7 +165,10 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
     if (resetting) return;
     if (
       !confirm(
-        '将清除主题、强调色、密度、字号、引导状态等本地偏好，不会删除会话与 API Key。确定重置吗？',
+        t('settings.data.resetConfirm', {
+          defaultValue:
+            '将清除主题、强调色、密度、字号、引导状态等本地偏好，不会删除会话与 API Key。确定重置吗？',
+        }),
       )
     )
       return;
@@ -160,14 +184,28 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
     } finally {
       setResetting(false);
     }
-    if (confirm('设置已重置，需重载页面才能生效。现在重载？')) {
+    if (
+      confirm(
+        t('settings.data.resetReload', {
+          defaultValue: '设置已重置，需重载页面才能生效。现在重载？',
+        }),
+      )
+    ) {
       window.location.reload();
     }
   }
 
   async function clearAllConversations() {
     if (conversations.length === 0 || deleteConversation.isLoading) return;
-    if (!confirm(`确定要清空 ${conversations.length} 个会话吗？此操作不可撤销。`)) return;
+    if (
+      !confirm(
+        t('settings.data.clearConfirm', {
+          count: String(conversations.length),
+          defaultValue: `确定要清空 ${conversations.length} 个会话吗？此操作不可撤销。`,
+        }),
+      )
+    )
+      return;
 
     for (const conversation of conversations) {
       await deleteConversation.mutateAsync({ id: conversation.id });
@@ -192,14 +230,22 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
             <ChevronLeft className="h-4 w-4" />
           </IconButton>
         )}
-        <h2 className="text-sm font-semibold">数据</h2>
+        <h2 className="text-sm font-semibold">
+          {t('settings.data.title', { defaultValue: '数据' })}
+        </h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-6 py-6">
           <Card>
             <CardHeader>
-              <CardTitle>导出 / 导入</CardTitle>
-              <CardDescription>把所有会话与消息导出为本地 JSON 文件</CardDescription>
+              <CardTitle>
+                {t('settings.data.exportImport', { defaultValue: '导出 / 导入' })}
+              </CardTitle>
+              <CardDescription>
+                {t('settings.data.exportImportDesc', {
+                  defaultValue: '把所有会话与消息导出为本地 JSON 文件',
+                })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-2">
@@ -210,10 +256,16 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
                     disabled={conversationsQ.isLoading || exporting}
                     onClick={() => void exportData()}
                   >
-                    <Download className="h-3.5 w-3.5" /> {exporting ? '导出中…' : '导出 JSON'}
+                    <Download className="h-3.5 w-3.5" />{' '}
+                    {exporting
+                      ? t('settings.data.exporting', { defaultValue: '导出中…' })
+                      : t('settings.data.exportBtn', { defaultValue: '导出 JSON' })}
                   </Button>
                   <Button variant="outline" size="sm" disabled={importing} onClick={pickImportFile}>
-                    <Upload className="h-3.5 w-3.5" /> {importing ? '导入中…' : '导入 JSON'}
+                    <Upload className="h-3.5 w-3.5" />{' '}
+                    {importing
+                      ? t('settings.data.importing', { defaultValue: '导入中…' })
+                      : t('settings.data.importBtn', { defaultValue: '导入 JSON' })}
                   </Button>
                   <input
                     ref={fileInputRef}
@@ -234,7 +286,10 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
                   <p className="text-success text-xs">{importMessage}</p>
                 ) : (
                   <p className="text-muted-foreground text-xs">
-                    导入仅会还原主链消息（不含分叉树）；assistant 消息不会丢失，但不再绑定原 model。
+                    {t('settings.data.importHint', {
+                      defaultValue:
+                        '导入仅会还原主链消息（不含分叉树）；assistant 消息不会丢失，但不再绑定原 model。',
+                    })}
                   </p>
                 )}
               </div>
@@ -243,19 +298,30 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-destructive">危险操作</CardTitle>
-              <CardDescription>清除会话或重置全部数据，操作不可撤销</CardDescription>
+              <CardTitle className="text-destructive">
+                {t('settings.data.dangerZone', { defaultValue: '危险操作' })}
+              </CardTitle>
+              <CardDescription>
+                {t('settings.data.dangerZoneDesc', {
+                  defaultValue: '清除会话或重置全部数据，操作不可撤销',
+                })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-2">
                 <div className="border-destructive/40 bg-destructive/5 flex items-center gap-2 rounded-md border p-3">
                   <AlertTriangle className="text-destructive h-4 w-4" />
                   <span className="text-xs">
-                    清空会话与消息会让历史记录无法恢复，请先导出备份。
+                    {t('settings.data.clearWarning', {
+                      defaultValue: '清空会话与消息会让历史记录无法恢复，请先导出备份。',
+                    })}
                   </span>
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  当前共有 {conversationsQ.isLoading ? '…' : conversations.length} 个会话。
+                  {t('settings.data.currentCount', {
+                    count: conversationsQ.isLoading ? '…' : String(conversations.length),
+                    defaultValue: `当前共有 ${conversationsQ.isLoading ? '…' : conversations.length} 个会话。`,
+                  })}
                 </p>
                 {deleteConversation.error ? (
                   <p className="text-destructive text-xs">{deleteConversation.error.message}</p>
@@ -271,7 +337,9 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
                     }
                     onClick={() => void clearAllConversations()}
                   >
-                    {deleteConversation.isLoading ? '清空中…' : '清空所有会话'}
+                    {deleteConversation.isLoading
+                      ? t('settings.data.clearing', { defaultValue: '清空中…' })
+                      : t('settings.data.clearAll', { defaultValue: '清空所有会话' })}
                   </Button>
                   <Button
                     variant="outline"
@@ -280,7 +348,9 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
                     onClick={resetAllSettings}
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    {resetting ? '重置中…' : '重置全部设置'}
+                    {resetting
+                      ? t('settings.data.resetting', { defaultValue: '重置中…' })
+                      : t('settings.data.resetAll', { defaultValue: '重置全部设置' })}
                   </Button>
                 </div>
               </div>

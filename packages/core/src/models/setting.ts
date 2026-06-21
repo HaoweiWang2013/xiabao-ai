@@ -37,6 +37,24 @@ export const SettingsSchema = {
   'webSearch.maxContentLength': z.number().int().min(500).max(10000).default(3000),
   'aiRename.modelId': z.string().nullable().default(null),
   'aiRename.enabled': z.boolean().default(true),
+  'shell.dangerousCommands': z
+    .array(z.string())
+    .default([
+      'rm',
+      'del',
+      'rmdir',
+      'format',
+      'mkfs',
+      'dd',
+      'shutdown',
+      'reboot',
+      'poweroff',
+      'halt',
+      'net',
+      'iptables',
+      'reg',
+      'regedit',
+    ]),
 } as const;
 
 export type SettingsKey = keyof typeof SettingsSchema;

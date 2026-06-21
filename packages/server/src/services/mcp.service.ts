@@ -7,12 +7,16 @@ import type {
   ToolImpl,
 } from '@xiabao/core';
 
+import { detectServerCapabilities, type ServerCapabilities } from './capabilities';
+
 import type { McpRepo } from '../repos';
 
 export interface McpServiceDeps {
   logger: LoggerPort;
   http: HttpPort;
   repos: { mcp: McpRepo };
+  /** 平台能力（省略时自动探测）。移动端会据此禁用 stdio 传输。 */
+  capabilities?: ServerCapabilities;
 }
 
 interface McpConnection {
@@ -26,6 +30,7 @@ interface McpConnection {
 
 export function createMcpService(deps: McpServiceDeps) {
   const { logger, http, repos } = deps;
+  const caps = deps.capabilities ?? detectServerCapabilities();
   const log = logger.child({ mod: 'mcp.service' });
   const connections = new Map<string, McpConnection>();
 
@@ -113,6 +118,13 @@ export function createMcpService(deps: McpServiceDeps) {
     const server = await repos.mcp.getServer(serverId);
     if (!server) throw new Error(`MCP server not found: ${serverId}`);
     if (!server.command) throw new Error(`MCP server ${serverId} has no command`);
+
+    // stdio 需派生子进程；移动端不支持 → 明确报错（connect() 会 graceful 捕获），引导改用 http/sse
+    if (!caps.canSpawnProcess) {
+      throw new Error(
+        'MCP stdio transport is not supported on this platform (process spawning unavailable). Use the http or sse transport instead.',
+      );
+    }
 
     const { spawn } = await import('node:child_process');
     const args: string[] = server.args ? JSON.parse(server.args) : [];

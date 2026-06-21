@@ -129,7 +129,10 @@
     "kbSelectorClear": "Clear all",
     "hitsTitle": "Citations",
     "hitsEmpty": "This reply did not cite any knowledge base",
-    "hitsScore": "score {score}"
+    "hitsScore": "score {score}",
+    "confirmCommandTitle": "Dangerous Command Confirmation",
+    "allowCommand": "Allow",
+    "rejectCommand": "Reject"
   },
   "nav": {
     "chat": "Chat",
@@ -205,18 +208,29 @@
       "languageDesc": "Display language for the interface"
     },
     "data": {
-      "exportTitle": "Export / Import",
-      "exportDesc": "Export all conversations and messages to a local JSON file",
-      "exportButton": "Export JSON",
-      "exporting": "Exporting…",
-      "importButton": "Import JSON",
-      "importing": "Importing…",
-      "dangerTitle": "Danger zone",
-      "dangerDesc": "Clearing conversations or resetting cannot be undone",
-      "clearAll": "Clear all conversations",
-      "clearing": "Clearing…",
-      "resetSettings": "Reset all settings",
-      "resetting": "Resetting…"
+      "title": "Data",
+      "exportImport": "Export / Import",
+      "exportImportDesc": "Export all conversations and messages to a local JSON file",
+      "exportBtn": "Export JSON",
+      "exporting": "Exporting...",
+      "importBtn": "Import JSON",
+      "importing": "Importing...",
+      "importFormatErr": "Invalid format: missing conversations field",
+      "importMissingErr": "Entry missing conversation",
+      "importSummary": "Imported {ok} / {total} conversations, {msgs} messages in total",
+      "importSummaryFail": "{summary}, {fail} failed",
+      "importHint": "Importing only restores the main chain (no forks); assistant messages will not be lost, but they are no longer bound to the original model.",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "Clear conversations or reset all data. Irreversible.",
+      "clearWarning": "Clearing conversations and messages will make history unrecoverable. Please backup first.",
+      "currentCount": "Currently {count} conversations in total.",
+      "clearAll": "Clear All Conversations",
+      "clearing": "Clearing...",
+      "resetAll": "Reset All Settings",
+      "resetting": "Resetting...",
+      "clearConfirm": "Are you sure you want to clear {count} conversations? This cannot be undone.",
+      "resetConfirm": "This will clear local preferences like theme, accent color, density, font size, etc. Conversations and API Keys will NOT be deleted. Reset now?",
+      "resetReload": "Settings reset. A reload is required. Reload now?"
     },
     "shortcuts": {
       "editableTitle": "Global actions",
@@ -256,6 +270,79 @@
       "conversations": "Conversations",
       "messages": "Messages",
       "parts": "Message parts"
+    },
+    "webSearch": {
+      "title": "Web Search",
+      "enabled": "Enable Web Search",
+      "enabledDesc": "Allow AI models to call search engines for real-time information in conversations",
+      "engine": "Search Engine",
+      "engineDesc": "Select the search service used to retrieve real-time information",
+      "freeNoApi": "Free / No API Key",
+      "apiKeyConfig": "API Key Configuration",
+      "apiKeyDesc": "Configure the access key for {name}",
+      "getKey": "Get Key",
+      "getLabel": "Get {label}",
+      "save": "Save",
+      "testConnection": "Test Connection",
+      "testing": "Testing...",
+      "testSuccess": "Connection successful! API Key is valid",
+      "testFail": "Connection failed ({status}): {msg}",
+      "testNetworkErr": "Network error",
+      "noApiNeed": "This engine does not require an API Key and can be used directly",
+      "needApiKeyFirst": "Please configure the API Key first",
+      "testNotSupported": "This engine does not support online testing yet",
+      "hide": "Hide",
+      "show": "Show",
+      "contentLength": "Page Content Length Limit",
+      "contentLengthDesc": "The maximum number of characters returned per page when calling fetch_page_with_content",
+      "chars": "chars",
+      "lengthHint": "Range: 500 - 10,000 chars, current: {current} chars (10 pages ≈ {total} chars, approx {tokens} tokens)",
+      "tipsTitle": "Tips",
+      "tipsDesc": "After enabling web search, the AI model can automatically call the search tool to get the latest information. Baidu, Bing, and DuckDuckGo do not require API Keys and scrape results directly. Each search consumes one tool call, please ensure the model supports tool calls.",
+      "providers": {
+        "baidu": {
+          "name": "Baidu",
+          "desc": "Scrape Baidu directly, no API needed, good for Chinese"
+        },
+        "bing": {
+          "name": "Bing",
+          "desc": "Scrape Bing directly, no API needed, global coverage"
+        },
+        "duckduckgo": {
+          "name": "DuckDuckGo",
+          "desc": "Scrape DuckDuckGo directly, privacy-friendly"
+        },
+        "tavily": {
+          "name": "Tavily",
+          "desc": "AI-optimized search engine for accurate contextual results"
+        },
+        "google": {
+          "name": "Google",
+          "desc": "Google Custom Search API, global coverage"
+        },
+        "exa": {
+          "name": "Exa",
+          "desc": "Semantic search API, good for relevance-based retrieval"
+        },
+        "searxng": {
+          "name": "SearXNG",
+          "desc": "Open-source metasearch engine, self-hosting supported"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy",
+      "dataAndPrivacy": "Data & Privacy",
+      "dataAndPrivacyDesc": "XiabaoAI stores your data locally and does not automatically upload it to any servers.",
+      "crashReporting": "Crash Reporting",
+      "crashReportingDesc": "If enabled, sends anonymous crash logs to self-hosted Sentry"
+    },
+    "about": {
+      "title": "About",
+      "desc": "Local-first AI workbench, desktop and browser share the same React + tRPC codebase. Licensed under AGPL-3.0-or-later.",
+      "item1": "Main Process / fastify · @xiabao/server",
+      "item2": "UI · @xiabao/app-ui + @xiabao/ui + @xiabao/theme",
+      "item3": "Detailed Architecture · docs/02-architecture.md"
     }
   },
   "providers": {
@@ -355,6 +442,7 @@
   },
   "conversations": {
     "title": "Conversations",
+    "history": "History",
     "searchPh": "Search conversations…",
     "empty": "No conversations yet",
     "loading": "Loading...",
@@ -510,7 +598,11 @@
     "goSettings": "Go to Settings",
     "empty": "No tools available",
     "enabled": "Enabled",
-    "schema": "Schema"
+    "schema": "Schema",
+    "shellSecurityTitle": "Shell Security",
+    "shellSecurityDesc": "AI requires user confirmation before executing these commands",
+    "addCommandPlaceholder": "Enter command name, e.g. rm",
+    "addCommand": "Add"
   },
   "commandPalette": {
     "noResults": "No matches found",

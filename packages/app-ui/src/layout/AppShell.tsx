@@ -13,7 +13,7 @@
  *   - 无 Split View / 多 Tab
  */
 import { useAtomValue } from 'jotai';
-import { Menu, Sparkles } from 'lucide-react';
+import { History, Menu, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -25,6 +25,8 @@ import {
 } from '@xiabao/state';
 import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
 import { cn, IconButton } from '@xiabao/ui';
+
+import { useTranslation } from '../lib/useTranslation';
 
 import { IconSidebar } from './IconSidebar';
 import { IconTopBar } from './IconTopBar';
@@ -41,21 +43,26 @@ interface Props {
   showMiddle?: boolean;
 }
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState<boolean>(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+/** <640px：移动端布局（顶栏 + 底部 TabBar + 抽屉）。需小于桌面窗口 minWidth(720)，避免缩窗误入移动端。 */
+const MOBILE_BP = 640;
+/** [640,880)：窄桌面——隐藏内联会话列表，改用「历史记录」按钮 + 模糊覆盖层。 */
+const NARROW_BP = 880;
+
+function useViewportWidth(): number {
+  const [width, setWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1280,
   );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     function handle() {
-      setIsMobile(window.innerWidth < 768);
+      setWidth(window.innerWidth);
     }
     window.addEventListener('resize', handle);
     return () => window.removeEventListener('resize', handle);
   }, []);
 
-  return isMobile;
+  return width;
 }
 
 export function AppShell({ middle, children, showMiddle = true }: Props) {
@@ -67,8 +74,11 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
       ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : false,
   );
-  const isMobile = useIsMobile();
+  const { t } = useTranslation();
+  const width = useViewportWidth();
+  const isMobile = width < MOBILE_BP;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
   useEffect(() => {
@@ -98,11 +108,70 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
     root.style.setProperty('--ring', tokens.ring);
     // success 跟随 primary，保证语义色和强调色协调
     root.style.setProperty('--success', tokens.primary);
+    // 同步 Electron Windows titleBarOverlay 颜色（关闭/最小化/最大化按钮）
+    window.xiabao?.setTitleBarTheme(isDark ? 'dark' : 'light');
   }, [accent, theme, systemDark]);
 
   const navPosition = useAtomValue(navBarPositionAtom);
   const sidebarCollapsed = useAtomValue(sidebarCollapsedAtom);
-  const visibleMiddle = showMiddle && nav === 'chat' && middle && !sidebarCollapsed;
+
+  const isNarrow = !isMobile && width < NARROW_BP;
+  const canMiddle = showMiddle && nav === 'chat' && !!middle;
+  // 宽桌面：内联会话列表；窄桌面：改用「历史记录」按钮 + 覆盖浮层
+  const inlineMiddle = canMiddle && !isNarrow && !sidebarCollapsed;
+  const overlayHistory = canMiddle && isNarrow;
+
+  // 离开窄桌面 / 非 chat 时自动收起浮层
+  useEffect(() => {
+    if (!overlayHistory) setHistoryOpen(false);
+  }, [overlayHistory]);
+
+  // Esc 关闭浮层
+  useEffect(() => {
+    if (!historyOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setHistoryOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [historyOpen]);
+
+  // 窄桌面：主区上方的「历史记录」按钮 + 覆盖式会话列表（背景模糊）
+  const historyOverlay = overlayHistory ? (
+    <>
+      <button
+        type="button"
+        onClick={() => setHistoryOpen(true)}
+        aria-label={t('conversations.history', { defaultValue: '历史记录' })}
+        className="glass border-border/40 text-muted-foreground hover:text-foreground z-header absolute left-2 top-10 flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs shadow-sm transition-colors"
+      >
+        <History className="h-3.5 w-3.5" />
+        {t('conversations.history', { defaultValue: '历史记录' })}
+      </button>
+      <div
+        className={cn(
+          'z-modal absolute inset-0 flex transition-opacity duration-200',
+          historyOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+        )}
+      >
+        <div className="animate-in slide-in-from-left h-full shrink-0 shadow-2xl duration-200">
+          {middle}
+        </div>
+        <div
+          className="flex-1 bg-black/30 backdrop-blur-sm"
+          onClick={() => setHistoryOpen(false)}
+          aria-hidden="true"
+        />
+      </div>
+    </>
+  ) : null;
+
+  const mainArea = (
+    <div className="relative flex flex-1 overflow-hidden">
+      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+      {historyOverlay}
+    </div>
+  );
 
   // ── 移动端 (<768px) ──
   if (isMobile) {
@@ -160,8 +229,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
       <div className="bg-background text-foreground relative flex h-screen w-screen flex-col overflow-hidden font-sans">
         <IconTopBar />
         <div className="flex flex-1 overflow-hidden">
-          {visibleMiddle && middle}
-          <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+          {inlineMiddle && middle}
+          {mainArea}
         </div>
       </div>
     );
@@ -170,8 +239,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   return (
     <div className="bg-background text-foreground relative flex h-screen w-screen overflow-hidden font-sans">
       <IconSidebar />
-      {visibleMiddle && middle}
-      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+      {inlineMiddle && middle}
+      {mainArea}
     </div>
   );
 }

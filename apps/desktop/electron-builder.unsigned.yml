@@ -6,9 +6,14 @@ directories:
   output: release
   buildResources: build
 
-asar: true
+asar: false
+npmRebuild: false
 asarUnpack:
   - '**/*.node'
+  - 'node_modules/@libsql/**'
+  - 'node_modules/js-base64/**'
+  - 'node_modules/libsql/**'
+  - 'node_modules/promise-limit/**'
 
 files:
   - 'dist/**/*'

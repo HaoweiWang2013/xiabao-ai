@@ -7,6 +7,7 @@ declare global {
       arch: string;
       versions: NodeJS.ProcessVersions;
       pickDirectory: () => Promise<string | null>;
+      setTitleBarTheme: (theme: 'light' | 'dark') => void;
       onThemeChange: (cb: (theme: 'light' | 'dark') => void) => () => void;
     };
   }

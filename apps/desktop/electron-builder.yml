@@ -6,19 +6,17 @@ directories:
   output: release
   buildResources: build
 
-asar: true
-asarUnpack:
-  - '**/*.node'
-  - '**/node_modules/@libsql/client/**'
-  - '**/node_modules/@libsql/core/**'
+asar: false
+npmRebuild: false
 
 files:
   - 'dist/**/*'
   - 'package.json'
-  - '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}'
-  - '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}'
-  - '!**/node_modules/*.d.ts'
-  - '!**/node_modules/.bin'
+  - 'node_modules/**/*'
+  - '!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}'
+  - '!node_modules/**/{test,__tests__,tests,powered-test,example,examples}'
+  - '!node_modules/**/*.d.ts'
+  - '!node_modules/**/.bin'
   - '!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}'
 
 mac:
@@ -52,10 +50,8 @@ win:
     - target: portable
       arch: [x64]
   artifactName: '${productName}-Setup-${version}-${arch}.${ext}'
-  certificateFile: '${env.WIN_CSC_LINK}'
-  certificatePassword: '${env.WIN_CSC_KEY_PASSWORD}'
-  signingHashAlgorithms: [sha256]
-  signDlls: true
+  publisherName: XiabaoAI Authors
+  signDlls: false
 
 nsis:
   oneClick: false

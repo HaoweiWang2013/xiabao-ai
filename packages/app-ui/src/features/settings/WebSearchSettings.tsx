@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
-import { trpc } from '../../lib/trpc';
 import { cn } from '@xiabao/ui';
 import {
   Button,
@@ -33,6 +32,9 @@ import {
   ScrollArea,
   Switch,
 } from '@xiabao/ui';
+
+import { trpc } from '../../lib/trpc';
+import { useTranslation } from '../../lib/useTranslation';
 
 type WebSearchProvider = 'tavily' | 'searxng' | 'exa' | 'bing' | 'baidu' | 'google' | 'duckduckgo';
 
@@ -128,6 +130,7 @@ const PROVIDERS: ProviderOption[] = [
 ];
 
 export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
+  const { t } = useTranslation();
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [testMsg, setTestMsg] = useState('');
@@ -152,15 +155,15 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
     },
     {
       onSuccess: (data) => {
-        setEnabled(data['webSearch.enabled'] as boolean);
+        setEnabled(data['webSearch.enabled']);
         setProvider(data['webSearch.provider'] as WebSearchProvider);
-        setMaxContentLength((data['webSearch.maxContentLength'] as number) ?? 3000);
+        setMaxContentLength(data['webSearch.maxContentLength'] ?? 3000);
         setApiValues({
-          tavilyApiKey: (data['webSearch.tavilyApiKey'] as string) ?? '',
-          searxngEndpoint: (data['webSearch.searxngEndpoint'] as string) ?? '',
-          exaApiKey: (data['webSearch.exaApiKey'] as string) ?? '',
-          googleApiKey: (data['webSearch.googleApiKey'] as string) ?? '',
-          googleCx: (data['webSearch.googleCx'] as string) ?? '',
+          tavilyApiKey: data['webSearch.tavilyApiKey']! ?? '',
+          searxngEndpoint: data['webSearch.searxngEndpoint']! ?? '',
+          exaApiKey: data['webSearch.exaApiKey']! ?? '',
+          googleApiKey: data['webSearch.googleApiKey']! ?? '',
+          googleCx: data['webSearch.googleCx']! ?? '',
         });
       },
       retry: false,
@@ -221,7 +224,9 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
   const testConnection = useCallback(async () => {
     if (!currentProvider.needsApi) {
       setTestStatus('success');
-      setTestMsg('该引擎无需 API Key，可直接使用');
+      setTestMsg(
+        t('settings.webSearch.noApiNeed', { defaultValue: '该引擎无需 API Key，可直接使用' }),
+      );
       return;
     }
     const firstKey = currentProvider.fields?.[0];
@@ -229,11 +234,11 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
     const apiKey = apiValues[firstKey.key.split('.').pop()!];
     if (!apiKey) {
       setTestStatus('error');
-      setTestMsg('请先配置 API Key');
+      setTestMsg(t('settings.webSearch.needApiKeyFirst', { defaultValue: '请先配置 API Key' }));
       return;
     }
     setTestStatus('loading');
-    setTestMsg('正在测试连接…');
+    setTestMsg(t('settings.webSearch.testing', { defaultValue: '正在测试连接…' }));
     try {
       let res;
       if (provider === 'tavily') {
@@ -246,7 +251,7 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
           body: JSON.stringify({ query: 'test', max_results: 1 }),
         });
       } else if (provider === 'google') {
-        const cx = apiValues['googleCx'] || '';
+        const cx = apiValues.googleCx || '';
         res = await fetch(
           `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=test&num=1`,
           { method: 'GET' },
@@ -262,23 +267,29 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
         });
       } else {
         setTestStatus('error');
-        setTestMsg('该引擎暂不支持在线测试');
+        setTestMsg(
+          t('settings.webSearch.testNotSupported', { defaultValue: '该引擎暂不支持在线测试' }),
+        );
         return;
       }
 
-      if (res && res.ok) {
+      if (res?.ok) {
         setTestStatus('success');
-        setTestMsg('连接成功！API Key 有效');
+        setTestMsg(t('settings.webSearch.testSuccess', { defaultValue: '连接成功！API Key 有效' }));
       } else if (res) {
         const errText = await res.text().catch(() => '');
         setTestStatus('error');
-        setTestMsg(`连接失败 (${res.status})：${errText}`);
+        setTestMsg(t('settings.webSearch.testFail', { status: String(res.status), msg: errText }));
       }
     } catch (e) {
       setTestStatus('error');
-      setTestMsg(e instanceof Error ? e.message : '网络错误');
+      setTestMsg(
+        e instanceof Error
+          ? e.message
+          : t('settings.webSearch.testNetworkErr', { defaultValue: '网络错误' }),
+      );
     }
-  }, [apiValues, provider, currentProvider]);
+  }, [apiValues, provider, currentProvider, t]);
 
   const toggleShowKey = (fieldKey: string) => {
     setShowKeys((prev) => ({ ...prev, [fieldKey]: !prev[fieldKey] }));
@@ -323,7 +334,9 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
             <ChevronLeft className="h-4 w-4" />
           </IconButton>
         )}
-        <h2 className="text-sm font-semibold">联网搜索</h2>
+        <h2 className="text-sm font-semibold">
+          {t('settings.webSearch.title', { defaultValue: '联网搜索' })}
+        </h2>
       </header>
       <ScrollArea className="scroll-thin flex-1">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-6 py-6">
@@ -334,9 +347,13 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
-                    启用联网搜索
+                    {t('settings.webSearch.enabled', { defaultValue: '启用联网搜索' })}
                   </CardTitle>
-                  <CardDescription>允许 AI 模型在对话中调用搜索引擎获取实时信息</CardDescription>
+                  <CardDescription>
+                    {t('settings.webSearch.enabledDesc', {
+                      defaultValue: '允许 AI 模型在对话中调用搜索引擎获取实时信息',
+                    })}
+                  </CardDescription>
                 </div>
                 <Switch checked={enabled} onCheckedChange={toggleEnabled} />
               </div>
@@ -346,35 +363,49 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
           {/* 提供商选择 */}
           <Card>
             <CardHeader>
-              <CardTitle>搜索引擎</CardTitle>
-              <CardDescription>选择用于获取实时信息的搜索服务</CardDescription>
+              <CardTitle>{t('settings.webSearch.engine', { defaultValue: '搜索引擎' })}</CardTitle>
+              <CardDescription>
+                {t('settings.webSearch.engineDesc', {
+                  defaultValue: '选择用于获取实时信息的搜索服务',
+                })}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {PROVIDERS.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => changeProvider(p.id)}
-                    className={cn(
-                      'flex flex-col gap-1 rounded-lg border p-3 text-left transition-all',
-                      provider === p.id
-                        ? 'border-primary bg-primary/5 ring-primary/20 ring-2'
-                        : 'border-border/40 hover:border-foreground/30',
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{p.name}</span>
-                      {provider === p.id && <Check className="text-primary h-4 w-4" />}
-                    </div>
-                    <span className="text-muted-foreground text-[11px] leading-tight">
-                      {p.description}
-                    </span>
-                    {!p.needsApi && (
-                      <span className="text-[10px] font-medium text-green-600">免费免 API</span>
-                    )}
-                  </button>
-                ))}
+                {PROVIDERS.map((p) => {
+                  const pName = t(`settings.webSearch.providers.${p.id}.name`, {
+                    defaultValue: p.name,
+                  });
+                  const pDesc = t(`settings.webSearch.providers.${p.id}.desc`, {
+                    defaultValue: p.description,
+                  });
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => changeProvider(p.id)}
+                      className={cn(
+                        'flex flex-col gap-1 rounded-lg border p-3 text-left transition-all',
+                        provider === p.id
+                          ? 'border-primary bg-primary/5 ring-primary/20 ring-2'
+                          : 'border-border/40 hover:border-foreground/30',
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{pName}</span>
+                        {provider === p.id && <Check className="text-primary h-4 w-4" />}
+                      </div>
+                      <span className="text-muted-foreground text-[11px] leading-tight">
+                        {pDesc}
+                      </span>
+                      {!p.needsApi && (
+                        <span className="text-[10px] font-medium text-green-600">
+                          {t('settings.webSearch.freeNoApi', { defaultValue: '免费免 API' })}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -385,10 +416,13 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Key className="h-4 w-4" />
-                  API 密钥配置
+                  {t('settings.webSearch.apiKeyConfig', { defaultValue: 'API 密钥配置' })}
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1">
-                  配置 {currentProvider.name} 的访问密钥
+                  {t('settings.webSearch.apiKeyDesc', {
+                    name: currentProvider.name,
+                    defaultValue: `配置 ${currentProvider.name} 的访问密钥`,
+                  })}
                   {currentProvider.fields.map((f, i) => (
                     <a
                       key={i}
@@ -397,7 +431,12 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
                       rel="noopener noreferrer"
                       className="text-primary inline-flex items-center gap-0.5 text-[11px] hover:underline"
                     >
-                      {i === 0 ? '获取密钥' : `获取 ${f.label}`}{' '}
+                      {i === 0
+                        ? t('settings.webSearch.getKey', { defaultValue: '获取密钥' })
+                        : t('settings.webSearch.getLabel', {
+                            label: f.label,
+                            defaultValue: `获取 ${f.label}`,
+                          })}{' '}
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   ))}
@@ -426,13 +465,15 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
                           className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 text-xs"
                           tabIndex={-1}
                         >
-                          {showKeys[field.key] ? '隐藏' : '显示'}
+                          {showKeys[field.key]
+                            ? t('settings.webSearch.hide', { defaultValue: '隐藏' })
+                            : t('settings.webSearch.show', { defaultValue: '显示' })}
                         </button>
                       </div>
                     </div>
                   ))}
                   <Button size="sm" onClick={saveApiKeys} className="self-start">
-                    保存
+                    {t('settings.webSearch.save', { defaultValue: '保存' })}
                   </Button>
                 </div>
               </CardContent>
@@ -455,12 +496,12 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
                       {testStatus === 'loading' ? (
                         <>
                           <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                          测试中…
+                          {t('settings.webSearch.testing', { defaultValue: '测试中…' })}
                         </>
                       ) : (
                         <>
                           <TestTube2 className="mr-1 h-3.5 w-3.5" />
-                          测试连接
+                          {t('settings.webSearch.testConnection', { defaultValue: '测试连接' })}
                         </>
                       )}
                     </Button>
@@ -488,9 +529,13 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
           {/* 内容长度设置 */}
           <Card>
             <CardHeader>
-              <CardTitle>页面内容长度限制</CardTitle>
+              <CardTitle>
+                {t('settings.webSearch.contentLength', { defaultValue: '页面内容长度限制' })}
+              </CardTitle>
               <CardDescription>
-                调用 fetch_page_with_content 时，每个页面返回的最大字符数
+                {t('settings.webSearch.contentLengthDesc', {
+                  defaultValue: '调用 fetch_page_with_content 时，每个页面返回的最大字符数',
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -517,12 +562,17 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
                   }}
                   className="w-32"
                 />
-                <span className="text-muted-foreground text-sm">字符</span>
+                <span className="text-muted-foreground text-sm">
+                  {t('settings.webSearch.chars', { defaultValue: '字符' })}
+                </span>
               </div>
               <p className="text-muted-foreground mt-2 text-[11px]">
-                范围：500 - 10,000 字符，当前设置：{maxContentLength.toLocaleString()} 字符 （10
-                个页面 ≈ {(maxContentLength * 10).toLocaleString()} 字符，约{' '}
-                {Math.round((maxContentLength * 10) / 2)} tokens）
+                {t('settings.webSearch.lengthHint', {
+                  current: maxContentLength.toLocaleString(),
+                  total: (maxContentLength * 10).toLocaleString(),
+                  tokens: Math.round((maxContentLength * 10) / 2),
+                  defaultValue: `范围：500 - 10,000 字符，当前设置：${maxContentLength.toLocaleString()} 字符 （10 个页面 ≈ ${(maxContentLength * 10).toLocaleString()} 字符，约 ${Math.round((maxContentLength * 10) / 2)} tokens）`,
+                })}
               </p>
             </CardContent>
           </Card>
@@ -531,12 +581,15 @@ export function WebSearchSettings({ onBack }: { onBack?: () => void } = {}) {
           <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-medium text-amber-500">温馨提示</span>
+              <span className="text-sm font-medium text-amber-500">
+                {t('settings.webSearch.tipsTitle', { defaultValue: '温馨提示' })}
+              </span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
-              启用联网搜索后，AI 模型可在对话中自动调用搜索工具获取最新信息。 百度、Bing、DuckDuckGo
-              无需 API Key，直接爬取搜索结果。
-              每次搜索会消耗一次工具调用，请确保模型支持工具调用功能。
+              {t('settings.webSearch.tipsDesc', {
+                defaultValue:
+                  '启用联网搜索后，AI 模型可在对话中自动调用搜索工具获取最新信息。 百度、Bing、DuckDuckGo无需 API Key，直接爬取搜索结果。每次搜索会消耗一次工具调用，请确保模型支持工具调用功能。',
+              })}
             </p>
           </div>
         </div>

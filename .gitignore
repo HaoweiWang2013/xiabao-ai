@@ -103,3 +103,15 @@ dist-server/
 # mobile dev tools (large directories, should be installed locally)
 apps/mobile/android/ndk/
 apps/mobile/android/sdk/
+
+# website folder (ignored)
+WebSite/
+
+# wrangler build artifacts
+**/.wrangler/
+
+
+
+
+
+

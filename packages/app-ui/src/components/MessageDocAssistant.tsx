@@ -16,15 +16,16 @@ import {
   RefreshCcw,
   Sparkles,
   Trash2,
-  Wrench,
 } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge, IconButton, cn } from '@xiabao/ui';
 
 import { useTranslation } from '../lib/useTranslation';
+
 import { BranchSwitcher } from './BranchSwitcher';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { formatArgsSummary, getToolMeta } from './toolMeta';
 
 import type { ReactNode } from 'react';
 
@@ -128,18 +129,32 @@ export function MessageDocAssistant({
 
         {toolCalls && toolCalls.length > 0 && (
           <div className="mt-2 flex flex-col gap-1">
-            {toolCalls.map((tc) => (
-              <div
-                key={tc.toolCallId || tc.toolName}
-                className="border-border/40 bg-secondary/40 inline-flex w-fit max-w-full items-center gap-1.5 rounded-md border px-2 py-1 text-[11px]"
-              >
-                <Wrench className="h-3 w-3 opacity-60" />
-                <span className="font-mono">{tc.toolName}</span>
-                <span className="text-muted-foreground max-w-[280px] truncate font-mono">
-                  {tc.argsJson || '{}'}
-                </span>
-              </div>
-            ))}
+            {toolCalls.map((tc) => {
+              const meta = getToolMeta(tc.toolName);
+              const Icon = meta.icon;
+              const argsSummary = formatArgsSummary(tc.argsJson);
+              return (
+                <div
+                  key={tc.toolCallId || tc.toolName}
+                  className="border-border/40 bg-secondary/20 inline-flex w-fit max-w-full items-center gap-2 rounded-lg border px-2 py-1 text-[12px]"
+                >
+                  <span
+                    className={cn(
+                      'flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded',
+                      meta.bg,
+                    )}
+                  >
+                    <Icon className={cn('h-2.5 w-2.5', meta.color)} />
+                  </span>
+                  <span className="font-mono text-[11px] font-medium">{tc.toolName}</span>
+                  {argsSummary && (
+                    <span className="text-muted-foreground max-w-[320px] truncate text-[11px]">
+                      {argsSummary}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
