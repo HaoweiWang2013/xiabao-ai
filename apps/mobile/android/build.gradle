@@ -24,6 +24,24 @@ allprojects {
     }
 }
 
+// 本机 AGP 8.2.1 默认 NDK(25.1.8937393) 原先损坏，已重新安装；显式锁定该版本
+// （与 SDK 的 CMake 3.22.1 匹配，避免新版 NDK 的 lld 参数不兼容）。
+// 同时把 Java 兼容级别统一降到 17（本机仅有 JDK 17；capacitor-nodejs 默认要求 21）。
+subprojects {
+    afterEvaluate { proj ->
+        if (proj.hasProperty('android')) {
+            proj.android.ndkVersion = "25.1.8937393"
+            // 把原生 .cxx 构建目录搬到 D 盘短路径，绕开 pnpm store 的超长/特殊字符路径
+            // （否则 Windows 上 CMake/ninja 会报 "cannot be safely placed" / "build.ninja still dirty"）。
+            proj.android.externalNativeBuild.cmake.buildStagingDirectory = new File("D:/xbcxx/" + proj.name)
+            proj.android.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

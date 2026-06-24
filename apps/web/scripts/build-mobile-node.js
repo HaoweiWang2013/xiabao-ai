@@ -7,24 +7,8 @@ const webRoot = path.join(__dirname, '..');
 const distNodejs = path.join(webRoot, 'dist', 'nodejs');
 const distServer = path.join(webRoot, 'dist-server');
 
-function copyDirSync(src, dest) {
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirSync(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
-}
-
 try {
-  console.log('Copying server files for mobile nodejs background process...');
+  console.log('Building mobile nodejs backend...');
 
   // Clean old nodejs folder
   if (fs.existsSync(distNodejs)) {
@@ -32,41 +16,84 @@ try {
   }
   fs.mkdirSync(distNodejs, { recursive: true });
 
-  // Copy compiled server files
-  if (fs.existsSync(distServer)) {
-    copyDirSync(distServer, distNodejs);
-    console.log('✓ Successfully copied server files');
-  } else {
-    console.error('✗ error: dist-server folder not found. Please compile the server first.');
+  if (!fs.existsSync(distServer)) {
+    console.error('error: dist-server folder not found. Please compile the server first.');
     process.exit(1);
   }
 
-  // Create package.json inside nodejs folder with type: "module" and correct main
-  const pkgContent = {
-    name: 'xiabao-mobile-backend',
-    version: '1.0.0',
-    main: 'index.js',
-    private: true,
-    type: 'module',
-    dependencies: {
-      fastify: '4.28.1',
-      '@fastify/cors': '9.0.1',
-      '@fastify/static': '7.0.4',
-      '@libsql/client': '0.10.0',
-      pino: '9.3.2',
-      ws: '8.18.0',
-      zod: '3.23.8',
-      superjson: '2.2.1',
+  if (!fs.existsSync(path.join(distServer, 'index.js'))) {
+    console.error('error: dist-server/index.js not found. Please compile the server first.');
+    process.exit(1);
+  }
+
+  // Use esbuild to bundle the server into a single self-contained file.
+  // All JS dependencies (fastify, ws, pino, zod, superjson, @xiabao/server, etc.)
+  // are inlined. Only @libsql/client stays external because it ships a platform-specific
+  // native .node addon. A stub is then generated for it (see below).
+  const esbuild = await import('esbuild');
+
+  await esbuild.build({
+    entryPoints: [path.join(distServer, 'index.js')],
+    outfile: path.join(distNodejs, 'index.js'),
+    platform: 'node',
+    target: 'node20',
+    format: 'esm',
+    bundle: true,
+    external: ['@libsql/client'],
+    logLevel: 'warning',
+    define: {
+      'process.env.XIABAO_PLATFORM': JSON.stringify('mobile'),
     },
-  };
+  });
+
+  console.log('✓ Bundled server with esbuild');
+
+  // Generate a stub for @libsql/client so the externalized import resolves at runtime
+  // without crashing. All methods return empty results (no persistence on mobile for now).
+  const stubDir = path.join(distNodejs, 'node_modules', '@libsql', 'client');
+  fs.mkdirSync(stubDir, { recursive: true });
 
   fs.writeFileSync(
-    path.join(distNodejs, 'package.json'),
-    JSON.stringify(pkgContent, null, 2),
+    path.join(stubDir, 'package.json'),
+    JSON.stringify(
+      { name: '@libsql/client', version: '0.0.0-stub', main: 'index.js', type: 'module' },
+      null,
+      2,
+    ),
     'utf-8',
   );
-  console.log('✓ Successfully generated package.json in dist/nodejs/');
+
+  fs.writeFileSync(
+    path.join(stubDir, 'index.js'),
+    `
+const noop = () => new Proxy({}, { get: () => () => Promise.resolve({ rows: [], columns: [], toJSON: () => '[]' }) });
+export function createClient() { return noop(); }
+export default { createClient };
+`.trimStart(),
+    'utf-8',
+  );
+
+  console.log('✓ Generated @libsql/client stub for mobile');
+
+  // package.json — capacitor-nodejs requires a valid package.json in the node dir
+  fs.writeFileSync(
+    path.join(distNodejs, 'package.json'),
+    JSON.stringify(
+      {
+        name: 'xiabao-mobile-backend',
+        version: '1.0.0',
+        main: 'index.js',
+        private: true,
+        type: 'module',
+      },
+      null,
+      2,
+    ),
+    'utf-8',
+  );
+
+  console.log('✓ nodejs backend ready');
 } catch (err) {
-  console.error('Failed to copy mobile node files:', err);
+  console.error('Failed to build mobile node files:', err);
   process.exit(1);
 }
