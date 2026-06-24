@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>粒子动画</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #0a0a1a;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .info {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    letter-spacing: 2px;
+    background: rgba(0,0,0,0.4);
+    padding: 10px 24px;
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.1);
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="info">🖱 移动鼠标 · 粒子跟随</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ----- 鼠标位置 -----
+const mouse = { x: W / 2, y: H / 2, targetX: W / 2, targetY: H / 2 };
+document.addEventListener('mousemove', (e) => {
+  mouse.targetX = e.clientX;
+  mouse.targetY = e.clientY;
+});
+document.addEventListener('touchmove', (e) => {
+  const t = e.touches[0];
+  mouse.targetX = t.clientX;
+  mouse.targetY = t.clientY;
+});
+
+// ----- 粒子类 -----
+class Particle {
+  constructor() {
+    this.reset(true);
+  }
+
+  reset(initial = false) {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 3 + 1;
+    this.baseSize = this.size;
+
+    // 速度
+    this.vx = (Math.random() - 0.5) * 1.2;
+    this.vy = (Math.random() - 0.5) * 1.2;
+
+    // 颜色 - 蓝紫渐变
+    const hue = 220 + Math.random() * 80;
+    this.color = `hsla(${hue}, 80%, ${60 + Math.random() * 30}%, ${0.4 + Math.random() * 0.5})`;
+
+    // 寿命 (秒数)
+    this.life = 0;
+    this.maxLife = 3 + Math.random() * 5;
+    this.initial = initial;
+  }
+
+  update(dt) {
+    this.life += dt;
+
+    // 鼠标跟随 (缓动)
+    mouse.x += (mouse.targetX - mouse.x) * 0.05;
+    mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const maxDist = 180;
+
+    if (dist < maxDist && dist > 0) {
+      const force = (1 - dist / maxDist) * 0.15;
+      this.vx += (dx / dist) * force;
+      this.vy += (dy / dist) * force;
+      // 靠近鼠标时变大
+      this.size = this.baseSize + (1 - dist / maxDist) * 3;
+    } else {
+      this.size += (this.baseSize - this.size) * 0.05;
+    }
+
+    // 速度限制 & 阻尼
+    const speed = Math.hypot(this.vx, this.vy);
+    if (speed > 3) {
+      this.vx = (this.vx / speed) * 3;
+      this.vy = (this.vy / speed) * 3;
+    }
+    this.vx *= 0.98;
+    this.vy *= 0.98;
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // 边界回弹
+    if (this.x < 0) { this.x = 0; this.vx *= -0.5; }
+    if (this.x > W) { this.x = W; this.vx *= -0.5; }
+    if (this.y < 0) { this.y = 0; this.vy *= -0.5; }
+    if (this.y > H) { this.y = H; this.vy *= -0.5; }
+
+    // 寿命结束 -> 重置
+    if (this.life >= this.maxLife) {
+      this.reset();
+    }
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+
+    // 发光效果
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = this.color.replace('hsla', 'hsla').replace(/[\d.]+%?\)/, '0.1)');
+    ctx.fill();
+  }
+}
+
+// ----- 创建粒子 -----
+const particleCount = 150;
+const particles = [];
+for (let i = 0; i < particleCount; i++) {
+  particles.push(new Particle());
+}
+
+// ----- 连线 -----
+function drawLines() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.hypot(dx, dy);
+      const maxLineDist = 120;
+
+      if (dist < maxLineDist) {
+        const alpha = (1 - dist / maxLineDist) * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(150, 180, 255, ${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+// ----- 动画循环 -----
+let lastTime = 0;
+
+function animate(timestamp) {
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+  lastTime = timestamp;
+
+  // 半透明覆盖产生拖尾
+  ctx.fillStyle = 'rgba(10, 10, 26, 0.25)';
+  ctx.fillRect(0, 0, W, H);
+
+  // 更新 & 绘制粒子
+  for (const p of particles) {
+    p.update(dt);
+  }
+
+  drawLines();
+
+  // 再次绘制粒子 (在连线上层)
+  for (const p of particles) {
+    p.draw();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
