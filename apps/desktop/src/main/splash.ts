@@ -52,8 +52,10 @@ export function createSplashWindow(): BrowserWindow {
     },
   });
 
-  // Load standalone splash HTML
-  const splashPath = path.join(__dirname, '../renderer/splash.html');
+  // In dev mode, load from source dir; in prod, load from dist
+  const splashPath = __BUILD_HASH__ === 'dev'
+    ? path.join(__dirname, '../../src/renderer/splash.html')
+    : path.join(__dirname, '../renderer/splash.html');
   void splashWindow.loadFile(splashPath, {
     query: { v: __BUILD_HASH__ || '' },
   });
