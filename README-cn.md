@@ -9,7 +9,7 @@
 ## ✨ 核心特性
 
 - **多模型聚合**：一个 App 统一管理所有 API Key 与模型配置，支持 OpenAI / Anthropic / Google / DeepSeek / Ollama / OpenRouter 等。
-- **本地优先与隐私**：数据全部存储于本地 SQLite，API Key 经系统级 Keychain 加密。
+- **本地优先与隐私**：数据全部存储于本地 SQLite，API Key 经系统级 Keychain 加密。无需依赖云端。
 - **全平台支持**：桌面端（Electron）、Web（PWA）、移动端（Capacitor + Node.js）。
 - **流式对话**：支持多 Tab 会话管理、消息分叉树、Markdown 渲染（Shiki 代码高亮 + KaTeX 数学 + Mermaid 图表）。
 - **RAG 知识库**：支持 MD / PDF / DOCX / PPTX / XLSX / HTML / URL 导入，自动分块 + 向量检索（OpenAI / Ollama / 本地 bge-m3），文档级 `#` 引用过滤，内联 mention 浮层，图像 OCR。

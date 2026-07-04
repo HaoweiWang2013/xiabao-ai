@@ -1,64 +1,64 @@
 # XiabaoAI
 
-[Zh-cn](./README-cn.md)
+[中文](./README-cn.md)
 
-> 聚合型 AI 客户端 · 一个 App 统一接入多家 AI 服务 · 本地优先 · 全平台
+> Aggregated AI Client · One App, All AI Services · Local-First · Cross-Platform
 
-**XiabaoAI** 是一款 AI 聚合客户端，通过统一的 IDE 式工作台接入 OpenAI、Anthropic、Google、Ollama 及本地模型。数据本地持久化、可选端到端加密云同步，跨 Desktop / Web / Android 三端运行。
+**XiabaoAI** is an AI aggregation client that unifies OpenAI, Anthropic, Google, Ollama, and local models into a single IDE-style workspace. Data is stored locally with optional E2EE cloud sync, available across Desktop, Web, and Android.
 
-## ✨ 核心特性
+## ✨ Key Features
 
-- **多模型聚合**：一个 App 统一管理所有 API Key 与模型配置，支持 OpenAI / Anthropic / Google / DeepSeek / Ollama / OpenRouter 等。
-- **本地优先与隐私**：数据全部存储于本地 SQLite，API Key 经系统级 Keychain 加密。
-- **全平台支持**：桌面端（Electron）、Web（PWA）、移动端（Capacitor + Node.js）。
-- **流式对话**：支持多 Tab 会话管理、消息分叉树、Markdown 渲染（Shiki 代码高亮 + KaTeX 数学 + Mermaid 图表）。
-- **RAG 知识库**：支持 MD / PDF / DOCX / PPTX / XLSX / HTML / URL 导入，自动分块 + 向量检索（OpenAI / Ollama / 本地 bge-m3），文档级 `#` 引用过滤，内联 mention 浮层，图像 OCR。
-- **Agent 工作流**：think → tool → observe → respond 执行循环，内置 web_search / fetch_page / file_read / shell / run_javascript 等工具，流式步骤卡片。
-- **MCP 协议**：支持 stdio / HTTP / SSE 传输，工具粒度授权，管理 UI。
-- **图像生成**：Dall-E 等模型图像生成工作区 + 历史画廊。
-- **语音交互**：Whisper STT + TTS 语音输入输出。
-- **专业工作台**：多 Tab + 分屏、命令面板、快捷键、提示词库、全局 FTS5 搜索、自定义主题。
-- **国际化**：中英文双语支持。
-- **自动更新**：桌面端 electron-updater 自动增量更新。
+- **Multi-Model Aggregation**: Manage all API keys and model configurations in one place. Supports OpenAI, Anthropic, Google, DeepSeek, Ollama, OpenRouter, and more.
+- **Local-First & Private**: All data stored in local SQLite. API keys encrypted via system-level Keychain. No cloud dependency.
+- **Cross-Platform**: Desktop (Electron), Web (PWA), and Mobile (Capacitor + Node.js).
+- **Streaming Chat**: Multi-tab conversations, message branching tree, Markdown rendering with Shiki code highlighting, KaTeX math, and Mermaid diagrams.
+- **RAG Knowledge Base**: Import MD, PDF, DOCX, PPTX, XLSX, HTML, URLs. Auto-chunking with vector search (OpenAI / Ollama / local bge-m3). Document-level `#` reference filtering, inline mention popover, and image OCR.
+- **Agent Workflows**: think → tool → observe → respond execution loop. Built-in tools: web_search, fetch_page, file_read, shell, run_javascript. Streaming step cards.
+- **MCP Protocol**: stdio / HTTP / SSE transport support. Per-tool authorization with management UI.
+- **Image Generation**: Dall-E and other model image generation workspace with history gallery.
+- **Voice Interaction**: Whisper STT + TTS voice input/output.
+- **Professional Workspace**: Multi-tab + split view, command palette, keyboard shortcuts, prompt library, global FTS5 search, custom themes.
+- **Internationalization**: English and Chinese bilingual support.
+- **Auto Update**: Desktop electron-updater with incremental updates.
 
-## 🛠 技术栈
+## 🛠 Tech Stack
 
-- **前端**：React 18, Tailwind CSS, Jotai, shadcn/ui
-- **核心逻辑**：TypeScript strict, tRPC, Vercel AI SDK
-- **存储与检索**：better-sqlite3, Drizzle ORM, sqlite-vec, FTS5
-- **跨端方案**：Electron（桌面）、Capacitor + 本地 Node.js 服务端（移动端）、Vite + Fastify（Web）
-- **AI 接入**：OpenAI / Anthropic / Google / Ollama（内置），DeepSeek / OpenRouter 等通过 openai-compatible 扩展
+- **Frontend**: React 18, Tailwind CSS, Jotai, shadcn/ui
+- **Core**: TypeScript strict, tRPC, Vercel AI SDK
+- **Storage**: better-sqlite3, Drizzle ORM, sqlite-vec, FTS5
+- **Platforms**: Electron (Desktop), Capacitor + local Node.js server (Mobile), Vite + Fastify (Web)
+- **AI Providers**: OpenAI / Anthropic / Google / Ollama (built-in), DeepSeek / OpenRouter via openai-compatible extension
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/HaoweiWang2013/xiabao-ai.git
 cd xiabao-ai
 pnpm install
 
-# 启动开发环境（选择对应平台）
+# Start development (choose your platform)
 pnpm dev:desktop
 pnpm dev:web
 pnpm dev:mobile
 ```
 
-## 📚 开发文档
+## 📚 Documentation
 
-详细的架构与开发文档请参考 [`docs/`](./docs/) 目录：
+Detailed architecture and development docs are in the [`docs/`](./docs/) directory:
 
-- [产品与总体架构](./docs/01-overview.md)
-- [Monorepo 与跨端架构](./docs/02-architecture.md)
-- [技术选型](./docs/03-tech-stack.md)
-- [数据模型](./docs/04-data-model.md)
-- [IPC 与平台接口](./docs/05-ipc-api.md)
-- [状态管理](./docs/06-state.md)
-- [AI Provider 抽象](./docs/07-providers.md)
-- [安全设计](./docs/08-security.md)
-- [构建与发布](./docs/09-build-release.md)
-- [代码规范](./docs/11-coding-standards.md)
-- [UI/UX 设计规格](./docs/12-ui-design.md)
-- [知识库 RAG](./docs/13-knowledge-base.md)
+- [Overview & Architecture](./docs/01-overview.md)
+- [Monorepo Structure](./docs/02-architecture.md)
+- [Tech Stack](./docs/03-tech-stack.md)
+- [Data Model](./docs/04-data-model.md)
+- [IPC & Platform Interface](./docs/05-ipc-api.md)
+- [State Management](./docs/06-state.md)
+- [AI Provider Abstraction](./docs/07-providers.md)
+- [Security](./docs/08-security.md)
+- [Build & Release](./docs/09-build-release.md)
+- [Coding Standards](./docs/11-coding-standards.md)
+- [UI/UX Design](./docs/12-ui-design.md)
+- [Knowledge Base RAG](./docs/13-knowledge-base.md)
 
-## 📄 开源协议
+## 📄 License
 
-本项目采用 **CC-BY-NC-SA-4.0** 许可协议。详见 `LICENSE`。
+This project is licensed under **CC-BY-NC-SA-4.0**. See `LICENSE` for details.
