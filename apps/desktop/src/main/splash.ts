@@ -1,18 +1,21 @@
 /**
  * Splash screen window manager (Android Studio style).
  *
- * Creates a lightweight frameless window that shows while the main window
- * is loading. The splash uses a standalone HTML file with inline CSS —
- * no React/Webpack bundle needed, so it paints in ~50ms.
+ * Creates a lightweight frameless window with rounded corners and drop shadow
+ * that shows while the main window loads. Uses standalone HTML — no React needed
+ * so it paints in ~50ms.
  */
 import path from 'node:path';
 
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 
 declare const __BUILD_HASH__: string;
 
 let splashWindow: BrowserWindow | null = null;
 let splashShown = false;
+
+const WIDTH = 440;
+const HEIGHT = 360;
 
 /** Create and show the splash window. Call BEFORE creating the main window. */
 export function createSplashWindow(): BrowserWindow {
@@ -20,17 +23,27 @@ export function createSplashWindow(): BrowserWindow {
     return splashWindow;
   }
 
+  // Center on primary display
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { x, y } = primaryDisplay.bounds;
+  const cx = Math.round(x + (primaryDisplay.workAreaSize.width - WIDTH) / 2);
+  const cy = Math.round(y + (primaryDisplay.workAreaSize.height - HEIGHT) / 2);
+
   splashWindow = new BrowserWindow({
-    width: 520,
-    height: 440,
+    width: WIDTH,
+    height: HEIGHT,
+    x: cx,
+    y: cy,
     resizable: false,
     frame: false,
     transparent: false,
-    backgroundColor: '#0b0f0a',
-    center: true,
+    backgroundColor: '#0e1012',
     show: false,
     skipTaskbar: true,
     alwaysOnTop: true,
+    hasShadow: true,
+    roundedCorners: true,
+    thickFrame: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -74,21 +87,25 @@ export function createSplashWindow(): BrowserWindow {
 export function closeSplashWindow(): void {
   if (!splashWindow || splashWindow.isDestroyed()) return;
 
-  // Trigger CSS fade-out transition on the splash body
-  void splashWindow.webContents.executeJavaScript('document.body.classList.add("fade-out")');
+  // Trigger CSS fade-out on the splash body
+  void splashWindow.webContents
+    .executeJavaScript('document.body.style.opacity = "0"')
+    .catch(() => {});
 
-  // Close after fade-out animation completes
+  // Close after fade-out animation
   setTimeout(() => {
     if (splashWindow && !splashWindow.isDestroyed()) {
       splashWindow.close();
     }
-  }, 300);
+  }, 250);
 }
 
 /** Set progress on the splash screen (0-100, plus a label). */
 export function setSplashProgress(pct: number, msg?: string): void {
   if (!splashWindow || splashWindow.isDestroyed()) return;
-  void splashWindow.webContents.executeJavaScript(
-    `window.__splashSetProgress && window.__splashSetProgress(${pct}, ${msg ? JSON.stringify(msg) : 'null'})`,
-  );
+  void splashWindow.webContents
+    .executeJavaScript(
+      `window.__splashSetProgress && window.__splashSetProgress(${pct}, ${msg ? JSON.stringify(msg) : 'null'})`,
+    )
+    .catch(() => {});
 }
