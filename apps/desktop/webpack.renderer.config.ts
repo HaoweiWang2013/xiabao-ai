@@ -86,6 +86,10 @@ const config: Configuration & { devServer?: DevServerConfiguration } = {
           from: path.resolve(__dirname, 'public/miniapps'),
           to: path.resolve(__dirname, 'dist/renderer/miniapps'),
         },
+        {
+          from: path.resolve(__dirname, 'src/renderer/splash.html'),
+          to: path.resolve(__dirname, 'dist/renderer/splash.html'),
+        },
       ],
     }),
     ...(!isDev

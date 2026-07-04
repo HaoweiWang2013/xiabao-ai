@@ -110,6 +110,9 @@ WebSite/
 # wrangler build artifacts
 **/.wrangler/
 
+# local debug scripts
+query-db.mjs
+
 
 
 

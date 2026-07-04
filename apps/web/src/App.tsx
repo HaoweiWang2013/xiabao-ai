@@ -4,12 +4,13 @@
  * 与 desktop 共享一套 @xiabao/app-ui 组件，通过 jotai primaryNavAtom 切换右侧主面板。
  */
 import { useAtom } from 'jotai';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   AppShell,
   CommandPalette,
   ConversationList,
+  ErrorBoundary,
   HomePage,
   ImageWorkspace,
   KnowledgePanel,
@@ -17,6 +18,7 @@ import {
   Onboarding,
   PromptPanel,
   SettingsPage,
+  SplashScreen,
   SplitChatView,
   TranslatePage,
   trpc,
@@ -29,6 +31,8 @@ export function App() {
   const [nav, setNav] = useAtom(primaryNavAtom);
   const [, setSettingsSection] = useAtom(settingsSectionAtom);
   const utils = trpc.useUtils();
+
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     if (nav === 'providers') {
@@ -103,37 +107,44 @@ export function App() {
     />
   );
 
+  // ALL hooks above, conditional return BELOW
+  if (!splashDone) {
+    return <SplashScreen duration={2200} onDone={() => setSplashDone(true)} />;
+  }
+
   return (
-    <>
-      <AppShell middle={Middle}>
-        {nav === 'home' ? (
-          <HomePage />
-        ) : nav === 'chat' ? (
-          <SplitChatView />
-        ) : nav === 'knowledge' ? (
-          <KnowledgePanel />
-        ) : nav === 'prompt' ? (
-          <PromptPanel />
-        ) : nav === 'image' ? (
-          <ImageWorkspace />
-        ) : nav === 'translate' ? (
-          <TranslatePage />
-        ) : nav === 'miniapp' ? (
-          <MiniAppPage />
-        ) : (
-          <SettingsPage />
-        )}
-      </AppShell>
-      <CommandPalette
-        conversations={conversations}
-        onSelectConversation={(id) =>
-          openConversation(id, conversations.find((c) => c.id === id)?.title ?? '会话')
-        }
-        onCreateConversation={() =>
-          createConv.mutate({ title: `新对话 ${new Date().toLocaleTimeString()}` })
-        }
-      />
-      <Onboarding />
-    </>
+    <ErrorBoundary>
+      <>
+        <AppShell middle={Middle}>
+          {nav === 'home' ? (
+            <HomePage />
+          ) : nav === 'chat' ? (
+            <SplitChatView />
+          ) : nav === 'knowledge' ? (
+            <KnowledgePanel />
+          ) : nav === 'prompt' ? (
+            <PromptPanel />
+          ) : nav === 'image' ? (
+            <ImageWorkspace />
+          ) : nav === 'translate' ? (
+            <TranslatePage />
+          ) : nav === 'miniapp' ? (
+            <MiniAppPage />
+          ) : (
+            <SettingsPage />
+          )}
+        </AppShell>
+        <CommandPalette
+          conversations={conversations}
+          onSelectConversation={(id) =>
+            openConversation(id, conversations.find((c) => c.id === id)?.title ?? '会话')
+          }
+          onCreateConversation={() =>
+            createConv.mutate({ title: `新对话 ${new Date().toLocaleTimeString()}` })
+          }
+        />
+        <Onboarding />
+      </>
+    </ErrorBoundary>
   );
 }

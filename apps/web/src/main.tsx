@@ -35,6 +35,15 @@ setTrpcClientFactory(() => {
 
 // @ts-ignore
 const isCapacitor = typeof window !== 'undefined' && window.Capacitor;
+
+// Suppress PWA ServiceWorker registration error on Capacitor (self-signed HTTPS)
+if (isCapacitor) {
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason?.message?.includes('ServiceWorker')) {
+      event.preventDefault();
+    }
+  });
+}
 if (isCapacitor) {
   import('capacitor-nodejs')
     .then(({ NodeJS }) => {

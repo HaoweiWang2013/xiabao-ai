@@ -8,8 +8,53 @@
       content="<%= htmlWebpackPlugin.options.templateParameters.csp %>"
     />
     <title>XiabaoAI</title>
+    <style>
+      .xiabao-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #0b0f0a;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .xiabao-loader-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+        animation: xiabao-dot-pulse 1.4s ease-in-out infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes xiabao-dot-pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(2.2);
+        }
+      }
+      .xiabao-loader-text {
+        color: rgba(255, 255, 255, 0.25);
+        font-size: 12px;
+        font-weight: 450;
+        letter-spacing: 1.5px;
+      }
+    </style>
   </head>
   <body class="bg-background text-foreground antialiased">
-    <div id="root"></div>
+    <div id="root">
+      <div class="xiabao-loader">
+        <div class="xiabao-loader-dot"></div>
+        <div class="xiabao-loader-text">XiabaoAI</div>
+      </div>
+    </div>
   </body>
 </html>

@@ -8,6 +8,7 @@ import { setupCrashReporter } from './crash-reporter';
 import { createApplicationMenu } from './menu';
 import { createTray } from './menu/tray';
 import { setupProtocolHandlers, onOpenUrl } from './protocols';
+import { createSplashWindow, closeSplashWindow, setSplashProgress } from './splash';
 import { createTrpcIpcHandler, type TrpcIpcHandle } from './trpc/handler';
 import { setupAutoUpdater } from './updater';
 
@@ -51,6 +52,7 @@ function createMainWindow(): BrowserWindow {
     // Win11 mica / macOS vibrancy
     ...(process.platform === 'darwin' ? { vibrancy: 'under-window' as const } : {}),
     ...(process.platform === 'win32' ? { backgroundMaterial: 'mica' as const } : {}),
+    paintWhenInitiallyHidden: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -96,6 +98,8 @@ function createMainWindow(): BrowserWindow {
     if (!shown) {
       shown = true;
       win.show();
+      closeSplashWindow();
+      setSplashProgress(100, '准备就绪');
       perf('window visible (renderer first paint)');
     }
   };
@@ -134,7 +138,11 @@ function createMainWindow(): BrowserWindow {
 
 void app.whenReady().then(async () => {
   perf('app.whenReady');
-  // Deferred container：让 renderer 加载与重量级 bootstrap 并行执行
+
+  // ── Splash screen (Android Studio style) ──
+  createSplashWindow();
+  setSplashProgress(5, '正在启动…');
+  perf('splash window shown');
   let resolveContainer!: (c: DesktopContainer) => void;
   let rejectContainer!: (err: unknown) => void;
   const containerReady = new Promise<DesktopContainer>((resolve, reject) => {
@@ -154,11 +162,13 @@ void app.whenReady().then(async () => {
   trpcHandle.attachWindow(mainWindow);
   createApplicationMenu({ isDev, mainWindow });
   createTray(mainWindow);
+  setSplashProgress(30, '加载核心组件…');
   perf('window created (renderer load started)');
 
   // 并行执行重量级初始化（SQLite / secret / adapters）
   try {
     const bootStart = performance.now();
+    setSplashProgress(50, '初始化数据引擎…');
     container = await bootstrapDesktopContainer({ dev: isDev });
     console.info(`[xiabao] perf · bootstrap took ${(performance.now() - bootStart).toFixed(0)}ms`);
     resolveContainer(container);

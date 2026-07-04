@@ -1,11 +1,11 @@
 # AGENTS.md
 
-This file provides guidance to Qoder (lingma.aliyun.com) when working with code in this repository.
+This file provides guidance to AI coding assistants when working with code in this repository.
 
 ## Quick reference
 
 ```bash
-pnpm install                              # Frozen lockfile by default (.npmrc)
+pnpm install                              # Frozen lockfile by default
 
 # Development
 pnpm dev:desktop                          # Webpack dev (main + preload + renderer + electronmon)
@@ -13,27 +13,25 @@ pnpm dev:web                              # Vite dev + fastify server
 pnpm dev:mobile                           # Capacitor Mobile Wrapper sync & open
 
 # Quality gates
-pnpm lint                                 # eslint --max-warnings 0 (any warning = failure)
-pnpm typecheck                            # turbo typecheck (needs ^build deps built first)
+pnpm lint                                 # eslint --max-warnings 0
+pnpm typecheck                            # turbo typecheck
 pnpm test                                 # turbo test (vitest)
-pnpm format:check                         # Prettier check (CI gate)
+pnpm format:check                         # Prettier check
 pnpm format                               # Prettier auto-format
 
 # Building (turbo handles dependency order)
 pnpm build                                # All workspaces
 pnpm build:desktop                        # Desktop only (outputs to apps/desktop/release/)
 pnpm build:web                            # Web only
+pnpm build:apk                            # Build web + APK
 
 # Single-package commands
-pnpm --filter @xiabao/core typecheck
-pnpm --filter @xiabao/core test           # Run core unit tests only
+pnpm --filter @xiabao/core test
+pnpm --filter @xiabao/server test         # vitest run (includes e2e)
 pnpm --filter @xiabao/server db:generate  # Drizzle schema -> SQL migrations
 pnpm --filter @xiabao/server db:check     # Verify migrations match schema
-pnpm --filter @xiabao/server test         # vitest run
-pnpm --filter @xiabao/ui test             # vitest run (component tests)
 
 # Run a single test file
-pnpm --filter @xiabao/core exec vitest run src/services/chat-service.test.ts
 pnpm --filter @xiabao/server exec vitest run src/services/knowledge.e2e.test.ts
 
 # Misc
@@ -55,40 +53,42 @@ L3  Platform Bridge
     Mobile:  Capacitor bridge to local Node.js server
     ───────────────────────┬─────────────────────────
 L2  Core (platform-agnostic, pure TS) — packages/core
-    Services: ChatService / ConversationService / KnowledgeService / ...
-    Providers: OpenAI / Anthropic / Google / DeepSeek / Ollama / OpenRouter
+    Services: ChatService / KnowledgeService / ImageService / VoiceService / McpService / ...
+    Providers: OpenAI / Anthropic / Google / Ollama
     Ports: StoragePort / HttpPort / SecretPort / FilePort / LoggerPort / ...
     Models: Zod schemas + TS types
     ───────────────────────┬─────────────────────────
-L1  Adapter (platform-specific)
+L1  Server (DB + business logic) — packages/server
+    Drizzle ORM schemas + migrations + Services + Repos + tRPC routers
+    ───────────────────────┬─────────────────────────
+L0  Adapter (platform-specific)
     Desktop: better-sqlite3 / safeStorage / node-fetch
-    Web:     Dexie (IndexedDB) / Web Crypto / fetch
+    Web:     fastify server / libsql / fetch
     Mobile:  better-sqlite3 (local Node server) / fetch
     ───────────────────────┬─────────────────────────
-L0  Infrastructure
-    Local SQLite | OS Keychain | HTTPS/SSE to AI providers
+    Infrastructure: Local SQLite | OS Keychain | HTTPS/SSE to AI providers
 ```
 
-**Key invariant**: L2 Core never imports any platform API. It depends only on Port interfaces. L1 Adapters implement Ports and are injected by L3 at startup.
+**Key invariant**: L2 Core never imports any platform API. It depends only on Port interfaces. L0 Adapters implement Ports and are injected by L3 at startup.
 
 ### Monorepo structure
 
 ```
-apps/desktop     Electron 30+ (Webpack 5, NOT Vite). 3 webpack configs + electronmon.
-apps/web         SPA (Vite) + fastify backend server. PWA-capable.
+apps/desktop     Electron 30+ (Webpack 5). 3 webpack configs + electronmon.
+apps/web         SPA (Vite) + fastify backend server.
 apps/mobile      Capacitor wrapper. Uses local Node.js server + WebView rendering.
 apps/web-proxy   Cloudflare Worker (wrangler deploy). Bypasses CORS for Web.
 
 packages/core    Pure TS business logic. ZERO platform deps. Defines Port interfaces.
 packages/server  DB schema (Drizzle ORM), repo implementations, services, tRPC routers.
 packages/state   Jotai atoms shared across desktop + web.
-packages/app-ui  Cross-platform React features (chat, provider-settings, tool-settings).
+packages/app-ui  Cross-platform React features (chat, knowledge, image, settings, agent, MCP).
 packages/ui      Base UI components (shadcn/Radix wrappers). NOT app features.
 packages/theme   Tailwind preset, CSS variables, highlight CSS.
 packages/i18n    Locale resources (zh-CN, en-US).
-packages/crypto  E2EE (AES-GCM via @noble/ciphers, Argon2id, HKDF, BIP-39).
-packages/sync    libsql encrypted incremental sync engine.
-packages/testing In-memory ports (InMemoryStoragePort, FakeHttpPort) for unit tests.
+packages/crypto  E2EE types (implementation placeholder).
+packages/sync    libsql sync types (implementation placeholder).
+packages/testing In-memory ports placeholder.
 packages/tsconfig  Shared TS config presets (library.json, react.json, node.json).
 ```
 
@@ -97,7 +97,7 @@ packages/tsconfig  Shared TS config presets (library.json, react.json, node.json
 - `core` must NOT depend on any other `@xiabao/*` package
 - `state` depends only on `core`
 - `ui` / `app-ui` may depend on `core` (types only) + `state`
-- `server` depends on `core` + `crypto`
+- `server` depends on `core`
 - `apps/*` may depend on any `packages/*`
 
 ### Data flow: sending a message
@@ -122,52 +122,46 @@ User types in input -> Enter
 
 ## Critical conventions
 
-- **Build before typecheck**: `turbo typecheck` depends on `^build` -- a clean typecheck requires dependent packages built first. CI does `build packages -> typecheck -> lint -> test`.
-- **No `console.log`** in business code. Use the `LoggerPort` interface. ESLint warns on `console.log`/`console.debug`. Allowed: `console.warn`, `console.error`, `console.info`.
+- **No `console.log`** in business code. Use the `LoggerPort` interface.
 - **No `enum`**. Prefer union literal types (`type Role = 'user' | 'assistant'`).
-- **No `any`** without `// @allow-any` comment. ESLint warns.
-- **Import order**: `node:*` -> external -> `@xiabao/*` -> relative. ESLint enforces this. Use `import type` for type-only imports.
+- **No `any`** without `// @allow-any` comment.
+- **Import order**: `node:*` -> external -> `@xiabao/*` -> relative. Use `import type` for type-only imports.
 - **Barrel files**: `export *` is forbidden -- always explicitly re-export public API in `packages/xxx/src/index.ts`.
-- **Dependency injection**: don't `new XxxClient()` in business layers; use constructors/composition. The composition root is in each app's startup code.
-- **Jotai atoms** named `xxxAtom`, families `xxxFamily`. Don't create atoms inside component bodies (they get recreated on every render).
-- **Prettier**: single quotes, trailing commas, 100 print width, LF line endings. `pnpm format` auto-formats. Uses `prettier-plugin-tailwindcss`.
-- **Commit format**: `type(scope): subject` (Conventional Commits). Approved types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`, `build`, `ci`, `style`, `revert`. Approved scopes: `core`, `ui`, `ui-native`, `state`, `theme`, `i18n`, `crypto`, `sync`, `testing`, `tsconfig`, `eslint-config`, `desktop`, `web`, `mobile`, `web-proxy`, `docs`, `ci`, `deps`, `infra`, `release`.
+- **Dependency injection**: don't `new XxxClient()` in business layers; use constructors/composition.
+- **Jotai atoms** named `xxxAtom`, families `xxxFamily`. Don't create atoms inside component bodies.
+- **Prettier**: single quotes, trailing commas, 100 print width, LF line endings. Uses `prettier-plugin-tailwindcss`.
+- **Commit format**: `type(scope): subject` (Conventional Commits).
 - **Squash merge** only. PRs need CI green + 1 approval.
-- **Changesets** for versioning (release workflow creates PRs automatically).
-- **TypeScript strict** mode everywhere. `noImplicitAny`, `strictNullChecks`, etc. all enabled.
+- **Changesets** for versioning.
+- **TypeScript strict** mode everywhere.
 - **No `React.FC`** -- use explicit props types on function components.
 - **Early returns** preferred over deep nesting.
 - **Async/await** preferred over `.then()`. All functions with async side effects must accept `AbortSignal`.
-- **Error handling**: use `AppError` with error codes. Wrap low-level errors, don't swallow them.
+- **Error handling**: use `AppError` with error codes.
 - **i18n**: all user-facing strings must use `t()` from `useTranslation()`. Don't hardcode text.
-- **Tailwind primary color**: `green-500` (`#22C55E`). Use semantic theme tokens (`bg-background`, `text-foreground`), not hardcoded zinc/gray values.
+- **Tailwind primary color**: `green-500` (`#22C55E`).
 
 ## Testing
 
 - **Vitest** for unit tests. Test files colocated with source (`foo.test.ts`).
-- **React Testing Library** for component tests. Env: `jsdom` (ui), `happy-dom` (some packages).
-- **Playwright** for e2e in `apps/desktop/e2e/`.
+- **React Testing Library** for component tests.
 - **No deleting or weakening tests** to make CI pass -- fix the logic instead.
-- Use `@xiabao/testing`'s in-memory ports (`InMemoryStoragePort`, `FakeHttpPort`) for service-level unit tests in `packages/core`.
+- Use in-memory ports for service-level unit tests in `packages/core`.
 - Packages without tests use `vitest run --passWithNoTests`.
-- Coverage targets: `packages/core` >= 80%, `packages/state` >= 70%.
 - Test files follow naming: `*.test.ts` for unit, `*.e2e.test.ts` for e2e.
 
 ## Quirks & gotchas
 
-- **`pnpm` isolated node-linker** (`.npmrc`) -- native modules (electron, better-sqlite3, argon2, onnxruntime-node) require hoisting patterns specified in `.npmrc`. Don't change the linker without verifying native builds.
-- **`prefer-frozen-lockfile=true`** -- `pnpm install` won't update the lockfile by default. Use `pnpm install --no-frozen-lockfile` if you added a dependency.
-- **`web-proxy` build is a no-op**: `echo 'Wrangler builds on deploy' && exit 0`. Use `wrangler dev`/`wrangler deploy`.
-- **ESLint flat config** (v9+). Uses `projectService: true` -- no explicit per-file `tsconfig.json` references needed. Config files (`*.config.*`) and `scripts/` are ignored by ESLint.
-- **`tsconfig.base.json`** at root is the base; individual packages extend presets from `packages/tsconfig/` (not the root base directly).
-- **Desktop Webpack v5**, not Vite. Dev runs 4 parallel processes via `run-p` (main, preload, renderer webpack, electronmon). Renderer serves on `http://localhost:3000`.
-- **Desktop build order**: `build:renderer` -> `build:preload` -> `build:main` (via `run-s`).
-- **Drizzle** in `@xiabao/server`: run `db:generate` after schema changes, `db:check` to verify migrations. Migration files go in `packages/server/migrations/`.
-- **`packages/ui`** exports source files directly (not compiled `dist/`), while `packages/core` and `packages/server` compile to `dist/`.
-- **`packages/ui-native`** is archived/deprecated. Mobile now uses Capacitor + local Node.js server, reusing the full desktop/web React component set.
-- **`apps/web`** has a dual build: Vite for the SPA frontend + `tsc` for the fastify server (`server/` directory). The server output goes to `dist-server/`.
-- **Native mirrors**: `.npmrc` configures Chinese mirrors for electron, better-sqlite3, etc. These are for build acceleration and don't affect functionality.
-- **`WebSite/`** directory is gitignored and contains a separate website project (not part of the monorepo).
+- **`pnpm` isolated node-linker** (`.npmrc`) -- native modules (electron, better-sqlite3) require hoisting patterns.
+- **`prefer-frozen-lockfile=true`** -- `pnpm install` won't update lockfile by default.
+- **`web-proxy` build is a no-op**: use `wrangler dev`/`wrangler deploy`.
+- **ESLint flat config** (v9+). Uses `projectService: true`.
+- **Desktop Webpack v5**, not Vite.
+- **Drizzle** in `@xiabao/server`: run `db:generate` after schema changes.
+- **`packages/ui`** exports source files directly, while `packages/core` and `packages/server` compile to `dist/`.
+- **`apps/web`** has dual build: Vite for SPA + `tsc` for fastify server.
+- **`apps/mobile`** uses Capacitor + local Node.js server, reusing full desktop/web React component set.
+- **Native mirrors**: `.npmrc` configures Chinese mirrors for build acceleration.
 
 ## Key docs
 
@@ -179,7 +173,10 @@ User types in input -> Enter
 - `docs/06-state.md` -- Jotai atom design and layering
 - `docs/07-providers.md` -- AI provider interface + implementations (Vercel AI SDK)
 - `docs/08-security.md` -- Threat model, Electron hardening, CSP, API key storage, E2EE sync
-- `docs/11-coding-standards.md` -- Full coding conventions reference (naming, file org, React patterns, commit format)
+- `docs/09-build-release.md` -- Build configs and release workflows
+- `docs/10-roadmap.md` -- All milestones completed
+- `docs/11-coding-standards.md` -- Full coding conventions reference
 - `docs/12-ui-design.md` -- UI design system and component patterns
-- `docs/13-knowledge-base.md` -- RAG knowledge base implementation
-- `docs/14-m4-long-tail.md` -- M4 milestone detailed delivery tracking
+- `docs/13-knowledge-base.md` -- RAG knowledge base implementation details
+- `docs/14-m4-long-tail.md` -- M4 long tail phased delivery tracking
+- `docs/15-incomplete-status.md` -- Project completion report and known limitations

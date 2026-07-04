@@ -48,3 +48,6 @@ export { MessageDocAssistant } from './components/MessageDocAssistant';
 export { ModelSelector } from './components/ModelSelector';
 export type { ModelOption } from './components/ModelSelector';
 export { ToolMessage } from './components/ToolMessage';
+export { SplashScreen } from './components/SplashScreen';
+export type { SplashScreenProps } from './components/SplashScreen';
+export { ErrorBoundary } from './components/ErrorBoundary';

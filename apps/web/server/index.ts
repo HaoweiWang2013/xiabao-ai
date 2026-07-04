@@ -49,7 +49,9 @@ try {
     DB_PATH = join(nativeDataDir, 'web.db');
   }
 } catch {
-  // Not running inside capacitor-nodejs
+  // bridge module unavailable — use Android app data dir as fallback
+  const home = process.env.HOME || process.env.USERPROFILE || '/data/data/ai.xiabao.app/files';
+  DB_PATH = join(home, '.xiabao', 'web.db');
 }
 const MIGRATIONS_DIR = (() => {
   // packages/server 的 migrations 目录
@@ -85,19 +87,32 @@ async function bootstrap() {
   }
 
   const { db, migrate } = createAppDb(client, MIGRATIONS_DIR);
-  await migrate();
-  log.info('migrations done');
+  try {
+    await migrate();
+    log.info('migrations done');
+  } catch (err) {
+    log.warn({ err: (err as Error).message }, 'migrations skipped (mobile/embedded mode)');
+  }
 
+  log.info('creating ports');
   // ── Ports ──
   const logger = createWebLoggerAdapter(log);
+  log.info('ports: logger done');
   const http = createWebHttpAdapter();
+  log.info('ports: http done');
   const secret = createWebSecretAdapter();
+  log.info('ports: secret done');
   const clock = createWebClockAdapter();
+  log.info('ports: clock done');
   const file = createWebFileAdapter(dbDir);
+  log.info('ports: file done');
 
+  log.info('creating repos');
   // ── Repos / Services ──
   const repos = createRepos({ db, clock });
+  log.info('creating vector store');
   const vectorStore = new LibsqlVecStore({ client });
+  log.info('creating services');
   const services = createServices({
     http,
     secret,

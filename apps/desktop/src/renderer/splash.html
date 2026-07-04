@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>XiabaoAI</title>
+    <style>
+      :root {
+        --bg: #1a1d1a;
+        --surface: #1e211e;
+        --text-primary: #e8e8ec;
+        --text-secondary: #8b8d8f;
+        --text-tertiary: #5a5c5e;
+        --accent: #22c55e;
+        --accent-dim: rgba(34, 197, 94, 0.15);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv09";
+        user-select: none;
+        cursor: default;
+        opacity: 1;
+        transition: opacity 0.25s ease-out;
+      }
+
+      body.fade-out {
+        opacity: 0;
+      }
+
+      .splash {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 60px 48px;
+        position: relative;
+      }
+
+      /* Subtle radial glow behind logo */
+      .splash::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 320px;
+        height: 320px;
+        transform: translate(-50%, -60%);
+        background: radial-gradient(
+          circle,
+          rgba(34, 197, 94, 0.04) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+
+      /* ── Logo ── */
+      .logo-wrap {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        margin-bottom: 36px;
+        animation: logoAppear 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      @keyframes logoAppear {
+        0% {
+          opacity: 0;
+          transform: scale(0.85) translateY(8px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .logo-outer {
+        width: 88px;
+        height: 88px;
+        border-radius: 20px;
+        background: linear-gradient(
+          135deg,
+          #22c55e 0%,
+          #16a34a 30%,
+          #15803d 60%,
+          #166534 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 32px rgba(34, 197, 94, 0.18),
+          0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        position: relative;
+      }
+
+      .logo-outer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+      }
+
+      .logo-inner {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo-glyph {
+        color: #ffffff;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        line-height: 1;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      /* ── Brand ── */
+      .brand-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 48px;
+      }
+
+      .brand-name {
+        color: var(--text-primary);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        line-height: 1.15;
+        animation: fadeUp 0.6s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .brand-name .accent {
+        color: var(--accent);
+      }
+
+      .brand-sub {
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 450;
+        letter-spacing: 1.5px;
+        animation: fadeUp 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      @keyframes fadeUp {
+        0% {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Spacer ── */
+      .flex-spacer {
+        flex: 1;
+        min-height: 24px;
+      }
+
+      /* ── Progress ── */
+      .progress-block {
+        width: 100%;
+        max-width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        animation: fadeUp 0.6s 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 1px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--accent);
+        border-radius: 1px;
+        position: relative;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .progress-fill::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+      }
+
+      .progress-label {
+        color: var(--text-tertiary);
+        font-size: 11.5px;
+        font-weight: 450;
+        letter-spacing: 0.4px;
+      }
+
+      /* ── Bottom Bar ── */
+      .bottom-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 40px;
+        animation: fadeUp 0.6s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .bottom-left {
+        color: var(--text-tertiary);
+        font-size: 11px;
+        font-weight: 450;
+        letter-spacing: 0.3px;
+      }
+
+      .bottom-right {
+        color: var(--text-tertiary);
+        font-size: 10.5px;
+        font-weight: 450;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="splash">
+      <!-- Logo -->
+      <div class="logo-wrap">
+        <div class="logo-outer">
+          <div class="logo-inner">
+            <span class="logo-glyph">X</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand -->
+      <div class="brand-block">
+        <div class="brand-name">Xiabao<span class="accent">AI</span></div>
+        <div class="brand-sub">聚合型 AI 智能客户端</div>
+      </div>
+
+      <div class="flex-spacer"></div>
+
+      <!-- Progress -->
+      <div class="progress-block">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">正在启动…</div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="bottom-bar">
+        <span class="bottom-left" id="versionInfo"></span>
+        <span class="bottom-right">© XiabaoAI</span>
+      </div>
+    </div>
+
+    <script>
+      var fill = document.getElementById("progressFill");
+      var label = document.getElementById("progressLabel");
+      var version = document.getElementById("versionInfo");
+
+      var STEPS = [
+        { pct: 10, text: "加载核心组件…" },
+        { pct: 22, text: "初始化数据引擎…" },
+        { pct: 38, text: "连接 AI 服务…" },
+        { pct: 55, text: "准备就绪…" },
+        { pct: 70, text: "即将完成…" },
+      ];
+
+      var step = 0;
+      var autoActive = true;
+      var interval = setInterval(function () {
+        if (!autoActive) return;
+        if (step < STEPS.length) {
+          fill.style.width = STEPS[step].pct + "%";
+          label.textContent = STEPS[step].text;
+          step++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 600);
+
+      window.__splashSetProgress = function (pct, msg) {
+        if (autoActive) {
+          autoActive = false;
+          clearInterval(interval);
+        }
+        fill.style.width = Math.min(pct, 100) + "%";
+        if (msg) label.textContent = msg;
+      };
+
+      var params = new URLSearchParams(window.location.search);
+      var v = params.get("v") || "";
+      version.textContent = v ? "v" + v : "";
+    </script>
+  </body>
+</html>

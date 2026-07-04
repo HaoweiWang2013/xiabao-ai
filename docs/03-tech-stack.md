@@ -277,50 +277,24 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 | CouchDB / RxDB | 当前同步需求 libsql 足够                  |
 | Tauri 1        | 2.0 之前生态断层                          |
 
-## 19. 依赖版本锁定总表（关键项）
-
-> 具体版本会在 `M0` 落地 `package.json` 时最终敲定，下表是设计期预期值。
+## 19. 依赖版本锁定总表（关键项，已落地）
 
 ```json
 {
-  "engines": { "node": "^20.11.0", "pnpm": "^9.0.0" },
+  "engines": { "node": ">=20.11.0", "pnpm": ">=9.0.0" },
+  "packageManager": "pnpm@9.12.0",
   "devDependencies": {
     "typescript": "5.5.4",
     "turbo": "2.0.6",
-    "eslint": "9.8.0",
+    "eslint": "9.7.0",
     "prettier": "3.3.3",
-    "vitest": "2.0.5",
-    "@playwright/test": "1.46.0",
     "@changesets/cli": "2.27.7",
     "husky": "9.1.4",
-    "lint-staged": "15.2.8"
-  },
-  "dependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "jotai": "2.9.1",
-    "zod": "3.23.8",
-    "tailwindcss": "3.4.7",
-    "electron": "30.3.1",
-    "electron-builder": "24.13.3",
-    "electron-trpc": "0.5.2",
-    "@trpc/server": "11.0.0-rc.446",
-    "@trpc/client": "11.0.0-rc.446",
-    "better-sqlite3": "11.1.2",
-    "drizzle-orm": "0.32.1",
-    "ai": "3.3.0",
-    "@ai-sdk/openai": "0.0.42",
-    "@ai-sdk/anthropic": "0.0.28",
-    "shiki": "1.12.1",
-    "lucide-react": "0.424.0",
-    "framer-motion": "11.3.19",
-    "@libsql/client": "0.9.0",
-    "@noble/ciphers": "0.5.3",
-    "@noble/hashes": "1.4.0",
-    "i18next": "23.12.2",
-    "react-i18next": "15.0.0"
+    "lint-staged": "15.2.8",
+    "typescript-eslint": "8.1.0",
+    "syncpack": "12.4.0"
   }
 }
 ```
 
-实际值以 `pnpm install` 生成的 `pnpm-lock.yaml` 为准。
+各子包的具体依赖版本以 `pnpm-lock.yaml` 为准。

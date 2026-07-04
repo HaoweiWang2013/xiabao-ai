@@ -10,40 +10,16 @@
 - **按领域切分文件**：`atoms/conversations.ts`、`atoms/messages.ts`、`atoms/ui.ts` …
 - **所有原子命名以 `Atom` 结尾**；family 以 `Family` 结尾
 
-## 2. 目录结构
+## 2. 目录结构（实际实现）
 
 ```
 packages/state/
 └── src/
-    ├── index.ts                     # 公开 barrel
-    ├── store.ts                     # createStore（可选 per-window）
-    ├── adapters/
-    │   └── storageAdapter.ts        # 把 StoragePort 包装成 Jotai atomWithStorage 所需 interface
-    ├── atoms/
-    │   ├── ui.ts                    # 主题、布局、侧栏、命令面板
-    │   ├── tabs.ts                  # IDE Tab 系统
-    │   ├── conversations.ts
-    │   ├── messages.ts
-    │   ├── streaming.ts
-    │   ├── providers.ts
-    │   ├── models.ts
-    │   ├── presets.ts
-    │   ├── search.ts
-    │   ├── settings.ts
-    │   ├── knowledge.ts
-    │   ├── translate.ts
-    │   ├── image.ts
-    │   ├── agent.ts
-    │   ├── mcp.ts
-    │   ├── sync.ts
-    │   └── shortcuts.ts
-    ├── selectors/
-    │   ├── conversations.ts         # 复杂派生（分组、排序）
-    │   └── messages.ts              # 线性消息（考虑分叉树）
-    └── effects/
-        ├── ipcBridge.ts             # 订阅 tRPC 数据反向写入 atom
-        └── shortcuts.ts             # 键盘快捷键监听
+    ├── index.ts                     # 公开 barrel：原子定义 + 导出
+    └── storage.ts                   # setPersistStringStorage 可注入持久化工厂
 ```
+
+实际实现比设计精简，核心原子在 `packages/state/src/index.ts` 中定义。持久化通过 `storage.ts` 暴露的 `setPersistStringStorage` 注入（桌面端通过 MMKV 或 SQLite KV，Web 端通过 localStorage）。
 
 ## 3. 基础原子模式
 

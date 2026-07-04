@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XiabaoAI splash icon — green rounded square with "X" glyph -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="88dp"
+    android:height="88dp"
+    android:viewportWidth="88"
+    android:viewportHeight="88">
+
+    <!-- Outer rounded rect with gradient (solid color approximation) -->
+    <path
+        android:fillColor="#22C55E"
+        android:pathData="M12,0 L76,0 C82.627,0 88,5.373 88,12 L88,76 C88,82.627 82.627,88 76,88 L12,88 C5.373,88 0,82.627 0,76 L0,12 C0,5.373 5.373,0 12,0 Z" />
+
+    <!-- Inner darker rounded rect -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M18,18 L70,18 C72.209,18 74,19.791 74,22 L74,66 C74,68.209 72.209,70 70,70 L18,70 C15.791,70 14,68.209 14,66 L14,22 C14,19.791 15.791,18 18,18 Z"
+        android:strokeColor="#1AFFFFFF"
+        android:strokeWidth="0.5" />
+
+    <!-- "X" glyph paths — two intersecting strokes -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,30 L58,58 M58,30 L30,58" />
+
+</vector>

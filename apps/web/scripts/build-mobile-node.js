@@ -27,9 +27,8 @@ try {
   }
 
   // Use esbuild to bundle the server into a single self-contained file.
-  // All JS dependencies (fastify, ws, pino, zod, superjson, @xiabao/server, etc.)
-  // are inlined. Only @libsql/client stays external because it ships a platform-specific
-  // native .node addon. A stub is then generated for it (see below).
+  // CJS format so all require() calls work naturally.
+  // Only @libsql/client and undici stay external (they have platform-specific issues).
   const esbuild = await import('esbuild');
 
   await esbuild.build({
@@ -37,39 +36,88 @@ try {
     outfile: path.join(distNodejs, 'index.js'),
     platform: 'node',
     target: 'node20',
-    format: 'esm',
+    format: 'cjs',
     bundle: true,
-    external: ['@libsql/client'],
+    external: ['@libsql/client', 'undici', 'bridge'],
     logLevel: 'warning',
     define: {
       'process.env.XIABAO_PLATFORM': JSON.stringify('mobile'),
     },
+    plugins: [
+      {
+        name: 'import-meta-url',
+        setup(build) {
+          // Replace fileURLToPath(import.meta.url) → __filename (CJS compatible)
+          // Only transform our own pre-compiled source, not node_modules
+          build.onLoad({ filter: /dist-server[\\/]/, namespace: 'file' }, async (args) => {
+            const fs = await import('fs');
+            let source = fs.readFileSync(args.path, 'utf-8');
+            if (source.includes('import.meta.url')) {
+              source = source.replace(/fileURLToPath\(import\.meta\.url\)/g, '__filename');
+              source = source.replace(/import\.meta\.url/g, '__filename');
+              return { contents: source, loader: 'default' };
+            }
+            return null;
+          });
+        },
+      },
+    ],
   });
 
   console.log('✓ Bundled server with esbuild');
 
-  // Generate a stub for @libsql/client so the externalized import resolves at runtime
-  // without crashing. All methods return empty results (no persistence on mobile for now).
+  // Generate stub for undici (externalized, some deps require('undici') directly)
+  const undiciStubDir = path.join(distNodejs, 'node_modules', 'undici');
+  fs.mkdirSync(undiciStubDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(undiciStubDir, 'package.json'),
+    JSON.stringify({ name: 'undici', version: '0.0.0-stub', main: 'index.js' }),
+  );
+  fs.writeFileSync(
+    path.join(undiciStubDir, 'index.js'),
+    `// Stub: re-export Node.js 18+ native fetch globals
+module.exports = {
+  fetch: globalThis.fetch,
+  Response: globalThis.Response,
+  Request: globalThis.Request,
+  Headers: globalThis.Headers,
+  FormData: globalThis.FormData,
+  ReadableStream: globalThis.ReadableStream,
+  Blob: globalThis.Blob,
+  File: class File extends Blob {
+    constructor(bits, name, opts) {
+      super(bits, opts);
+      this.name = name || '';
+      this.lastModified = opts?.lastModified || Date.now();
+    }
+  },
+};
+`,
+    'utf-8',
+  );
+  console.log('✓ Generated undici stub for mobile');
+
+  // Generate stub for @libsql/client (externalized, no real DB on mobile)
   const stubDir = path.join(distNodejs, 'node_modules', '@libsql', 'client');
   fs.mkdirSync(stubDir, { recursive: true });
 
   fs.writeFileSync(
     path.join(stubDir, 'package.json'),
-    JSON.stringify(
-      { name: '@libsql/client', version: '0.0.0-stub', main: 'index.js', type: 'module' },
-      null,
-      2,
-    ),
-    'utf-8',
+    JSON.stringify({ name: '@libsql/client', version: '0.0.0-stub', main: 'index.js' }),
   );
 
   fs.writeFileSync(
     path.join(stubDir, 'index.js'),
-    `
-const noop = () => new Proxy({}, { get: () => () => Promise.resolve({ rows: [], columns: [], toJSON: () => '[]' }) });
-export function createClient() { return noop(); }
-export default { createClient };
-`.trimStart(),
+    `// CJS stub — all methods return empty results (no persistence on mobile)
+const noop = function() {
+  return new Proxy({}, {
+    get: function(_, prop) {
+      return function() { return Promise.resolve({ rows: [], columns: [], toJSON: function() { return '[]'; } }); };
+    }
+  });
+};
+module.exports.createClient = noop;
+`,
     'utf-8',
   );
 
@@ -84,7 +132,6 @@ export default { createClient };
         version: '1.0.0',
         main: 'index.js',
         private: true,
-        type: 'module',
       },
       null,
       2,

@@ -207,22 +207,19 @@ export function mergeCapability(
 
 详见 `docs/p5pro-model-management.md`。
 
-## 5. 内置 Provider 清单（M1 / M2 首批）
+## 5. 内置 Provider 清单
 
-| ID                  | 实现包                        | 支持模型示例                                               | 特性                                                          |
-| ------------------- | ----------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
-| `openai`            | `@ai-sdk/openai`              | gpt-4o / gpt-4o-mini / o1 / o3 / gpt-4.5                   | tools, vision, JSON, reasoning                                |
-| `anthropic`         | `@ai-sdk/anthropic`           | claude-3.5-sonnet, claude-3.5-haiku, claude-3-opus         | tools, vision, extended thinking                              |
-| `google`            | `@ai-sdk/google`              | gemini-1.5-pro, gemini-1.5-flash, gemini-2.0               | tools, vision, 2M context                                     |
-| `deepseek`          | `@ai-sdk/deepseek`            | deepseek-chat, deepseek-reasoner (R1)                      | reasoning, 极便宜                                             |
-| `ollama`            | `ollama-ai-provider`          | llama3.1 / qwen2.5 / ...                                   | 本地，无需 Key                                                |
-| `openrouter`        | `@openrouter/ai-sdk-provider` | 聚合 200+ 模型                                             | 代理                                                          |
-| `openai-compatible` | `@ai-sdk/openai` 裸用         | 任意兼容 `/v1/chat/completions` 端点                       | 用户自定义 base URL                                           |
-| `local-embedder`    | core + desktop NodeEngine     | `Xenova/bge-small-zh-v1.5` / `bge-base-zh-v1.5` / `bge-m3` | **embed-only**；离线推理；详见 `docs/p5pro-local-embedder.md` |
-| `groq`              | `@ai-sdk/groq`                | 超快                                                       | 推理速度极致                                                  |
-| `mistral`           | `@ai-sdk/mistral`             | mistral-large, codestral                                   | 欧洲部署                                                      |
-| `xai`               | `@ai-sdk/xai`                 | grok-2 / grok-3                                            | —                                                             |
-| `cohere`            | `@ai-sdk/cohere`              | command-r                                                  | 强 RAG                                                        |
+| ID               | 实现                                            | 支持模型示例                                               | 特性                             |
+| ---------------- | ----------------------------------------------- | ---------------------------------------------------------- | -------------------------------- |
+| `openai`         | `packages/core/src/providers/impl/openai.ts`    | gpt-4o / gpt-4o-mini / o1 / o3 / gpt-4.5                   | tools, vision, JSON, reasoning   |
+| `anthropic`      | `packages/core/src/providers/impl/anthropic.ts` | claude-3.5-sonnet, claude-3.5-haiku, claude-4              | tools, vision, extended thinking |
+| `google`         | `packages/core/src/providers/impl/google.ts`    | gemini-1.5-pro, gemini-1.5-flash, gemini-2.0               | tools, vision, 2M context        |
+| `ollama`         | `packages/core/src/providers/impl/ollama.ts`    | llama3.1 / qwen2.5 / 任意本地模型                          | 本地，无需 Key                   |
+| `local-embedder` | core + desktop ONNX Runtime NodeEngine          | `Xenova/bge-small-zh-v1.5` / `bge-base-zh-v1.5` / `bge-m3` | **embed-only**；离线推理         |
+
+已注册到 `ProviderRegistry`，通过 `packages/core/src/providers/index.ts` 副作用 import 注册。
+
+> 用户可通过 `openai-compatible` kind 接入 DeepSeek / OpenRouter / Groq 等兼容 `/v1/chat/completions` 端点的第三方服务 —— 无需新增 Provider 代码。
 
 ## 6. 适配器样例：OpenAI
 

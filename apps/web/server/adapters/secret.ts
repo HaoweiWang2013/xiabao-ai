@@ -9,7 +9,8 @@ import { dirname, join } from 'node:path';
 import type { SecretPort } from '@xiabao/core';
 
 export function createWebSecretAdapter(): SecretPort {
-  const file = process.env.XIABAO_SECRETS ?? join(process.cwd(), '.xiabao', 'secrets.json');
+  const home = process.env.HOME || process.env.USERPROFILE || '/data/data/ai.xiabao.app/files';
+  const file = process.env.XIABAO_SECRETS ?? join(home, '.xiabao', 'secrets.json');
   if (!existsSync(dirname(file))) mkdirSync(dirname(file), { recursive: true });
 
   function load(): Record<string, string> {
