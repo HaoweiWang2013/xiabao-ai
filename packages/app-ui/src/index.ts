@@ -51,3 +51,5 @@ export { ToolMessage } from './components/ToolMessage';
 export { SplashScreen } from './components/SplashScreen';
 export type { SplashScreenProps } from './components/SplashScreen';
 export { ErrorBoundary } from './components/ErrorBoundary';
+export { useKeyboard } from './hooks/useKeyboard';
+export type { KeyboardInfo } from './hooks/useKeyboard';

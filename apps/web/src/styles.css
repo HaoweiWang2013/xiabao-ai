@@ -9,16 +9,29 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none; /* 禁用系统级边缘回弹、橡皮筋与下拉刷新 */
-    -webkit-tap-highlight-color: transparent; /* 消除移动端点击蓝色/灰色高亮阴影 */
-    user-select: none; /* 禁用系统级文本选择（让长按更像原生应用，输入框与特定内容除外） */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
+
+  /* Keyboard-safe area — ensures content isn't hidden behind the keyboard */
+  body.keyboard-showing {
+    /* Capacitor Keyboard plugin sets these CSS variables */
+    --keyboard-height: 0px;
+    padding-bottom: var(--keyboard-height);
+  }
+
+  /* iOS safe area + Android keyboard padding */
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   body {
     font-family: 'Inter', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* 允许用户输入、阅读文章、看代码等需要文本操作的地方进行正常选择 */
+
   input,
   textarea,
   [selectable],
