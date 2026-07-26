@@ -14,8 +14,8 @@ declare const __BUILD_HASH__: string;
 let splashWindow: BrowserWindow | null = null;
 let splashShown = false;
 
-const WIDTH = 440;
-const HEIGHT = 360;
+const WIDTH = 380;
+const HEIGHT = 300;
 
 /** Create and show the splash window. Call BEFORE creating the main window. */
 export function createSplashWindow(): BrowserWindow {
@@ -37,7 +37,7 @@ export function createSplashWindow(): BrowserWindow {
     resizable: false,
     frame: false,
     transparent: false,
-    backgroundColor: '#0e1012',
+    backgroundColor: '#ffffff',
     show: false,
     skipTaskbar: true,
     alwaysOnTop: true,

@@ -9,24 +9,25 @@
 
   html, body {
     width: 100%; height: 100%; overflow: hidden;
-    background: #0e1012;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #ffffff;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     user-select: none; cursor: default;
-    transition: opacity 0.2s ease-out;
+    transition: opacity 0.25s ease-out;
   }
 
-  /* ── Background effects ── */
-  .bg-glow {
-    position: fixed; pointer-events: none;
-    top: 50%; left: 50%; width: 500px; height: 500px;
-    transform: translate(-50%, -55%);
-    background: radial-gradient(circle, rgba(34,197,94,0.025) 0%, transparent 60%);
+  /* ── Glass reflections ── */
+  .bg-orb {
+    position: fixed; pointer-events: none; border-radius: 50%;
+    filter: blur(120px); opacity: 0.25;
   }
-  .bg-dots {
-    position: fixed; inset: 0; pointer-events: none;
-    background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 24px 24px;
+  .bg-orb-1 {
+    top: -60px; right: -60px; width: 240px; height: 240px;
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .bg-orb-2 {
+    bottom: -80px; left: -40px; width: 200px; height: 200px;
+    background: rgba(16, 185, 129, 0.08);
   }
 
   /* ── Layout ── */
@@ -34,56 +35,59 @@
     position: relative; z-index: 1;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    height: 100%; padding: 48px 40px 36px;
+    height: 100%; padding: 32px;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
   }
 
-  /* ── Logo SVG ── */
-  .logo {
-    width: 84px; height: 84px; margin-bottom: 30px; flex-shrink: 0;
-    animation: logoIn 0.65s cubic-bezier(0.16,1,0.3,1) both;
+  /* ── Logo ── */
+  .logo-wrap {
+    width: 72px; height: 72px; margin-bottom: 24px; flex-shrink: 0;
+    animation: logoIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
   }
   @keyframes logoIn {
-    0% { opacity: 0; transform: scale(0.9) translateY(4px); }
+    0% { opacity: 0; transform: scale(0.88) translateY(6px); }
     100% { opacity: 1; transform: scale(1) translateY(0); }
   }
 
   /* ── Brand ── */
-  .brand { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
-  .brand-name {
-    font-size: 24px; font-weight: 600; letter-spacing: -0.3px;
-    color: #eaeaec; line-height: 1.2;
-    animation: upIn 0.5s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+  .brand {
+    text-align: center; margin-bottom: 28px; flex-shrink: 0;
+    animation: upIn 0.5s 0.12s cubic-bezier(0.16,1,0.3,1) both;
   }
-  .brand-name em { font-style: normal; color: #22c55e; }
-  .brand-sub {
-    font-size: 12px; font-weight: 400; letter-spacing: 1.5px;
-    color: #6b6d70; margin-top: 6px;
-    animation: upIn 0.5s 0.16s cubic-bezier(0.16,1,0.3,1) both;
+  .brand-name {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
+    color: #0f172a; line-height: 1.2;
+  }
+  .brand-name em {
+    font-style: normal;
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   @keyframes upIn {
-    0% { opacity: 0; transform: translateY(8px); }
+    0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Spacer ── */
-  .spacer { flex: 1; min-height: 16px; }
-
   /* ── Progress ── */
   .progress {
-    width: 100%; max-width: 260px; flex-shrink: 0;
-    animation: upIn 0.5s 0.28s cubic-bezier(0.16,1,0.3,1) both;
+    width: 100%; max-width: 200px; flex-shrink: 0;
+    animation: upIn 0.5s 0.24s cubic-bezier(0.16,1,0.3,1) both;
   }
   .progress-track {
-    width: 100%; height: 2px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 2px; overflow: hidden;
+    width: 100%; height: 2.5px;
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: 3px; overflow: hidden;
   }
   .progress-fill {
     height: 100%; width: 0%;
-    background: linear-gradient(90deg, #22c55e, #4ade80, #22c55e);
+    background: linear-gradient(90deg, #10b981, #34d399, #10b981);
     background-size: 200% 100%;
-    border-radius: 2px;
+    border-radius: 3px;
     transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
     animation: shimmer 3s ease-in-out infinite;
   }
@@ -91,101 +95,59 @@
     0%,100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
   }
-  .progress-label {
-    margin-top: 12px; text-align: center;
-    color: #45474a; font-size: 11px; font-weight: 400; letter-spacing: 0.4px;
-  }
-
-  /* ── Version ── */
-  .version {
-    margin-top: 24px; flex-shrink: 0;
-    color: rgba(255,255,255,0.08); font-size: 10px; font-weight: 400;
-    animation: upIn 0.5s 0.4s cubic-bezier(0.16,1,0.3,1) both;
-  }
 </style>
 </head>
 <body>
 
-<div class="bg-glow"></div>
-<div class="bg-dots"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
 
 <div class="splash">
   <!-- Logo -->
-  <svg class="logo" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg class="logo-wrap" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="g" x1="0" y1="0" x2="104" y2="104" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stop-color="#22c55e"/>
-        <stop offset="35%" stop-color="#16a34a"/>
-        <stop offset="70%" stop-color="#15803d"/>
-        <stop offset="100%" stop-color="#14532d"/>
-      </linearGradient>
-      <linearGradient id="gi" x1="0" y1="0" x2="0" y2="104" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        <stop offset="0%" stop-color="#10b981"/>
+        <stop offset="50%" stop-color="#059669"/>
+        <stop offset="100%" stop-color="#047857"/>
       </linearGradient>
     </defs>
-    <rect x="12" y="12" width="80" height="80" rx="22" fill="none" stroke="rgba(34,197,94,0.10)" stroke-width="8"/>
-    <rect x="2" y="2" width="100" height="100" rx="22" fill="url(#g)"/>
-    <rect x="2" y="2" width="100" height="48" rx="22" fill="url(#gi)"/>
-    <rect x="2" y="2" width="100" height="100" rx="22" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
-    <rect x="22" y="22" width="60" height="60" rx="14" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-    <line x1="36" y1="34" x2="68" y2="70" stroke="white" stroke-width="5" stroke-linecap="round"/>
-    <line x1="68" y1="34" x2="36" y2="70" stroke="white" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="15" cy="15" r="3.5" fill="rgba(255,255,255,0.22)"/>
+    <rect x="4" y="4" width="96" height="96" rx="24" fill="url(#g)"/>
+    <rect x="4" y="4" width="96" height="96" rx="24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+    <!-- inner dark card -->
+    <rect x="24" y="24" width="56" height="56" rx="14" fill="rgba(0,0,0,0.18)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+    <!-- X mark -->
+    <line x1="38" y1="36" x2="66" y2="68" stroke="white" stroke-width="5" stroke-linecap="round"/>
+    <line x1="66" y1="36" x2="38" y2="68" stroke="white" stroke-width="5" stroke-linecap="round"/>
   </svg>
 
   <!-- Brand -->
   <div class="brand">
     <div class="brand-name">Xiabao<em>AI</em></div>
-    <div class="brand-sub">聚合型 AI 智能客户端</div>
   </div>
-
-  <div class="spacer"></div>
 
   <!-- Progress -->
   <div class="progress">
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
     </div>
-    <div class="progress-label" id="progressLabel">正在启动…</div>
   </div>
-
-  <!-- Version -->
-  <div class="version" id="versionInfo"></div>
 </div>
 
 <script>
   var fill = document.getElementById("progressFill");
-  var label = document.getElementById("progressLabel");
-  var version = document.getElementById("versionInfo");
-
-  var STEPS = [
-    { pct: 10, text: "加载核心组件…" },
-    { pct: 24, text: "初始化数据引擎…" },
-    { pct: 42, text: "连接 AI 服务…" },
-    { pct: 60, text: "准备就绪…" },
-    { pct: 76, text: "即将完成…" },
-  ];
-
-  var step = 0, auto = true;
+  var auto = true;
   var timer = setInterval(function () {
     if (!auto) return;
-    if (step < STEPS.length) {
-      fill.style.width = STEPS[step].pct + "%";
-      label.textContent = STEPS[step].text;
-      step++;
-    } else { clearInterval(timer); }
-  }, 650);
+    var w = parseFloat(fill.style.width) || 0;
+    if (w >= 85) { clearInterval(timer); }
+    else { fill.style.width = Math.min(w + Math.random() * 18 + 6, 85) + "%"; }
+  }, 500);
 
-  window.__splashSetProgress = function (pct, msg) {
+  window.__splashSetProgress = function (pct) {
     if (auto) { auto = false; clearInterval(timer); }
     fill.style.width = Math.min(pct, 100) + "%";
-    if (msg) label.textContent = msg;
   };
-
-  var params = new URLSearchParams(window.location.search);
-  var v = params.get("v") || "";
-  version.textContent = v ? "v" + v : "";
 </script>
 </body>
 </html>
