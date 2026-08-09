@@ -9,6 +9,8 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    /* Win11 mica + 窗口圆角：让根容器透明，使系统窗口圆角与 mica 材质可见 */
+    background: transparent;
   }
 
   body {
@@ -46,35 +48,30 @@
     border: 2px solid transparent;
   }
 
+  /* Win11 mica：让 AppShell 最外层 bg-background 透明，使 mica 材质透出，
+     液态玻璃元素直接浮在 mica 上，窗口圆角也自然可见 */
+  #root > div {
+    background-color: transparent !important;
+  }
+
   /*
    * Window Controls Overlay 避让 · Win11 titleBarOverlay 模式
    *
    * 主进程开了 BrowserWindow.titleBarOverlay → Windows 在右上角画 minimize/maximize/close
-   * 系统按钮（约 138 x 36px），但 webContents 没自动避让，导致顶部 header 的按钮被遮。
-   * 这里所有 features 顶部 header 加 `app-page-header` class，用 env(titlebar-area-*)
-   * 自动 reserve 系统按钮宽度；非 overlay 平台（macOS / Web）env 返回 0，无影响。
+   * 系统按钮（约 138 x 36px），但 webContents 没自动避让，导致顶部 header 被遮。
+   *
+   * 这里所有顶部 header 加 `app-page-header` class，用 margin-right 避让系统按钮：
+   * 让玻璃卡片本身不延伸到系统按钮区域（旧方案用 padding-right 仍会让背景延伸到按钮下方）。
+   * 非 overlay 平台（macOS / Web）env() 返回 fallback 100vw → margin = 0，无影响。
    *
    * 同时让 header 整个区域可拖拽（drag region），内部交互元素恢复 no-drag。
-   *
-   * ⚠ 关键：系统按钮区（padding-right 区域）必须显式 no-drag，否则在 Electron WCO 模式下
-   * drag region 会抢占点击事件，导致最小化/最大化/关闭无响应。
    */
   .app-page-header {
     -webkit-app-region: drag;
-    /* Windows: padding-right = 100vw - titlebar-area-width = controls 宽度（~140px） */
-    /* macOS / 非 overlay：env() 返回 fallback 100vw → padding = 0 */
-    padding-right: calc(100vw - env(titlebar-area-width, 100vw)) !important;
+    /* Windows: margin-right = 100vw - titlebar-area-width = controls 宽度（~138px） */
+    /* macOS / 非 overlay：env() 返回 fallback 100vw → margin = 0 */
+    margin-right: calc(100vw - env(titlebar-area-width, 100vw)) !important;
     position: relative;
-  }
-  .app-page-header::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: calc(100vw - env(titlebar-area-width, 100vw));
-    height: 100%;
-    -webkit-app-region: no-drag;
-    pointer-events: none;
   }
   .app-page-header button,
   .app-page-header a,

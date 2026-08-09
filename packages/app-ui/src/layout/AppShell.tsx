@@ -143,7 +143,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
         type="button"
         onClick={() => setHistoryOpen(true)}
         aria-label={t('conversations.history', { defaultValue: '历史记录' })}
-        className="glass border-border/40 text-muted-foreground hover:text-foreground z-header absolute left-2 top-10 flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs shadow-sm transition-colors"
+        className="glass border-border/40 text-muted-foreground hover:text-foreground z-header absolute left-2 top-10 flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs shadow-sm transition-colors"
       >
         <History className="h-3.5 w-3.5" />
         {t('conversations.history', { defaultValue: '历史记录' })}
@@ -168,7 +168,11 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
 
   const mainArea = (
     <div className="relative flex flex-1 overflow-hidden">
-      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+      <main className="flex flex-1 flex-col overflow-hidden">
+        {/* Drag strip — sidebar 布局下无原生标题栏，极窄拖拽条 */}
+        <div className="app-page-header h-1 shrink-0 bg-transparent" aria-hidden />
+        {children}
+      </main>
       {historyOverlay}
     </div>
   );
@@ -226,9 +230,9 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
 
   if (navPosition === 'top') {
     return (
-      <div className="bg-background text-foreground relative flex h-screen w-screen flex-col overflow-hidden font-sans">
+      <div className="bg-background text-foreground relative flex h-screen w-screen flex-col gap-2 overflow-hidden p-2 font-sans">
         <IconTopBar />
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 gap-2 overflow-hidden">
           {inlineMiddle && middle}
           {mainArea}
         </div>
@@ -237,7 +241,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   }
 
   return (
-    <div className="bg-background text-foreground relative flex h-screen w-screen overflow-hidden font-sans">
+    <div className="bg-background text-foreground relative flex h-screen w-screen gap-2 overflow-hidden p-2 font-sans">
       <IconSidebar />
       {inlineMiddle && middle}
       {mainArea}

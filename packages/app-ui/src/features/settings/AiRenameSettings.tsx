@@ -62,7 +62,7 @@ export function AiRenameSettings({ onBack }: { onBack?: () => void } = {}) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center border-b px-6">
+      <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center rounded-2xl px-6">
         {onBack && (
           <IconButton
             size="sm"

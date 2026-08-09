@@ -238,31 +238,29 @@ export function MiniAppPage() {
   return (
     <div className="bg-background flex h-full w-full flex-col overflow-hidden">
       {/* ── 顶部多标签栏 (IDE Tab Bar) ── */}
-      <div className="app-page-header border-border/40 bg-background/50 flex h-10 shrink-0 items-center justify-between border-b px-2 backdrop-blur-sm">
-        <div className="no-scrollbar flex h-full flex-1 select-none items-center overflow-x-auto">
+      <div className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-3">
+        <div className="no-scrollbar flex h-full flex-1 select-none items-center gap-1.5 overflow-x-auto py-1.5">
           {tabs.map((tab, idx) => {
             const isActive = activeTabId === tab.id;
-            // 寻找关联的 app 获取 icon
             const appInfo = tab.type === 'app' ? allApps.find((a) => a.id === tab.appId) : null;
 
             return (
               <div
                 key={tab.id}
                 onClick={() => setActiveTabId(tab.id)}
-                className={`border-border/30 group relative flex h-full min-w-[70px] max-w-[160px] cursor-pointer items-center gap-1.5 border-r px-2 text-xs font-medium transition-all sm:min-w-[100px] sm:gap-2 sm:px-3.5 ${
+                className={`group relative flex h-8 min-w-[70px] max-w-[160px] cursor-pointer items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all duration-150 sm:min-w-[100px] sm:gap-2 sm:px-3.5 ${
                   isActive
-                    ? 'bg-background text-foreground'
-                    : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground'
+                    ? 'glass-btn-active'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                 }`}
               >
-                {/* Active 底部线条 */}
-                {isActive && (
-                  <span className="bg-primary absolute bottom-0 left-2 right-2 h-[2px] rounded-t" />
-                )}
-
                 {/* 标签图标 */}
                 {tab.type === 'market' ? (
-                  <Puzzle className="text-primary/80 h-3.5 w-3.5 shrink-0" />
+                  <Puzzle
+                    className={
+                      isActive ? 'h-3.5 w-3.5 shrink-0' : 'text-primary/70 h-3.5 w-3.5 shrink-0'
+                    }
+                  />
                 ) : (
                   <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[11px] font-bold">
                     {renderAppIcon(appInfo?.icon || '', tab.title, true)}
@@ -270,7 +268,7 @@ export function MiniAppPage() {
                 )}
 
                 {/* 标签标题 */}
-                <span className="truncate pr-2" title={tab.title}>
+                <span className="truncate pr-1.5" title={tab.title}>
                   {tab.title}
                 </span>
 
@@ -279,7 +277,11 @@ export function MiniAppPage() {
                   <button
                     type="button"
                     onClick={(e) => handleCloseTab(tab.id, e)}
-                    className="text-muted-foreground hover:bg-secondary hover:text-foreground ml-auto flex h-4 w-4 items-center justify-center rounded-full opacity-100 transition-all group-hover:opacity-100 sm:opacity-0"
+                    className={`ml-auto flex h-4 w-4 items-center justify-center rounded-full transition-all ${
+                      isActive
+                        ? 'text-foreground/80 hover:text-foreground hover:bg-white/20'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground opacity-100 group-hover:opacity-100 sm:opacity-0'
+                    }`}
                   >
                     <X className="h-2.5 w-2.5" />
                   </button>
@@ -293,7 +295,7 @@ export function MiniAppPage() {
             size="sm"
             variant="ghost"
             onClick={handleNewMarketTab}
-            className="hover:bg-secondary ml-1 h-7 w-7 rounded-md"
+            className="hover:bg-secondary/60 ml-1 h-8 w-8 rounded-xl"
             aria-label={t('miniapp.tabNew')}
           >
             <Plus className="h-4 w-4" />
@@ -386,11 +388,6 @@ export function MiniAppPage() {
                             <h3 className="text-foreground w-full truncate px-1 text-sm font-semibold tracking-tight sm:text-center">
                               {app.name}
                             </h3>
-
-                            {/* 描述 */}
-                            <p className="text-muted-foreground/80 mt-1 line-clamp-2 min-h-0 px-1 text-[11px] leading-relaxed sm:mt-1.5 sm:min-h-[32px] sm:text-center">
-                              {app.desc || '打开官方网站进行深度对话'}
-                            </p>
                           </div>
                         </Card>
                       );
@@ -408,9 +405,6 @@ export function MiniAppPage() {
                         <h3 className="text-sm font-semibold tracking-tight sm:text-center">
                           {t('miniapp.addCustom')}
                         </h3>
-                        <p className="text-muted-foreground/70 mt-1 text-[11px] sm:text-center">
-                          {t('miniapp.addCustomDesc')}
-                        </p>
                       </div>
                     </Card>
                   </div>

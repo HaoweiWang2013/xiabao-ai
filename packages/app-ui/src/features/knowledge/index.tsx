@@ -78,7 +78,7 @@ export function KnowledgePanel() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
+      <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-6">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4" />
           <h2 className="text-sm font-semibold">
@@ -94,8 +94,8 @@ export function KnowledgePanel() {
         </Button>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="border-border/40 w-64 shrink-0 border-r">
+      <div className="flex flex-1 gap-2 overflow-hidden px-2 pb-2">
+        <aside className="glass border-border/40 w-64 shrink-0 rounded-2xl">
           <ScrollArea className="scroll-thin h-full">
             {bases.length === 0 ? (
               <EmptyState onCreate={() => setEditing({ kind: 'create' })} />
@@ -107,9 +107,9 @@ export function KnowledgePanel() {
                       type="button"
                       onClick={() => setSelectedId(kb.id)}
                       className={cn(
-                        'group flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-xs transition-colors',
+                        'group flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left text-xs transition-all duration-150',
                         kb.id === selectedId
-                          ? 'bg-secondary/80 text-foreground'
+                          ? 'glass-btn-active'
                           : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',
                       )}
                     >

@@ -108,8 +108,8 @@ export function SettingsPage() {
         {showCategories && (
           <aside
             className={cn(
-              'glass border-border/40 animate-in slide-in-from-left flex flex-col border-r p-2 duration-150',
-              isMobile ? 'w-full border-r-0' : 'w-44 shrink-0',
+              'glass border-border/40 animate-in slide-in-from-left flex flex-col rounded-2xl p-2 duration-150',
+              isMobile ? 'w-full' : 'w-44 shrink-0',
             )}
           >
             <div className="border-border/40 mb-2 flex h-9 items-center justify-between gap-2 border-b px-2 pb-1">
@@ -146,9 +146,9 @@ export function SettingsPage() {
                       }
                     }}
                     className={cn(
-                      'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
+                      'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-all duration-150',
                       section === item.id
-                        ? 'bg-primary/10 text-foreground'
+                        ? 'glass-btn-active'
                         : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',
                     )}
                   >

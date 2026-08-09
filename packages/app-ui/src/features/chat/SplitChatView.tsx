@@ -309,7 +309,7 @@ function PaneHeader({
   }, [contextMenu]);
 
   return (
-    <div className="glass border-border/40 flex h-9 shrink-0 items-center gap-0 border-b">
+    <div className="glass border-border/40 m-2 flex h-9 shrink-0 items-center gap-0 rounded-2xl">
       <div className="flex h-full flex-1 items-center overflow-x-auto">
         {tabs.length === 0 ? (
           <div className="text-muted-foreground px-3 text-xs">未打开任何会话</div>
@@ -327,14 +327,14 @@ function PaneHeader({
                   setContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
                 }}
                 className={cn(
-                  'border-border/40 group relative flex h-full min-w-0 max-w-[180px] cursor-pointer items-center gap-1.5 border-r px-3 text-xs transition-colors',
+                  'group relative flex h-full min-w-0 max-w-[180px] cursor-pointer items-center gap-1.5 rounded-xl px-3 text-xs transition-all duration-150',
                   isActive
-                    ? 'bg-background/40 text-foreground'
+                    ? 'glass-btn-active'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40',
                 )}
               >
                 {isActive && (
-                  <span className="bg-primary absolute bottom-0 left-2 right-2 h-[2px] rounded-t" />
+                  <span className="bg-primary absolute bottom-1 left-2 right-2 h-[2px] rounded-full" />
                 )}
                 <span className="truncate" title={tab.title}>
                   {tab.title || '未命名'}

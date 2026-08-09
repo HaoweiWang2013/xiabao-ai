@@ -93,7 +93,7 @@ export function ConversationList({
     <TooltipProvider delayDuration={200}>
       <aside
         aria-label="Conversations"
-        className="glass border-border/40 flex h-full w-[260px] shrink-0 flex-col border-r"
+        className="glass border-border/40 flex h-full w-[260px] shrink-0 flex-col rounded-2xl"
       >
         <div className="border-border/40 flex h-11 items-center justify-between gap-2 border-b px-3">
           <div className="flex flex-1 items-center gap-2">
@@ -159,15 +159,10 @@ export function ConversationList({
                                 if (e.key === 'Enter' || e.key === ' ') handleClick(c);
                               }}
                               className={cn(
-                                'relative flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
-                                isActive
-                                  ? 'bg-primary/10 text-foreground'
-                                  : 'hover:bg-secondary/60',
+                                'relative flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs transition-all duration-150',
+                                isActive ? 'glass-btn-active' : 'hover:bg-secondary/60',
                               )}
                             >
-                              {isActive && (
-                                <span className="bg-primary absolute -left-0.5 top-1.5 h-4 w-[3px] rounded-r-full" />
-                              )}
                               {c.favorite ? (
                                 <Star className="mt-0.5 h-3 w-3 shrink-0 fill-amber-400 text-amber-400" />
                               ) : (

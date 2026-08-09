@@ -62,7 +62,7 @@ export function IconTopBar() {
     <TooltipProvider delayDuration={200}>
       <header
         aria-label="Primary navigation"
-        className="app-page-header glass border-border/40 z-header flex h-12 w-full shrink-0 items-center justify-between border-b px-3"
+        className="app-page-header glass border-border/40 z-header flex h-12 w-full shrink-0 items-center justify-between rounded-2xl px-3"
       >
         <div className="flex items-center gap-1">
           <BrandLogo />
@@ -125,15 +125,12 @@ function TopItem({
           aria-current={active ? 'page' : undefined}
           aria-label={label}
           className={cn(
-            'group relative flex h-9 w-9 items-center justify-center rounded-md transition-colors',
+            'group relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150',
             active
-              ? 'text-primary'
+              ? 'glass-btn-active'
               : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60',
           )}
         >
-          {active && (
-            <span className="bg-primary absolute -bottom-3 left-1/2 h-[3px] w-4 -translate-x-1/2 rounded-t-full" />
-          )}
           {icon}
         </button>
       </TooltipTrigger>

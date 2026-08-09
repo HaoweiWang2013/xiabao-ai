@@ -65,6 +65,9 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  optimizeDeps: {
+    exclude: ['@xiabao/app-ui', '@xiabao/state', '@xiabao/ui', '@xiabao/theme'],
+  },
   build: {
     target: 'es2022',
     sourcemap: true,

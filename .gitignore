@@ -106,6 +106,10 @@ apps/mobile/android/sdk/
 
 # website folder (ignored)
 WebSite/
+UI/
+
+# windows erroneous paths from native modules
+%SystemDrive%/
 
 # wrangler build artifacts
 **/.wrangler/

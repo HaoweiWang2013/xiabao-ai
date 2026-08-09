@@ -78,7 +78,7 @@ export function IconSidebar() {
     <TooltipProvider delayDuration={200}>
       <aside
         aria-label="Primary navigation"
-        className="glass border-border/40 z-header flex h-full w-12 shrink-0 flex-col items-center justify-between border-r py-3"
+        className="glass border-border/40 z-header flex h-full w-12 shrink-0 flex-col items-center justify-between rounded-2xl py-3"
       >
         <div className="flex flex-col items-center gap-1">
           <BrandLogo />
@@ -141,15 +141,12 @@ function SideItem({
           aria-current={active ? 'page' : undefined}
           aria-label={label}
           className={cn(
-            'group relative flex h-9 w-9 items-center justify-center rounded-md transition-colors',
+            'group relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150',
             active
-              ? 'text-primary'
+              ? 'glass-btn-active'
               : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60',
           )}
         >
-          {active && (
-            <span className="bg-primary absolute -left-3 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full" />
-          )}
           {icon}
         </button>
       </TooltipTrigger>

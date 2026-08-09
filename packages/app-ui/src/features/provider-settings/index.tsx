@@ -146,12 +146,12 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex h-full">
+      <div className="flex h-full gap-2 p-2">
         {/* ── 左栏：Provider 列表 ───────────────────────────── */}
         <aside
           className={cn(
-            'border-border/40 flex w-64 shrink-0 flex-col border-r',
-            isMobile && (mobileActivePanel === 'list' ? 'w-full border-r-0' : 'hidden'),
+            'glass border-border/40 flex w-64 shrink-0 flex-col rounded-2xl',
+            isMobile && (mobileActivePanel === 'list' ? 'w-full' : 'hidden'),
           )}
         >
           <div className="border-border/40 flex items-center gap-2 border-b px-3 py-2">
@@ -204,7 +204,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                             }
                           }
                         }}
-                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${active ? 'bg-secondary/50' : ''}`}
+                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-all duration-150 ${active ? 'glass-btn-active' : ''}`}
                       >
                         <span className="bg-muted-foreground/20 text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-medium uppercase">
                           {provider.name.slice(0, 1)}
@@ -257,7 +257,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
             </div>
           ) : (
             <div className="flex h-full flex-col">
-              <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
+              <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-6">
                 <div className="flex items-center gap-2">
                   {isMobile && (
                     <IconButton

@@ -156,7 +156,7 @@ export function ImageWorkspace() {
 
   return (
     <div className="bg-background flex h-full min-h-0 flex-col">
-      <header className="border-border/40 bg-background/95 supports-[backdrop-filter]:bg-background/80 flex h-12 shrink-0 items-center border-b px-5 backdrop-blur-sm">
+      <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center rounded-2xl px-5">
         <div className="flex items-center gap-2.5">
           <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
             <ImageIcon className="text-primary h-3.5 w-3.5" strokeWidth={2} />
@@ -167,12 +167,12 @@ export function ImageWorkspace() {
         </div>
       </header>
 
-      <div className="relative flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 gap-2 overflow-hidden px-2 pb-2">
         <aside
           className={cn(
             'transition-all duration-200',
             sidebarOpen
-              ? 'border-border/40 bg-background max-md:bg-background/95 w-60 shrink-0 border-r max-md:absolute max-md:bottom-0 max-md:left-0 max-md:top-0 max-md:z-30 max-md:shadow-2xl max-md:backdrop-blur-sm'
+              ? 'glass border-border/40 max-md:bg-background/95 w-60 shrink-0 rounded-2xl max-md:absolute max-md:bottom-0 max-md:left-0 max-md:top-0 max-md:z-30 max-md:shadow-2xl max-md:backdrop-blur-sm'
               : 'w-0 overflow-hidden border-none',
           )}
         >

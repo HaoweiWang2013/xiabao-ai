@@ -75,7 +75,7 @@ export function ToolSettings({ onBack }: { onBack?: () => void } = {}) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="app-page-header border-border/40 flex h-12 shrink-0 items-center justify-between border-b px-6">
+      <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-6">
         <div className="flex items-center gap-2">
           {onBack && (
             <IconButton

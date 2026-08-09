@@ -260,7 +260,7 @@ export function TranslatePage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="app-page-header border-border/40 bg-background/95 flex h-12 shrink-0 items-center justify-between border-b px-5 backdrop-blur-sm">
+      <header className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-5">
         <div className="flex items-center gap-2.5" data-no-drag>
           <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
             <Languages className="text-primary h-3.5 w-3.5" strokeWidth={2} />

@@ -35,7 +35,7 @@ export function TabBar({ onNewTab }: Props) {
   }
 
   return (
-    <div className="app-page-header glass border-border/40 flex h-9 shrink-0 items-center gap-0 border-b">
+    <div className="app-page-header glass border-border/40 m-2 flex h-9 shrink-0 items-center gap-0 rounded-2xl">
       <div className="flex h-full flex-1 items-center overflow-x-auto">
         {tabs.length === 0 ? (
           <div className="text-muted-foreground px-3 text-xs">

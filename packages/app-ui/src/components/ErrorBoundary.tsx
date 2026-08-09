@@ -9,13 +9,13 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  render() {
+  override render() {
     if (this.state.error) {
       return (
         <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center gap-4 bg-[#1a1d1a] px-8 text-center">
