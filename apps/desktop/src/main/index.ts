@@ -17,6 +17,15 @@ declare const __BUILD_HASH__: string;
 
 const isDev = __DEV__;
 
+// GPU 硬件加速：强制启用 GPU 栅格化、零拷贝纹理、不回退软件渲染
+// 注意：必须早于 app.whenReady() 才能生效
+// 不使用 disable-software-rasterizer，保留软件渲染作为最后保底，避免无 GPU 环境白屏
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+// 桌面合成器：让窗口本身参与 GPU 合成（与 Win11 mica / mac vibrancy 配合）
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,Vulkan');
+
 const startedAt = performance.now();
 const perf = (label: string) =>
   console.info(`[xiabao] perf · ${label} · +${(performance.now() - startedAt).toFixed(0)}ms`);
@@ -62,6 +71,10 @@ function createMainWindow(): BrowserWindow {
       allowRunningInsecureContent: false,
       spellcheck: true,
       devTools: isDev,
+      // GPU 合成相关：多 tab 后台不降帧，启用 WebGL 辅助加速
+      backgroundThrottling: false,
+      enableWebGL: true,
+      experimentalFeatures: true,
     },
   });
 

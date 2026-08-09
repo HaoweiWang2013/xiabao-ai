@@ -137,7 +137,6 @@ export function MiniAppPage() {
       setActiveTabId(newTabs[nextActiveIndex]?.id ?? 'market');
     }
   }
-
   // 新开或聚焦一个 MiniApp 网页
   function handleOpenApp(app: MiniApp) {
     const existingTab = tabs.find((t) => t.type === 'app' && t.appId === app.id);
@@ -237,8 +236,14 @@ export function MiniAppPage() {
 
   return (
     <div className="bg-background flex h-full w-full flex-col overflow-hidden">
-      {/* ── 顶部多标签栏 (IDE Tab Bar) ── */}
-      <div className="app-page-header glass border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-3">
+      {/* ── 顶部多标签栏 (IDE Tab Bar) ──
+          当前激活 tab 若是 app 类型（含 iframe），顶部栏降级为 glass-strong，
+          降低 backdrop-filter 对 iframe 像素流的 GPU 采样负担 */}
+      <div
+        className={`app-page-header ${
+          tabs.find((t) => t.id === activeTabId)?.type === 'app' ? 'glass-strong' : 'glass'
+        } border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-3`}
+      >
         <div className="no-scrollbar flex h-full flex-1 select-none items-center gap-1.5 overflow-x-auto py-1.5">
           {tabs.map((tab, idx) => {
             const isActive = activeTabId === tab.id;
@@ -348,14 +353,14 @@ export function MiniAppPage() {
 
                 {/* 市场应用网格 */}
                 <ScrollArea className="mx-auto w-full max-w-6xl flex-1">
-                  <div className="grid grid-cols-1 gap-3 pb-8 sm:grid-cols-2 sm:gap-4 sm:pb-12 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                  <div className="perf-list-container grid grid-cols-1 gap-3 pb-8 sm:grid-cols-2 sm:gap-4 sm:pb-12 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                     {filteredApps.map((app) => {
                       const isCustom = app.id.startsWith('custom-');
                       return (
                         <Card
                           key={app.id}
                           onClick={() => handleOpenApp(app)}
-                          className="hover:bg-secondary/20 hover:border-primary/30 border-border/40 group relative flex cursor-pointer flex-row items-center gap-4 p-3 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:p-5 sm:text-center"
+                          className="hover:border-primary/30 border-border/40 group relative flex cursor-pointer flex-row items-center gap-4 p-3 text-left transition-all duration-200 will-change-transform hover:-translate-y-1 hover:drop-shadow-md sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:p-5 sm:text-center"
                         >
                           {/* 自定义小程序的删除角标 */}
                           {isCustom && (
@@ -396,7 +401,7 @@ export function MiniAppPage() {
                     {/* 添加自定义卡片 */}
                     <Card
                       onClick={() => setIsAddOpen(true)}
-                      className="border-border/70 hover:border-primary hover:bg-primary/5 hover:text-primary flex cursor-pointer flex-row items-center gap-4 border-dashed p-3 text-left transition-all duration-200 hover:-translate-y-1 sm:min-h-[160px] sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:p-5 sm:text-center"
+                      className="border-border/70 hover:border-primary hover:bg-primary/5 hover:text-primary flex cursor-pointer flex-row items-center gap-4 border-dashed p-3 text-left transition-all duration-200 will-change-transform hover:-translate-y-1 hover:drop-shadow-md sm:min-h-[160px] sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:p-5 sm:text-center"
                     >
                       <div className="border-border/80 bg-background text-muted-foreground group-hover:text-primary mb-0 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-dashed transition-colors sm:mb-4">
                         <Plus className="h-6 w-6" />

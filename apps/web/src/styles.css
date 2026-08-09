@@ -9,7 +9,9 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none;
+    /* 全方向禁用 overscroll 弹性回弹，避免 WebView 滚动到边缘触发父容器滚动，
+       减少 backdrop-filter 重绘，提升 GPU 合成性能（移动端关键） */
+    overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }

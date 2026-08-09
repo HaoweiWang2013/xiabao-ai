@@ -135,6 +135,19 @@
 }
 
 /* 液态玻璃工具类（Apple Liquid Glass 风格） */
+/* 共享 GPU 合成优化：提升为独立合成层 + 隔离重绘范围
+   - will-change: 提示浏览器缓存 backdrop-filter 结果
+   - contain: 隔离布局/绘制，让 GPU 合成器跳过本元素之外的重绘
+   - backface-visibility: 强制创建合成层 */
+.glass,
+.glass-strong,
+.glass-btn,
+.glass-pill {
+  will-change: backdrop-filter;
+  backface-visibility: hidden;
+  contain: layout paint;
+}
+
 .glass {
   background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
     rgb(var(--glass-bg));
@@ -222,10 +235,54 @@
   }
 }
 
+/* prefers-reduced-motion: 降低模糊半径（不直接关闭，避免透明像素层突变闪烁） */
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .glass-strong,
+  .glass-btn,
+  .glass-pill {
+    backdrop-filter: blur(4px) saturate(120%);
+    -webkit-backdrop-filter: blur(4px) saturate(120%);
+  }
+}
+
+/* 运行时低性能模式（由 useAdaptivePerformance hook 注入 data-perf-mode="low"）
+   策略：极低模糊半径 + 高不透明度背景，避免完全关闭导致背景突变闪烁 */
+[data-perf-mode='low'] .glass,
+[data-perf-mode='low'] .glass-strong,
+[data-perf-mode='low'] .glass-btn,
+[data-perf-mode='low'] .glass-pill {
+  backdrop-filter: blur(2px) saturate(120%);
+  -webkit-backdrop-filter: blur(2px) saturate(120%);
+}
+[data-perf-mode='low'] .glass {
+  background: rgb(var(--glass-bg-strong));
+}
+[data-perf-mode='low'] .glass-pill {
+  background: hsl(var(--primary) / 0.25);
+}
+
+/* 滚动时降级（由 useScrollState hook 注入 .is-scrolling 到 body）
+   策略：降低模糊半径而非完全关闭，避免滚动停止时背景突变 */
+.is-scrolling .glass,
+.is-scrolling .glass-strong {
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+}
+
 /* 滚动条 */
 .scroll-thin::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+/* 长列表容器 GPU 优化：屏外内容不渲染，跳过合成层
+   - content-visibility: auto: 视口外子树跳过布局/绘制/合成
+   - contain-intrinsic-size: 避免滚动条跳动（预估行高 100px）
+   注意：不要加到 sticky/fixed 元素，会破坏定位 */
+.perf-list-container {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
   background: hsl(var(--border));

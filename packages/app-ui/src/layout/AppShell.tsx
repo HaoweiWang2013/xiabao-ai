@@ -26,6 +26,8 @@ import {
 import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
 import { cn, IconButton } from '@xiabao/ui';
 
+import { useAdaptivePerformance } from '../hooks/useAdaptivePerformance';
+import { useScrollState } from '../hooks/useScrollState';
 import { useTranslation } from '../lib/useTranslation';
 
 import { IconSidebar } from './IconSidebar';
@@ -79,6 +81,11 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   const isMobile = width < MOBILE_BP;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // GPU 性能自适应：移动端/低电量/低帧率时注入 data-perf-mode="low"
+  useAdaptivePerformance();
+  // 滚动状态：滚动时注入 .is-scrolling，降低 glass 模糊半径
+  useScrollState();
 
   // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
   useEffect(() => {
