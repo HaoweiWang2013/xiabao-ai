@@ -4,13 +4,13 @@
 
 ## 1. 运行时与语言
 
-| 项         | 版本                       | 理由                                                                |
-| ---------- | -------------------------- | ------------------------------------------------------------------- |
-| Node.js    | **20.x LTS**               | Electron 30+ 捆绑 Node 20；原生模块预编译覆盖好                     |
-| pnpm       | **9.x**                    | workspace 协议 + 硬链接 + 快                                        |
-| TypeScript | **5.5+**（`strict: true`） | 必须 strict，全项目零 `any`（除 escape hatch）                      |
-| ESLint     | **9.x**（flat config）     | `@typescript-eslint`、`eslint-plugin-react-hooks`、自写一些约束插件 |
-| Prettier   | **3.x**                    | 单一 code style，争执清零                                           |
+| 项         | 版本                        | 理由                                                                                         |
+| ---------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| Node.js    | **22.21.1**（**强制锁定**） | Electron 30+ 兼容；原生模块预编译覆盖好；**所有脚本必须走 `nvm use 22`，不要用系统 Node 10** |
+| pnpm       | **9.x**                     | workspace 协议 + 硬链接 + 快                                                                 |
+| TypeScript | **5.5+**（`strict: true`）  | 必须 strict，全项目零 `any`（除 escape hatch）                                               |
+| ESLint     | **9.x**（flat config）      | `@typescript-eslint`、`eslint-plugin-react-hooks`、自写一些约束插件                          |
+| Prettier   | **3.x**                     | 单一 code style，争执清零                                                                    |
 
 ## 2. 桌面端容器
 
@@ -20,6 +20,20 @@
 | **electron-builder** | **24.x** | Win NSIS / macOS dmg + pkg / Linux AppImage + deb                 |
 | **electron-updater** | 最新     | 增量更新、签名校验                                                |
 | **electron-trpc**    | 最新     | tRPC over IPC，流式 subscription                                  |
+
+### Electron GPU 与液态玻璃专项配置（2026-08）
+
+液态玻璃大量使用 `backdrop-filter`，Electron 主进程必须配置 GPU 命令行开关：
+
+```ts
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-oop-rasterization');
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRasterization');
+```
+
+- **不禁用 `--disable-software-rasterizer`**：保留低端机回退路径（project_memory 红线约束）。
+- `webPreferences.backgroundThrottling: false`（后台窗口也保持合成层缓存，切标签不闪烁）。
+- 不支持 vibrancy 的平台（Win10/Linux）自动走 CSS `backdrop-filter`。
 
 ### 为什么不是 Tauri 2？
 
@@ -32,22 +46,36 @@
 | Webview  | Chromium（一致）                    | 各平台 webview（Win 用 WebView2，行为不一致） |
 | 成熟度   | 10+ 年                              | 2024 才出 2.0                                 |
 
-**选 Electron**：生态、原生模块、跨端一致性、Node 全量可用更重要。体积换稳定。
+**选 Electron**：生态、原生模块、跨端一致性、Node 全量可用更重要。体积换稳定；Chromium 124+ 对 `backdrop-filter` 合成路径优化好。
 
 ## 3. UI 框架与组件
 
-| 项                                   | 版本                                         | 说明                                                               |
-| ------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------ |
-| **React**                            | **18.3+**                                    | 函数式组件 + hooks；React 19 发布后评估迁移                        |
-| **React DOM**                        | 18.3+                                        | —                                                                  |
-| **React Router**                     | **6.x**（data router）或 **TanStack Router** | **TanStack Router** 更现代、类型更强，首选                         |
-| **Tailwind CSS**                     | **3.4+**                                     | JIT 模式；未来评估 v4                                              |
-| **shadcn/ui**                        | 非 npm 包，**源码复制**                      | 与 Radix Primitives 组合；所有组件在 `packages/ui/src/components/` |
-| **Radix Primitives**                 | 最新                                         | shadcn 依赖的 headless 原语                                        |
-| **Lucide React**                     | 最新                                         | 2400+ 图标                                                         |
-| **Framer Motion**                    | **11.x**                                     | 动效；Desktop/Web 通用，RN 用 Reanimated                           |
-| **class-variance-authority** (`cva`) | 最新                                         | 变体样式管理                                                       |
-| **clsx** + **tailwind-merge**        | 最新                                         | className 合并                                                     |
+| 项                                   | 版本                                         | 说明                                                                      |
+| ------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------- |
+| **React**                            | **18.3+**                                    | 函数式组件 + hooks；React 19 发布后评估迁移                               |
+| **React DOM**                        | 18.3+                                        | —                                                                         |
+| **React Router**                     | **6.x**（data router）或 **TanStack Router** | **TanStack Router** 更现代、类型更强，首选                                |
+| **Tailwind CSS**                     | **3.4+**                                     | JIT 模式；未来评估 v4                                                     |
+| **shadcn/ui**                        | 非 npm 包，**源码复制**                      | 与 Radix Primitives 组合；所有组件在 `packages/ui/src/components/`        |
+| **Radix Primitives**                 | 最新                                         | shadcn 依赖的 headless 原语                                               |
+| **Lucide React**                     | 最新                                         | 2400+ 图标                                                                |
+| **Framer Motion**                    | **11.x**                                     | 动效；Desktop/Web 通用，RN 用 Reanimated                                  |
+| **class-variance-authority** (`cva`) | 最新                                         | 变体样式管理                                                              |
+| **clsx** + **tailwind-merge**        | 最新                                         | className 合并                                                            |
+| **Apple Liquid Glass**               | WWDC 25 光学语法                             | 自实现 CSS（`::before mask-composite` 渐变边框 + 分级 blur + 光学 token） |
+
+### 3.1 液态玻璃依赖（2026-08）
+
+没有 npm 包能直接给我们需要的「克制 IDE + Apple 光学」液态玻璃，完全自研：
+
+| 层              | 文件                                        | 职责                                                    |
+| --------------- | ------------------------------------------- | ------------------------------------------------------- |
+| 主题 token      | `packages/theme/src/css-variables.css`      | ~70 个 CSS 变量（玻璃/岛屿/Agent/移动端）               |
+| Tailwind preset | `packages/theme/src/preset.ts`              | 注入 CSS 变量、扩展色板                                 |
+| highlight CSS   | `packages/theme/src/highlight.css`          | Shiki 在 `.opaque-island` 上的语法配色                  |
+| 桌面全局样式    | `apps/desktop/src/renderer/styles.css`      | 滚动条玻璃化、scroll-behavior、root→transparent（Mica） |
+| Web 全局样式    | `apps/web/src/styles.css`                   | `.bg-ambient` 环境光、滚动条、scroll smooth             |
+| 字体            | `DM Sans`（正文）、`JetBrains Mono`（代码） | iOS 风格圆润字体，配液态玻璃                            |
 
 ### 聊天 UI
 
@@ -261,27 +289,29 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 
 - **所有依赖版本精确锁定**（无 `^` / `~`），由 Dependabot 统一升级
 - 关键库（Electron、React、Jotai、better-sqlite3、Vercel AI SDK）major 版本跳转走 RFC
-- 原生模块（better-sqlite3、op-sqlite）必须有 prebuilds 覆盖 Node 20 + Win/Mac/Linux x64 + Mac arm64 + Linux arm64
+- 原生模块（better-sqlite3、op-sqlite）必须有 prebuilds 覆盖 **Node 22.21.1** + Win/Mac/Linux x64 + Mac arm64 + Linux arm64
+- **开发环境硬约束**：任何本地脚本 / CI / 发布命令必须 `nvm use 22` 或等价显式指定 Node 22，**禁止使用系统 Node 10**（原生模块 esbuild/sharp/electron 编译必须 ABI 匹配）
 
 ## 18. 不选 / 曾考虑
 
-| 放弃的方案     | 为什么                                    |
-| -------------- | ----------------------------------------- |
-| Tauri 2        | Rust 生态、Webview 不一致、原生模块生态弱 |
-| LangChain.js   | 抽象过重、包体积大、客户端不合适          |
-| Prisma         | Electron 打包困难、RN 不可用              |
-| Zustand        | Jotai 细粒度更优                          |
-| Redux Toolkit  | boilerplate 多                            |
-| Next.js        | 客户端项目不需要 SSR                      |
-| Firebase       | 违反"本地优先"                            |
-| CouchDB / RxDB | 当前同步需求 libsql 足够                  |
-| Tauri 1        | 2.0 之前生态断层                          |
+| 放弃的方案                          | 为什么                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| Tauri 2                             | Rust 生态、Webview 不一致、原生模块生态弱                                 |
+| LangChain.js                        | 抽象过重、包体积大、客户端不合适                                          |
+| Prisma                              | Electron 打包困难、RN 不可用                                              |
+| Zustand                             | Jotai 细粒度更优                                                          |
+| Redux Toolkit                       | boilerplate 多                                                            |
+| Next.js                             | 客户端项目不需要 SSR                                                      |
+| Firebase                            | 违反"本地优先"                                                            |
+| CouchDB / RxDB                      | 当前同步需求 libsql 足够                                                  |
+| Tauri 1                             | 2.0 之前生态断层                                                          |
+| 液态玻璃 npm 库（glassmorphism 等） | 与 WWDC 25 光学语法差距大，且不支持分级 blur + 渐变边框，完全自研可控更高 |
 
-## 19. 依赖版本锁定总表（关键项，已落地）
+## 19. 依赖版本锁定总表（关键项，2026-08 更新到 Node 22）
 
 ```json
 {
-  "engines": { "node": ">=20.11.0", "pnpm": ">=9.0.0" },
+  "engines": { "node": ">=22.21.1", "pnpm": ">=9.0.0" },
   "packageManager": "pnpm@9.12.0",
   "devDependencies": {
     "typescript": "5.5.4",
@@ -298,3 +328,17 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 ```
 
 各子包的具体依赖版本以 `pnpm-lock.yaml` 为准。
+
+## 20. 液态玻璃 GPU 加速硬约束（2026-08 新增）
+
+> 详见 `docs/gpu-performance-report.md` 基准报告
+
+| 约束                                    | 值                                                      | 理由                                         |
+| --------------------------------------- | ------------------------------------------------------- | -------------------------------------------- |
+| CPU 节流验证                            | Chrome DevTools 6x slowdown                             | 模拟低端机，液态玻璃渲染仍 ≥ 30 FPS          |
+| `backdrop-filter` 过渡                  | **禁止**作为 `transition-property` 的过渡项（瞬时切换） | backdrop-filter 过渡每帧重建合成层，必闪     |
+| `will-change: backdrop-filter`          | **禁止**（会永久占 GPU 合成层内存）                     | 密集玻璃场景 VRAM 不足导致丢帧               |
+| `contain: paint`                        | **禁止**（backdrop-filter 采样被裁切，偶尔出闪烁）      | 只用 `contain: layout`                       |
+| `::before` 渐变边框 z-index             | 1（内容之上，`pointer-events:none`）                    | -1 会穿透层叠上下文，与 backdrop-filter 冲突 |
+| `isolation: isolate`                    | **必须**（所有 `.glass*` 元素）                         | 隔离层叠上下文，避免兄弟伪元素互相穿插       |
+| Capacitor WebView `overscroll-behavior` | none（html + body）                                     | 减少不必要的重绘区域                         |

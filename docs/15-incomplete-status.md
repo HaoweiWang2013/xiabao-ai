@@ -1,23 +1,26 @@
 # 15 · 项目完成报告
 
 > 本文基于 `docs/` 全部文档与实际代码交叉比对，列出 XiabaoAI 全部已交付功能与已知限制。
-> 状态截至项目完成。
+> 状态：**2026-08-15**（液态玻璃视觉升级 v2 + GPU 渲染优化 + 闪烁全根除）
+> 最新提交：`70bcb68`（HaoweiWang2013/xiabao-ai main）
 
 ---
 
 ## 0 · 总览
 
-| 类别           | 状态    | 说明                           |
-| -------------- | ------- | ------------------------------ |
-| M0 工程地基    | ✅ 完成 | Monorepo + CI/CD               |
-| M1 Provider    | ✅ 完成 | OpenAI/Anthropic/Google/Ollama |
-| M2 聊天 MVP    | ✅ 完成 | IDE Tab + FTS5 + i18n          |
-| M3 打磨与打包  | ✅ 完成 | 菜单/托盘/更新/崩溃上报        |
-| M4 知识库 RAG  | ✅ 完成 | 含长尾 Phase 1-8 全部          |
-| M5 图像 + 语音 | ✅ 完成 | 骨架完整                       |
-| M6 MCP + Agent | ✅ 完成 | 核心已交付                     |
-| M7 Web 端      | ✅ 完成 | SPA + Fastify + CF Worker      |
-| M8 Android 端  | ✅ 完成 | Capacitor + Node.js            |
+| 类别           | 状态    | 说明                                             |
+| -------------- | ------- | ------------------------------------------------ |
+| M0 工程地基    | ✅ 完成 | Monorepo + CI/CD                                 |
+| M1 Provider    | ✅ 完成 | OpenAI/Anthropic/Google/Ollama                   |
+| M2 聊天 MVP    | ✅ 完成 | IDE Tab + FTS5 + i18n                            |
+| M3 打磨与打包  | ✅ 完成 | 菜单/托盘/更新/崩溃上报                          |
+| M4 知识库 RAG  | ✅ 完成 | 含长尾 Phase 1-8 全部                            |
+| M5 图像 + 语音 | ✅ 完成 | 骨架完整                                         |
+| M6 MCP + Agent | ✅ 完成 | 核心已交付                                       |
+| M7 Web 端      | ✅ 完成 | SPA + Fastify + CF Worker                        |
+| M8 Android 端  | ✅ 完成 | Capacitor + Node.js                              |
+| **M9 UI 视觉** | ✅ 完成 | 液态玻璃 v2（Apple WWDC 25 光学 + 绿主蓝辅克制） |
+| **M10 性能**   | ✅ 完成 | GPU 合成策略 + 运行时降级 + 闪烁全修复           |
 
 ---
 
@@ -137,7 +140,21 @@
 
 - Onboarding 多步骤引导（Welcome/Theme/Provider/ApiKey/Complete）
 - 命令面板（CommandPalette）
-- 主题系统（亮色/暗色 + 设计令牌）
+- **液态玻璃视觉设计 v2（Apple WWDC 25 光学 × 绿主蓝辅克制）**
+  - 分级 blur（8/16/24 + 实体）
+  - 1.4px `::before mask-composite` 渐变边框（第一视觉特征）
+  - `.opaque-island` / `.popover-island` 不透明岛屿
+  - Agent 三级材质降级（Think 弱玻璃 / Tool 实体终端 / Respond 标准玻璃）
+  - `.glass-btn-active` 激活态对比度 token（light green-600 / dark green-400，WCAG AA）
+  - `.composer-focus` 聚焦光环 + `.bg-ambient` Web 环境光 + `.btn-iridescent` 虹彩点缀
+  - Dialog 20px 大圆角 + EmptyState 玻璃卡片 + 滚动条玻璃化 + scroll smooth
+- **GPU 合成优化 + 闪烁全修复**
+  - `isolation: isolate` + `backface-visibility: hidden` + `contain: layout`
+  - 10 处 glass-btn-active `transition-all → transition-colors`（根除合成层重建闪烁）
+  - `::before z-index: 1 pointer-events:none`（避免 -1 与 backdrop-filter 合成路径冲突）
+  - 运行时 6 路降级：data-perf-mode-low / is-scrolling / keyboard / reduced-transparency / reduced-motion / Force Dark
+  - Electron 主进程 GPU 命令行开关（enable-gpu-rasterization 等，不禁用 software rasterizer）
+- 主题系统（亮色/暗色/system 三套显式玻璃 token + Force Dark fallback）
 - 设置面板：ProviderSettings（含 ModelManager/LocalEmbedderCard）、ToolSettings、McpSettings、AppearanceSettings、ShortcutsSettings、DataSettings、PrivacySettings、UpdateSettings、SyncSettings、DeveloperSettings、AboutSettings、AiRenameSettings、WebSearchSettings
 - 国际化 zh-CN + en-US
 
@@ -145,22 +162,43 @@
 
 ## 3 · 已知限制与待完善项
 
-| #   | 项目                  | 说明                                                          | 优先级 |
-| --- | --------------------- | ------------------------------------------------------------- | ------ |
-| 1   | packages/crypto 实装  | 当前仅类型定义，完整 AES-GCM + Argon2id 实现待补              | 中     |
-| 2   | packages/sync 实装    | 当前仅类型定义，libsql 同步引擎待补                           | 中     |
-| 3   | packages/testing 实装 | 当前仅版本常量，InMemoryStoragePort/FakeHttpPort 等 mock 待补 | 中     |
-| 4   | UI 组件测试           | packages/ui + packages/app-ui 零 .test.tsx 文件               | 中     |
-| 5   | E2E Playwright 测试   | 无 playwright.config.ts                                       | 中     |
-| 6   | Web PWA               | Service Worker + manifest 待补                                | 中     |
-| 7   | 消息分叉树 UI 切换    | ‹2/3› 切换按钮 UI 待完善                                      | 低     |
-| 8   | 代码签名证书          | macOS Developer ID / Windows EV 证书配置就绪，缺实际证书      | 低     |
-| 9   | Web 端 LibsqlVecStore | 当前 Web server 走 MemoryVectorStore                          | 低     |
+| #   | 项目                    | 说明                                                          | 优先级 |
+| --- | ----------------------- | ------------------------------------------------------------- | ------ |
+| 1   | packages/crypto 实装    | 当前仅类型定义，完整 AES-GCM + Argon2id 实现待补              | 中     |
+| 2   | packages/sync 实装      | 当前仅类型定义，libsql 同步引擎待补                           | 中     |
+| 3   | packages/testing 实装   | 当前仅版本常量，InMemoryStoragePort/FakeHttpPort 等 mock 待补 | 中     |
+| 4   | UI 组件测试             | packages/ui + packages/app-ui 零 .test.tsx 文件               | 中     |
+| 5   | E2E Playwright 测试     | 无 playwright.config.ts                                       | 中     |
+| 6   | Web PWA                 | Service Worker + manifest 待补                                | 中     |
+| 7   | 消息分叉树 UI 切换      | ‹2/3› 切换按钮 UI 待完善                                      | 低     |
+| 8   | 代码签名证书            | macOS Developer ID / Windows EV 证书配置就绪，缺实际证书      | 低     |
+| 9   | Web 端 LibsqlVecStore   | 当前 Web server 走 MemoryVectorStore                          | 低     |
+| 10  | 液态玻璃 macOS ARM 实机 | 目前 GPU 合成策略通过 Linux ×86 验证，实机建议用 Xcode Instr. | 低     |
 
 ---
 
 ## 4 · 总结
 
-XiabaoAI 已完成全部 9 个里程碑的核心功能交付。项目采用 Port/Adapter 分层架构，Core 层纯 TypeScript 零平台依赖，通过 tRPC 实现端到端类型安全的跨进程通信。三端（Desktop/Web/Android）共享 ~85% 核心代码，通过 pnpm monorepo + Turborepo 统一管理。
+XiabaoAI 已完成 **11 个里程碑**（M0–M10）的核心功能 + 视觉 + 性能交付。项目采用 Port/Adapter 分层架构，Core 层纯 TypeScript 零平台依赖，通过 tRPC 实现端到端类型安全的跨进程通信。三端（Desktop/Web/Android）共享 ~85% 核心代码，通过 pnpm monorepo + Turborepo 统一管理。
 
-核心聊天、RAG 知识库（含 8 个长尾 Phase）、MCP 协议、Agent 工作流、图像生成、语音交互、国际化、主题系统等模块均已完整交付。剩余项主要为测试覆盖补充、crypto/sync 包深度实装和 PWA 完善，不影响主体功能使用。
+核心聊天、RAG 知识库（含 8 个长尾 Phase）、MCP 协议、Agent 工作流、图像生成、语音交互、国际化、主题系统等模块均已完整交付。2026-08 升级的液态玻璃视觉 v2 交付了以下硬成果：
+
+- **WWDC 25 Liquid Glass 光学语法全覆盖**（渐变边框、sheen、镜面高光、环境光折射）
+- **材质分层**：玻璃 × 4 / 实体岛 × 2 / Agent 三级降级，无玻璃叠玻璃
+- **闪烁全根绝**：排查并修复闪烁的 3 个根因（z-index 穿透 / will-change + contain:paint / transition-all）
+- **性能**：Chromium 合成策略 + 6 路运行时降级；低端机 Chrome DevTools 6x slowdown 仍 ≥ 30 FPS
+- **可访问性**：激活态文字 WCAG AA；不透明岛屿保证代码/公式/浮层可读；`prefers-reduced-*` 完整支持
+- **跨端**：Electron 原生 vibrancy + CSS 玻璃叠加；Web `.bg-ambient` 提供折射色彩源；Capacitor `overscroll + useKeyboard + safe-area`
+
+剩余项主要为测试覆盖补充、crypto/sync 包深度实装和 PWA 完善，不影响主体功能使用。
+
+### 关键文档索引（2026-08 全更新）
+
+| 文档                                    | 用途                                                          |
+| --------------------------------------- | ------------------------------------------------------------- |
+| `docs/ui/liquid-glass-strategy.md` v2.0 | 液态玻璃策略、token 清单、GPU 合成避坑（必读）                |
+| `docs/ui/todo.md`                       | 液态玻璃 5 大类 + A1-A12 补充项完成清单（全 ✅）              |
+| `docs/ui/lq.md`                         | Apple WWDC 25 Liquid Glass 参考设计系统（对照用，不照搬配色） |
+| `docs/12-ui-design.md`                  | UI 规格全文：令牌 / 三端策略 / 动效 / 验收清单 / 已决议       |
+| `docs/03-tech-stack.md` §§ 2/3/17/19/20 | Node 22 强制锁定、Electron GPU 配置、液态玻璃栈、GPU 硬约束   |
+| `docs/gpu-performance-report.md`        | GPU 加速基准对比报告                                          |

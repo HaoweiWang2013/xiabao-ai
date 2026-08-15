@@ -134,13 +134,34 @@ green (默认) · blue · purple · orange · pink · gray
 
 ```css
 --radius-sm: 4px;
---radius: 8px; /* 默认 · 按钮、输入框 */
+--radius: 8px; /* 默认 · 按钮、输入框（IDE 工具风格，克制） */
 --radius-md: 10px;
---radius-lg: 12px; /* 卡片、弹窗 */
+--radius-lg: 12px; /* 卡片 */
 --radius-xl: 16px; /* 大容器、Tab 面板 */
---radius-2xl: 20px; /* 特殊（首屏欢迎卡片） */
+--radius-2xl: 20px; /* Dialog 模态（液态玻璃规范，原 12px 升级） */
+--radius-[20px]: 20px; /* Dialog 显式别名 */
 --radius-full: 9999px;
 ```
+
+> 按钮保持克制小圆角（非药丸），模态框采用 20px 大圆角接近 Apple 规范，整体「IDE 工具 × 液态玻璃」折中。
+
+### 2.4.1 液态玻璃工具类命名速查
+
+| 类名                | 用途                             | blur   | 特殊特性                                |
+| ------------------- | -------------------------------- | ------ | --------------------------------------- |
+| `.glass`            | 通用玻璃容器                     | 16px   | `::before` 1.4px 渐变边框               |
+| `.glass-strong`     | 模态、侧边栏                     | 24px   | 强折射，适合静态 chrome                 |
+| `.glass-btn`        | 玻璃按钮基底                     | 16px   | 配合 `.glass-btn-active` 激活态         |
+| `.glass-pill`       | Tab Bar 胶囊                     | 16px   | 胶囊外观，`rounded-xl`                  |
+| `.glass-subtle`     | Think 步骤/次要层                | 8px    | 低 blur，不抢焦点                       |
+| `.glass-hover`      | hover 折射增强                   | 叠加   | hover 时 blur 24px + saturate 200%      |
+| `.glass-btn-active` | 激活态玻璃                       | 叠加   | primary 边框 + `--glass-active-fg` 文字 |
+| `.glass-frozen`     | 流式冻结态                       | 4px    | 高不透明，避免流式重绘                  |
+| `.opaque-island`    | 代码/公式/表格                   | 无     | 脱离折射，保证可读性                    |
+| `.popover-island`   | Tooltip/Popover/Dropdown/Mention | 无     | 实体背景，禁止玻璃折射文本              |
+| `.composer-focus`   | Composer 聚焦光环                | 叠加   | `:focus-within` primary 3px 辉光        |
+| `.btn-iridescent`   | 主按钮虹彩 hover 阴影            | 叠加   | 粉紫蓝微晕（opacity 0.08）              |
+| `.bg-ambient`       | 环境光 radial-gradient           | 背景层 | Web 端玻璃折射色彩源                    |
 
 ### 2.5 阴影
 
@@ -157,14 +178,59 @@ green (默认) · blue · purple · orange · pink · gray
 
 Dark 模式阴影透明度更高（`0.35` 等），配合微发光边。
 
-### 2.6 毛玻璃
+### 2.6 液态玻璃（2026-08 升级至 Apple Liquid Glass 光学语法）
+
+> 参考 `docs/ui/liquid-glass-strategy.md` v2.0，完整 token / GPU 合成策略 / 降级机制见该文。
+
+#### 分级 blur
 
 ```css
---glass-blur: 16px;
---glass-bg-light: rgba(255, 255, 255, 0.72);
---glass-bg-dark: rgba(20, 24, 20, 0.64);
---glass-border-light: rgba(0, 0, 0, 0.06);
---glass-border-dark: rgba(255, 255, 255, 0.08);
+--glass-blur-subtle: 8px; /* Think 步骤、次要 chrome */
+--glass-blur: 16px; /* 默认玻璃容器 */
+--glass-blur-strong: 24px; /* 侧边栏、模态、控制中心 */
+```
+
+#### 基础层（Light / Dark / System 跟随三套显式值）
+
+```css
+/* 背景不透明度：内容层越低越透明，静态 chrome 越高越稳 */
+--glass-bg            /* 动态层 低不透明 */
+--glass-bg-strong     /* 静态 chrome 高不透明 */
+--glass-border        /* 1px 边 */
+--glass-highlight     /* inset 0 1px 0 镜面高光 */
+--glass-sheen         /* 15° 角斜向镜面 sheen */
+--glass-edge-shadow   /* 阴影 */
+```
+
+#### 液态玻璃光学新增（2026-08）
+
+```css
+--glass-edge-peak / --glass-edge-mid   /* ::before 渐变边框 1.4px 环带 */
+--glass-active-fg     /* 激活态文字（light green-600 / dark green-400，WCAG AA） */
+--glass-frozen-bg / --glass-frozen-blur   /* 流式冻结态（blur 4px，不用 none 防背景突变） */
+--iridescent-start / --mid / --end        /* 虹彩点缀（粉/紫/蓝，仅装饰层） */
+```
+
+#### 不透明岛屿（内容优先，脱离折射）
+
+```css
+--opaque-island-bg / -border / -radius / -shadow
+--popover-island-bg / -border / -shadow   /* Tooltip/Popover/Mention/Dropdown 用 */
+```
+
+#### Agent 三级材质降级（禁止玻璃叠玻璃）
+
+```css
+--agent-think-opacity / --agent-tool-opacity / --agent-respond-opacity
+--agent-tool-bg / -fg / -border / -hover / -divider   /* 终端风实体色，light/dark 双模式 */
+--agent-collapsed-bg / --agent-collapsed-blur         /* 折叠态：彻底释放 GPU */
+```
+
+#### 移动端兼容
+
+```css
+--keyboard-open-bg                     /* 软键盘弹起全局降级 */
+--safe-area-bottom-glass-padding       /* 手势条避让 env(safe-area-inset-bottom) + 0.5rem */
 ```
 
 ### 2.7 动效
@@ -199,38 +265,117 @@ Dark 模式阴影透明度更高（`0.35` 等），配合微发光边。
 
 ---
 
-## 3. 毛玻璃实现策略
+## 3. 液态玻璃实现策略（2026-08 升级）
 
-### 桌面
+> 设计依据：Apple WWDC 25 Liquid Glass 光学语法（`docs/ui/lq.md`）× 项目原配色「绿主蓝辅 + 全面克制」。
+> 完整策略文档：`docs/ui/liquid-glass-strategy.md` v2.0。
 
-| 平台  | 方法                                                        | 说明                              |
-| ----- | ----------------------------------------------------------- | --------------------------------- |
-| macOS | BrowserWindow `vibrancy: 'under-window' \| 'fullscreen-ui'` | 原生 NSVisualEffectView，性能最好 |
-| Win11 | `backgroundMaterial: 'mica' \| 'acrylic'`（Electron 27+）   | 原生                              |
-| Win10 | CSS `backdrop-filter` 回退                                  | 有性能损耗                        |
-| Linux | CSS `backdrop-filter`                                       | 跟 compositor                     |
+### 3.1 核心光学特征
 
-### Web
+| 层级             | CSS 构造                                                                              | 说明                 |
+| ---------------- | ------------------------------------------------------------------------------------- | -------------------- |
+| 主体             | `backdrop-filter: blur(X) saturate(180%)` + `background: rgb(var(--glass-bg))`        | 折射层               |
+| 镜面高光         | `box-shadow: inset 0 1px 0 rgb(var(--glass-highlight))`                               | 顶面微白光           |
+| Sheen 斜光       | `background-image: linear-gradient(115deg, var(--glass-sheen) 0.8%, transparent 30%)` | 斜向镜面反射         |
+| **边缘渐变边框** | `::before` + `mask-composite: exclude` + 1.4px 环带渐变                               | **WWDC 25 第一特征** |
+| 阴影             | `var(--glass-edge-shadow)`（深色侧显微发光边）                                        | 空间漂浮感           |
+
+> **GPU 合成策略（避免闪烁）**：必须 `isolation: isolate` + `backface-visibility: hidden` + `contain: layout`，**不要** `will-change: backdrop-filter` 或 `contain: paint`，`::before` 用 `z-index: 1 pointer-events:none`。完整避坑见 strategy doc §0 表格。
+
+### 3.2 三端玻璃构造
+
+| 端                    | 方法                                                                                     | 说明                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| macOS（桌面）         | Electron BrowserWindow `vibrancy: 'under-window'` + `::before` 渐变边框叠加在 CSS 玻璃上 | 原生 NSVisualEffectView 负责折射，CSS 负责边缘光；性能最优 |
+| Win11（桌面）         | `backgroundMaterial: 'mica'`（Mica 渲染窗口底色，禁用 software rasterizer 回退硬件）     | `#root > div` 必须透明（不遮原生背景），CSS 玻璃层叠在其上 |
+| Win10 / Linux（桌面） | 纯 CSS `backdrop-filter`                                                                 | Electron 不软 rasterizer，GPU 合成                         |
+| **Web**               | CSS glass + **`.bg-ambient` 环境光 radial-gradient**（玻璃折射才有色彩变化）             | 无原生 vibrancy，环境光层是液态感的关键                    |
+| Android（Capacitor）  | CSS glass + `overscroll-behavior: none`（html/body） + `useKeyboard` 降级 hook           | 避免重绘                                                   |
+
+Web 端完整例子：
 
 ```css
-background: rgba(255, 255, 255, 0.72);
-backdrop-filter: blur(16px) saturate(180%);
--webkit-backdrop-filter: blur(16px) saturate(180%);
+body {
+  background: radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      hsl(var(--primary) / 0.04) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 100%,
+      hsl(var(--iridescent-mid) / 0.03) 0%,
+      transparent 55%
+    ),
+    hsl(var(--background));
+}
+.glass {
+  position: relative;
+  isolation: isolate;
+  backface-visibility: hidden;
+  contain: layout;
+  border-radius: var(--radius-xl);
+  background: rgb(var(--glass-bg));
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--glass-highlight)),
+    var(--glass-edge-shadow);
+  border: 1px solid hsl(var(--glass-border));
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--glass-edge-peak)) 0%,
+    rgb(var(--glass-edge-mid)) 20%,
+    transparent 40%,
+    transparent 60%,
+    rgb(var(--glass-edge-mid)) 80%,
+    rgb(var(--glass-edge-peak)) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
 ```
 
-不支持的浏览器（老 Firefox < 103）降级为纯色。
+### 3.3 关键控件的玻璃 / 非玻璃判定
 
-### 关键控件的毛玻璃应用
+| 控件                                                   | 判定                                     | 类                                                                                     |
+| ------------------------------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| IconSidebar / ConversationList / Tab 栏                | ✅ 强毛玻璃                              | `.glass-strong` / `.glass-pill`                                                        |
+| 侧边栏激活态 / Tab 激活态 / 设置导航激活态             | ✅ 激活态玻璃                            | `.glass-btn-active`（`transition-colors`，**禁止 `transition-all`** 防合成层重建闪烁） |
+| Command Palette                                        | ✅ 强毛玻璃                              | `.glass-strong`                                                                        |
+| 模态窗口（Dialog）                                     | ✅ 毛玻璃 + 20px 圆角                    | `rounded-[20px]`                                                                       |
+| Tooltip / Popover / DropdownMenu / MentionAutocomplete | ❌ **实体岛屿**（禁止折射扭曲文本）      | `.popover-island`                                                                      |
+| 代码块 / 公式 / 表格                                   | ❌ 不透明岛屿（保证语法高亮可读）        | `.opaque-island`                                                                       |
+| Agent Tool 步骤卡片                                    | ❌ 终端风实体色，不玻璃（语义=机器执行） | `.agent-tool`（走 `--agent-tool-*` token，light 浅灰底 dark 深绿底）                   |
+| Agent Think 步骤                                       | ✅ 弱玻璃（低 blur，不抢焦点）           | `.agent-think` + `.glass-subtle`                                                       |
+| Agent 折叠态                                           | ❌ 实体（彻底释放 GPU）                  | `.agent-collapsed`                                                                     |
+| 聊天主区消息流                                         | ❌ **不毛玻璃**                          | 内容优先                                                                               |
+| EmptyState 推荐 prompts 卡片                           | ✅ 弱玻璃 + hover 折射增强               | `.glass .glass-hover`                                                                  |
 
-- ✅ 侧栏、会话列表、Tab 栏 → 全毛玻璃
-- ✅ Popover / Dropdown / Command Palette → 强毛玻璃 + 微发光
-- ✅ 模态窗口底层 → 毛玻璃 + 暗色
-- ❌ 聊天主区的消息流 → **不**毛玻璃（内容优先）
-- ❌ 代码块 → 不（可读性）
+### 3.4 性能 · 降级开关
 
-### 性能 · 降级开关
+| 触发                                                    | 机制                         | 效果                                                          |
+| ------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------- |
+| `useAdaptivePerformance`（RAF FPS 监测）                | `html[data-perf-mode='low']` | blur 2px + 高不透明 bg，隐藏 `::before`                       |
+| `.is-scrolling`（`useScrollState`）                     | 滚动期间 body 加 class       | blur 8px saturate 150%（低于默认 16px）                       |
+| `keyboard.visible`（`useKeyboard`）                     | `body.keyboard-open`         | blur 8px + 实体降级背景                                       |
+| `prefers-reduced-transparency: reduce`                  | 系统媒体查询                 | backdrop-filter none + 实体卡片                               |
+| `prefers-reduced-motion: reduce`                        | 系统媒体查询                 | blur 4px + 动效统一 0.01ms，`scroll-behavior: auto`           |
+| `@media (prefers-color-scheme: dark)` 无 `[data-theme]` | 系统跟随显式 fallback        | 所有玻璃 token 显式覆盖两套值，防国产 ROM Force Dark 破坏层级 |
+| 设置 → 外观 → 毛玻璃效果                                | 用户手动开关                 | 同 reduced-transparency                                       |
 
-"设置 → 外观 → 毛玻璃效果" 允许关闭；老机器自动检测（`window.matchMedia('(prefers-reduced-transparency)')`）关闭。
+> Electron 主进程已配置 GPU 命令行开关（`enable-gpu-rasterization`、`enable-oop-rasterization` 等），不禁用 software rasterizer（保留低端机回退路径）。详情见 `apps/desktop/src/main/index.ts`。
 
 ---
 
@@ -678,8 +823,14 @@ Tab 选项：
 ### 9.3 对比度
 
 - 所有文本对背景达到 AA（4.5:1，小字 3:1）
-- 翠绿按钮白字：`#22C55E` on white = 2.64:1 ❌ → 使用 `#16A34A` (green-600) on white = 3.14:1 ✓
-- 最终 CTA 底色选 `green-600`，悬浮用 `green-500`
+- **CTA 按钮**：翠绿按钮白字 `#22C55E` on white = 2.64:1 ❌ → 用 `#16A34A` (green-600) on white = 3.14:1 ✓
+  - 最终 CTA 底色选 `green-600`，悬浮用 `green-500`
+- **`.glass-btn-active` 激活态文字**（2026-08 修复：green-500 作为激活色文字对比度不达标）：
+  - Light 模式：`--glass-active-fg` = green-600 `hsl(142 71% 35%)`，对比度 ≈ 3.14:1 ✅ AA（小字）
+  - Dark 模式：`--glass-active-fg` = green-400 `hsl(142 76% 56%)`，对比度 ≈ 3.84:1 ✅ AA（小字）
+  - **禁止**直接 `color: hsl(var(--primary))` 作为激活态文字
+- **Agent Tool 终端卡片**：必须走 `--agent-tool-bg / --agent-tool-fg` token，light 浅灰底+深色字、dark 深绿底+浅色字，禁止硬编码 `hsl(0 0% 13%)` 等深灰
+- **不透明岛屿代码块**：Shiki 语法高亮必须在 `--opaque-island-bg` 上达 WCAG AA 对比度，禁止被 `background-blend-mode` 污染
 
 ---
 
@@ -714,34 +865,68 @@ screens: {
 - **插画**：极简线稿 + 翠绿点缀；空状态每个页面有配图（手绘感，不用复杂渐变）
 - **Logo**：`Xiabao` wordmark，字母 `X` 暗含虾尾形状；主、深、浅三色版本
 
-## 12. 动效清单
+## 12. 动效清单（2026-08 增补）
 
-| 元素       | 动效                               | 时长           |
-| ---------- | ---------------------------------- | -------------- |
-| 侧栏开合   | translate-x + opacity              | 200ms ease     |
-| 命令面板   | scale(0.96→1) + opacity + backdrop | 180ms emphasis |
-| Toast      | slide in from bottom               | 180ms ease-out |
-| 消息流入   | fade + translate-y(4px → 0)        | 140ms ease-out |
-| 按钮 hover | bg-color transition                | 120ms ease     |
-| Tab 切换   | bg fade + 绿条 slide               | 180ms emphasis |
-| 主题切换   | 全屏 CSS 过渡（`color-scheme`）    | 200ms          |
-| 弹出菜单   | origin-scale(0.96→1) + fade        | 140ms ease-out |
-| 流式光标   | 闪烁 (opacity 0.4↔1)              | 900ms loop     |
-| 加载骨架   | shimmer (bg-position)              | 1.2s linear    |
+| 元素                | 动效                                                | 时长           | 重要约束                                                                                                 |
+| ------------------- | --------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| 侧栏开合            | translate-x + opacity                               | 200ms ease     | translate 走 GPU 合成层                                                                                  |
+| 命令面板            | scale(0.96→1) + opacity + backdrop                  | 180ms emphasis | —                                                                                                        |
+| Toast               | slide in from bottom                                | 180ms ease-out | —                                                                                                        |
+| 消息流入            | fade + translate-y(4px → 0)                         | 140ms ease-out | —                                                                                                        |
+| 按钮 hover          | bg-color transition（+ 虹彩阴影 `.btn-iridescent`） | 120ms ease     | **GPU 触发**：必须含 transform `translateY(-2px)`，`will-change: transform`                              |
+| Tab 激活态切换      | 背景 fade + 边框 fade                               | 180ms ease-out | **禁止 `transition-all`**：只用 `transition-colors`，含 `backdrop-filter` 的按钮会每帧合成层重建导致闪烁 |
+| 主题切换            | 全屏 CSS 过渡（`color-scheme`）                     | 200ms          | —                                                                                                        |
+| 弹出菜单            | origin-scale(0.96→1) + fade                         | 140ms ease-out | —                                                                                                        |
+| 流式光标            | 闪烁 (opacity 0.4↔1)                               | 900ms loop     | —                                                                                                        |
+| 加载骨架            | shimmer (bg-position)                               | 1.2s linear    | —                                                                                                        |
+| **Composer 聚焦**   | `:focus-within` border + 3px primary 辉光           | 150ms ease     | `.composer-focus`                                                                                        |
+| **玻璃 hover 折射** | blur 16→24px + saturate 180→200%                    | 180ms ease     | `.glass-hover`，静态 chrome 区域                                                                         |
+| **平滑滚动**        | `scroll-behavior: smooth`                           | —              | `prefers-reduced-motion` 自动降级为 `auto`                                                               |
 
 **`prefers-reduced-motion: reduce`** 时：
 
 - 禁用 translate/scale，只保留 opacity
 - 时长统一降到 100ms
+- blur 统一降到 4px
+- `scroll-behavior: auto`（瞬间跳转）
+
+### 12.1 滚动条玻璃化（2026-08 新增）
+
+```css
+/* 窄 + 半透明 + hover 变亮 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 9999px;
+  transition: background 150ms ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.45);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+```
+
+Firefox 等价：`scrollbar-width: thin; scrollbar-color: <thumb> transparent`。
 
 ## 13. 空状态 / 错误 / 离线
 
-- **空状态**：插画 + 一句话 + 主要 CTA。避免空白
+- **空状态**：插画 + 一句话 + 主要 CTA；推荐 prompt 卡片用 `.glass .glass-hover` 玻璃化（非 `bg-card/40` 实底）
 - **错误**：红色 Alert + 具体原因 + 重试按钮 + "查看详情"展开日志
 - **离线**：顶部 Banner `你处于离线状态`；Composer 禁用并解释
 - **限流**：Toast "请求太频繁，3 秒后自动重试" + 倒计时
 
-## 14. 验收清单（开发时对照）
+## 14. 验收清单（开发时对照 · 2026-08 增补液态玻璃条目）
+
+### 基础 UI
 
 - [ ] 所有 chrome 元素（非聊天内容）使用毛玻璃 + 主题色
 - [ ] 所有 icon-only 按钮有 `aria-label` 和 Tooltip
@@ -753,26 +938,46 @@ screens: {
 - [ ] 快捷键在 Mac 显示 `⌘`，其他平台显示 `Ctrl`
 - [ ] 文本不含硬编码（走 i18n）
 
+### 液态玻璃专项
+
+- [ ] **闪烁**：密集玻璃区（设置页 5+ 个玻璃面板）切换/hover 时无 1-2px 边缘抖动；切 Tab/导航激活态无 1-2 帧空白
+- [ ] **不透明岛屿**：代码块/公式/表格 `.opaque-island`；Tooltip/Popover/DropdownMenu/Mention `.popover-island`
+- [ ] **Agent 无玻璃叠玻璃**：Think（弱玻璃）/Tool（实体终端）/Respond（标准玻璃）三级明确，折叠态释放 GPU
+- [ ] **双模式适配**：light/dark 切换后 `.agent-tool`、`.glass-btn-active`、`.opaque-island` 所有色值正确，无硬编码暗色
+- [ ] **激活态文字对比度**：`.glass-btn-active` 不用 `hsl(var(--primary))` 当文字色（必须走 `--glass-active-fg`）
+- [ ] **无 transition-all**：含 `backdrop-filter` 的元素只用 `transition-colors` / `transition-opacity-transform`
+- [ ] **合成策略**：`.glass` 系元素有 `isolation:isolate` + `contain:layout`，无 `will-change: backdrop-filter` 无 `contain:paint`
+- [ ] **降级模式**：data-perf-mode=low / is-scrolling / keyboard-open / prefers-reduced-transparency 下无 backdrop-filter 闪烁或背景突变
+- [ ] **Web 端环境光**：body 有 `.bg-ambient` 级 radial-gradient，玻璃折射能看到轻微色彩变化
+- [ ] **移动端**：html/body `overscroll-behavior: none`；safe-area padding；Force Dark fallback
+
 ---
 
 ## 15. 已决议与未决议
 
-### 已决议（锁定）
+### 已决议（锁定 · 2026-08 全量更新）
 
-- 主色 `#22C55E`
-- 视觉：毛玻璃 + 大圆角 + 极简
+- 主色 `#22C55E`（light `#16A34A` 当 CTA 底色，green-600 达 AA 对比度）
+- **液态玻璃**：Apple WWDC 25 光学语法 × 原配色（只借效果语法，不借紫黑底 + 荧光绿值）
+  - blur 分级：8 / 16 / 24 + 实体
+  - 渐变边框 `::before mask-composite`（第一视觉特征）
+  - `.agent-think-opacity = 0.65`（WCAG AA）
+  - 虹彩 4 处：主按钮 hover + 激活态 + 环境晕染 + 侧边栏激活态（极度克制）
+- 视觉方向：**绿主蓝辅 + 全面克制**（非 lq.md 风格的药丸/荧光浮夸）
+  - Dialog 圆角 20px（WWDC 规范近值），按钮维持 IDE 风格小圆角（非药丸）
 - 三栏 IDE 多 Tab + Split + 独立窗口
 - 混合消息样式
 - Lucide 图标
 - Framer Motion + <200ms
 - 3 种密度、3 档字号、6 种强调色
+- 字体：DM Sans（正文）、JetBrains Mono（代码）
 
 ### 未决议（设计实施时敲）
 
 | 项                 | 备选                |
-| ------------------ | ------------------- | --- |
+| ------------------ | ------------------- |
 | Logo 具体设计      | 需要设计师出稿 3 版 |
 | 插画风格           | 线稿 / 渐变 / 几何  |
 | 空状态文案基调     | 专业 / 俏皮         |
-| 打字机流式光标样式 | `▊` / `●` / `       | `   |
+| 打字机流式光标样式 | `▊` / `●` / `▏`     |
 | 声音设计（通知）   | 有 / 无             |
