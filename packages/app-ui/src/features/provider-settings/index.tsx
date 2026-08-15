@@ -204,7 +204,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                             }
                           }
                         }}
-                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-all duration-150 ${active ? 'glass-btn-active' : ''}`}
+                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors duration-150 ${active ? 'glass-btn-active' : ''}`}
                       >
                         <span className="bg-muted-foreground/20 text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-medium uppercase">
                           {provider.name.slice(0, 1)}

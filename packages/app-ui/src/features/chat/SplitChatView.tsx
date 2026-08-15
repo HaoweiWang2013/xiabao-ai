@@ -327,7 +327,7 @@ function PaneHeader({
                   setContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
                 }}
                 className={cn(
-                  'group relative flex h-full min-w-0 max-w-[180px] cursor-pointer items-center gap-1.5 rounded-xl px-3 text-xs transition-all duration-150',
+                  'group relative flex h-full min-w-0 max-w-[180px] cursor-pointer items-center gap-1.5 rounded-xl px-3 text-xs transition-colors duration-150',
                   isActive
                     ? 'glass-btn-active'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40',

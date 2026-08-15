@@ -107,9 +107,8 @@ export function EmptyState({
               type="button"
               onClick={() => onSelectPrompt?.(p)}
               className={cn(
-                'group text-left transition-all',
-                'border-border/60 hover:border-primary/60 hover:shadow-glass rounded-xl border p-3',
-                'bg-card/40 hover:bg-card/70',
+                'glass glass-hover group text-left transition-colors duration-150',
+                'hover:border-primary/40 rounded-xl p-3',
               )}
             >
               <div className="flex items-center gap-2">

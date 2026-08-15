@@ -125,7 +125,7 @@ function TopItem({
           aria-current={active ? 'page' : undefined}
           aria-label={label}
           className={cn(
-            'group relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150',
+            'group relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-150',
             active
               ? 'glass-btn-active'
               : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60',

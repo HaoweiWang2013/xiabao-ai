@@ -197,10 +197,10 @@ export function Composer({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="px-4 pb-4 pt-2">
+      <div className="safe-area-bottom px-4 pt-2">
         <div
           className={cn(
-            'glass-strong shadow-glass relative mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-2xl px-3 py-2.5',
+            'glass-strong composer-focus shadow-glass relative mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-2xl px-3 py-2.5',
           )}
         >
           {mentionConfig ? (

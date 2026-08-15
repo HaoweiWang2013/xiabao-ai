@@ -70,7 +70,7 @@ const MD_COMPONENTS: Components = {
   ),
   hr: () => <hr className="border-border/40 my-4" />,
   table: ({ node: _node, ...props }) => (
-    <div className="border-border/40 my-3 overflow-x-auto rounded-md border">
+    <div className="opaque-island my-3 overflow-x-auto">
       <table className="w-full border-collapse text-xs" {...props} />
     </div>
   ),
@@ -125,7 +125,7 @@ export function CodeBlock({ language, text, children }: CodeBlockProps) {
     });
   }
   return (
-    <div className="border-border/40 bg-secondary/30 group my-3 overflow-hidden rounded-lg border">
+    <div className="opaque-island group my-3 overflow-hidden">
       <div className="border-border/40 bg-secondary/40 flex items-center justify-between border-b px-3 py-1">
         <span className="text-muted-foreground font-mono text-[10px] uppercase tracking-wider">
           {language}

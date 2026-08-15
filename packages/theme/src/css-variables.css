@@ -37,8 +37,9 @@
   --glass-highlight: 255 255 255 / 0.4;
   --glass-sheen: 255 255 255 / 0.18;
   --glass-edge-shadow: 0 0 0 / 0.04;
-  --glass-blur: 24px;
-  --glass-blur-strong: 30px;
+  --glass-blur-subtle: 8px;
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
   --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
 
   /* Animation curves & durations */
@@ -94,8 +95,9 @@
   --glass-highlight: 255 255 255 / 0.12;
   --glass-sheen: 255 255 255 / 0.06;
   --glass-edge-shadow: 0 0 0 / 0.2;
-  --glass-blur: 24px;
-  --glass-blur-strong: 30px;
+  --glass-blur-subtle: 8px;
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
   --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -134,18 +136,139 @@
   }
 }
 
+/* ===== 液态玻璃增强 token（苹果效果 × 原配色） ===== */
+:root,
+[data-theme='light'] {
+  /* 虹彩点缀（粉/紫/蓝，克制使用） */
+  --iridescent-start: 336 84% 70%;
+  --iridescent-mid: 271 81% 73%;
+  --iridescent-end: 217 91% 65%;
+
+  /* 流式冻结态 */
+  --glass-frozen-bg: 255 255 255 / 0.9;
+  --glass-frozen-blur: 4px;
+
+  /* 不透明岛屿（代码/公式/图表，从折射中隔离） */
+  --opaque-island-bg: 0 0% 98%;
+  --opaque-island-border: 240 6% 88%;
+  --opaque-island-radius: 0.75rem;
+  --opaque-island-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  /* Agent 步骤材质 opacity map */
+  --agent-think-opacity: 0.65;
+  --agent-tool-opacity: 0.75;
+  --agent-respond-opacity: 0.88;
+  --agent-collapsed-bg: 0 0% 100%;
+
+  /* 移动端软键盘 + 安全区 */
+  --keyboard-open-bg: 255 255 255 / 0.92;
+  --safe-area-bottom-glass-padding: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+
+  /* 高密度信息浮层 */
+  --popover-island-bg: 0 0% 100%;
+  --popover-island-border: 240 6% 90%;
+  --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* 玻璃边缘渐变光（模拟光线在玻璃边缘的折射） */
+  --glass-edge-peak: 255 255 255 / 0.7;
+  --glass-edge-mid: 255 255 255 / 0.25;
+
+  /* 激活态文字色（light 下用 green-600 保证对比度） */
+  --glass-active-fg: 142 71% 35%;
+
+  /* Agent 工具卡片材质（跟随主题，不再硬编码） */
+  --agent-tool-bg: 240 6% 96%;
+  --agent-tool-fg: 240 6% 10%;
+  --agent-tool-border: 240 6% 88%;
+  --agent-tool-hover: 0 0% 0% / 0.04;
+  --agent-tool-divider: 0 0% 0% / 0.08;
+}
+
+[data-theme='dark'] {
+  --glass-frozen-bg: 20 24 20 / 0.86;
+  --opaque-island-bg: 120 9% 10%;
+  --opaque-island-border: 240 4% 20%;
+  --opaque-island-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --agent-collapsed-bg: 120 9% 10%;
+  --keyboard-open-bg: 20 24 20 / 0.88;
+  --popover-island-bg: 120 9% 10%;
+  --popover-island-border: 240 4% 20%;
+  --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --glass-edge-peak: 255 255 255 / 0.4;
+  --glass-edge-mid: 255 255 255 / 0.12;
+  --glass-active-fg: 142 76% 56%;
+  --agent-tool-bg: 120 9% 12%;
+  --agent-tool-fg: 0 0% 85%;
+  --agent-tool-border: 240 4% 22%;
+  --agent-tool-hover: 255 255 255 / 0.06;
+  --agent-tool-divider: 255 255 255 / 0.1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --glass-frozen-bg: 20 24 20 / 0.86;
+    --opaque-island-bg: 120 9% 10%;
+    --opaque-island-border: 240 4% 20%;
+    --opaque-island-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --agent-collapsed-bg: 120 9% 10%;
+    --keyboard-open-bg: 20 24 20 / 0.88;
+    --popover-island-bg: 120 9% 10%;
+    --popover-island-border: 240 4% 20%;
+    --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --glass-edge-peak: 255 255 255 / 0.4;
+    --glass-edge-mid: 255 255 255 / 0.12;
+    --glass-active-fg: 142 76% 56%;
+    --agent-tool-bg: 120 9% 12%;
+    --agent-tool-fg: 0 0% 85%;
+    --agent-tool-border: 240 4% 22%;
+    --agent-tool-hover: 255 255 255 / 0.06;
+    --agent-tool-divider: 255 255 255 / 0.1;
+  }
+}
+
 /* 液态玻璃工具类（Apple Liquid Glass 风格） */
-/* 共享 GPU 合成优化：提升为独立合成层 + 隔离重绘范围
-   - will-change: 提示浏览器缓存 backdrop-filter 结果
-   - contain: 隔离布局/绘制，让 GPU 合成器跳过本元素之外的重绘
-   - backface-visibility: 强制创建合成层 */
+/* GPU 合成优化：
+   - backface-visibility: hidden 创建独立合成层（比 will-change 更稳定）
+   - contain: layout 隔离布局重排，不裁切绘制（paint 会干扰 backdrop-filter 采样）
+   - isolation: isolate 隔离层叠上下文，避免伪元素穿透 */
 .glass,
 .glass-strong,
 .glass-btn,
 .glass-pill {
-  will-change: backdrop-filter;
+  position: relative;
   backface-visibility: hidden;
-  contain: layout paint;
+  contain: layout;
+  isolation: isolate;
+}
+
+/* 玻璃边缘渐变光 — 模拟光线在玻璃边缘的折射（WWDC 25 Liquid Glass 核心特征）
+   z-index: 1 放在内容之上（pointer-events: none 不影响交互），
+   避免 z-index:-1 与 backdrop-filter 合成层冲突导致闪烁 */
+.glass::before,
+.glass-strong::before,
+.glass-btn::before,
+.glass-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--glass-edge-peak)) 0%,
+    rgb(var(--glass-edge-mid)) 20%,
+    transparent 40%,
+    transparent 60%,
+    rgb(var(--glass-edge-mid)) 80%,
+    rgb(var(--glass-edge-peak)) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .glass {
@@ -171,10 +294,14 @@
     var(--glass-shadow);
 }
 .glass-hover {
-  transition: background var(--duration) var(--ease);
+  transition:
+    background var(--duration) var(--ease),
+    backdrop-filter var(--duration-slow) var(--ease);
 }
 .glass-hover:hover {
   background: rgb(var(--glass-bg-strong));
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
 }
 
 /* 液态玻璃按钮（capsule 胶囊形，Apple Liquid Glass 规范） */
@@ -200,12 +327,18 @@
 .glass-btn:active {
   transform: scale(0.97);
 }
-/* 激活态：品牌色玻璃 tint */
+/* 激活态：品牌色玻璃 tint + 微弱虹彩渐变（侧边栏激活态） */
 .glass-btn-active {
   background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
+    linear-gradient(
+      135deg,
+      hsl(var(--iridescent-start) / 0.06) 0%,
+      hsl(var(--iridescent-mid) / 0.06) 50%,
+      hsl(var(--iridescent-end) / 0.06) 100%
+    ),
     hsl(var(--primary) / 0.18);
   border-color: hsl(var(--primary) / 0.35);
-  color: hsl(var(--primary));
+  color: hsl(var(--glass-active-fg));
   box-shadow:
     inset 0 1px 0 hsl(var(--primary) / 0.25),
     inset 0 -1px 0 rgb(var(--glass-edge-shadow)),
@@ -213,16 +346,108 @@
     0 1px 4px hsl(var(--primary) / 0.1);
 }
 
+/* 主按钮 hover 虹彩微光（克制，仅 hover） */
+.btn-iridescent {
+  transition:
+    box-shadow var(--duration) var(--ease),
+    background-color var(--duration) var(--ease);
+}
+.btn-iridescent:hover {
+  box-shadow:
+    0 4px 16px hsl(var(--iridescent-start) / 0.1),
+    0 2px 8px hsl(var(--iridescent-end) / 0.08);
+}
+
 /* 圆角玻璃激活指示器（替代纯色短条） */
 .glass-pill {
   background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
     hsl(var(--primary) / 0.15);
-  backdrop-filter: blur(8px) saturate(180%);
-  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur-subtle)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-subtle)) saturate(180%);
   border: 1px solid hsl(var(--primary) / 0.3);
   box-shadow:
     inset 0 1px 0 hsl(var(--primary) / 0.2),
     0 2px 8px hsl(var(--primary) / 0.15);
+}
+
+/* ===== 液态玻璃分级（blur 分级，映射 lq.md 语义） ===== */
+.glass-subtle {
+  background: rgb(var(--glass-bg));
+  backdrop-filter: blur(var(--glass-blur-subtle)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-subtle)) saturate(140%);
+  border: 1px solid rgb(var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 rgb(var(--glass-highlight)),
+    inset 0 -1px 0 rgb(var(--glass-edge-shadow)),
+    var(--glass-shadow);
+}
+
+/* 3.1 流式冻结态：内容流动时玻璃冻结为稳定半透明实体 */
+.glass-frozen {
+  background: rgb(var(--glass-frozen-bg));
+  backdrop-filter: blur(var(--glass-frozen-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-frozen-blur)) saturate(120%);
+  transition:
+    backdrop-filter var(--duration-slow) var(--ease),
+    background var(--duration-slow) var(--ease);
+}
+
+/* 3.2 不透明岛屿：代码/公式/图表从玻璃折射中隔离，内容优先 */
+.opaque-island {
+  background: hsl(var(--opaque-island-bg));
+  border: 1px solid hsl(var(--opaque-island-border));
+  border-radius: var(--opaque-island-radius);
+  box-shadow: var(--opaque-island-shadow);
+}
+
+/* 3.3 Agent 工作流层级：材质降级区分语义，禁止玻璃叠玻璃 */
+.agent-think {
+  background: hsl(var(--card) / var(--agent-think-opacity));
+  backdrop-filter: blur(var(--glass-blur-subtle)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-subtle)) saturate(120%);
+  border: 1px solid rgb(var(--glass-border));
+}
+.agent-tool {
+  background: hsl(var(--agent-tool-bg));
+  color: hsl(var(--agent-tool-fg));
+  border: 1px solid hsl(var(--agent-tool-border));
+  border-radius: var(--opaque-island-radius);
+}
+.agent-tool .text-muted-foreground {
+  color: hsl(var(--agent-tool-fg) / 0.6);
+}
+.agent-respond {
+  background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
+    rgb(var(--glass-bg-strong));
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid rgb(var(--glass-border));
+}
+.agent-collapsed {
+  background: hsl(var(--agent-collapsed-bg));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(var(--opaque-island-border));
+}
+
+/* 3.4 移动端：软键盘弹起降级 + 手势条避让 */
+body.keyboard-open .glass,
+body.keyboard-open .glass-strong,
+body.keyboard-open .glass-btn,
+body.keyboard-open .glass-pill {
+  backdrop-filter: blur(4px) saturate(120%);
+  -webkit-backdrop-filter: blur(4px) saturate(120%);
+  background: rgb(var(--keyboard-open-bg));
+}
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-bottom-glass-padding);
+}
+
+/* 3.5 高密度信息浮层：不透明岛屿，隔离折射 */
+.popover-island {
+  background: hsl(var(--popover-island-bg));
+  border: 1px solid hsl(var(--popover-island-border));
+  box-shadow: var(--popover-island-shadow);
 }
 
 /* prefers-reduced-transparency: 关掉毛玻璃 */
@@ -233,6 +458,12 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+  .glass::before,
+  .glass-strong::before,
+  .glass-btn::before,
+  .glass-pill::before {
+    display: none;
+  }
 }
 
 /* prefers-reduced-motion: 降低模糊半径（不直接关闭，避免透明像素层突变闪烁） */
@@ -240,7 +471,10 @@
   .glass,
   .glass-strong,
   .glass-btn,
-  .glass-pill {
+  .glass-pill,
+  .glass-subtle,
+  .agent-think,
+  .agent-respond {
     backdrop-filter: blur(4px) saturate(120%);
     -webkit-backdrop-filter: blur(4px) saturate(120%);
   }
@@ -251,9 +485,18 @@
 [data-perf-mode='low'] .glass,
 [data-perf-mode='low'] .glass-strong,
 [data-perf-mode='low'] .glass-btn,
-[data-perf-mode='low'] .glass-pill {
+[data-perf-mode='low'] .glass-pill,
+[data-perf-mode='low'] .glass-subtle,
+[data-perf-mode='low'] .agent-think,
+[data-perf-mode='low'] .agent-respond {
   backdrop-filter: blur(2px) saturate(120%);
   -webkit-backdrop-filter: blur(2px) saturate(120%);
+}
+[data-perf-mode='low'] .glass::before,
+[data-perf-mode='low'] .glass-strong::before,
+[data-perf-mode='low'] .glass-btn::before,
+[data-perf-mode='low'] .glass-pill::before {
+  display: none;
 }
 [data-perf-mode='low'] .glass {
   background: rgb(var(--glass-bg-strong));
@@ -265,15 +508,28 @@
 /* 滚动时降级（由 useScrollState hook 注入 .is-scrolling 到 body）
    策略：降低模糊半径而非完全关闭，避免滚动停止时背景突变 */
 .is-scrolling .glass,
-.is-scrolling .glass-strong {
+.is-scrolling .glass-strong,
+.is-scrolling .glass-subtle,
+.is-scrolling .agent-respond {
   backdrop-filter: blur(8px) saturate(150%);
   -webkit-backdrop-filter: blur(8px) saturate(150%);
 }
 
-/* 滚动条 */
+/* 滚动条 — 半透明玻璃质感，hover 时变亮 */
 .scroll-thin::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 9999px;
+  transition: background 150ms ease;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.45);
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* 长列表容器 GPU 优化：屏外内容不渲染，跳过合成层
@@ -284,12 +540,13 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 100px;
 }
-.scroll-thin::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 9999px;
-}
-.scroll-thin::-webkit-scrollbar-track {
-  background: transparent;
+
+/* 环境光背景层 — 为玻璃折射提供色彩源（lq.md §8）
+   微弱 radial-gradient，桌面端与 mica/vibrancy 叠加，Web 端作为主要光学引擎 */
+.bg-ambient {
+  background: radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, hsl(var(--iridescent-mid) / 0.03) 0%, transparent 50%),
+    hsl(var(--background));
 }
 
 /* 流式光标动效 */
@@ -345,6 +602,21 @@
 }
 .fade-up {
   animation: fade-up 140ms var(--ease-out) both;
+}
+
+/* Composer 聚焦光环 — textarea 获焦时 glass-strong 容器产生柔和辉光 */
+.composer-focus {
+  transition:
+    box-shadow var(--duration-slow) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+.composer-focus:focus-within {
+  border-color: hsl(var(--primary) / 0.4);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--glass-highlight)),
+    inset 0 -1px 0 rgb(var(--glass-edge-shadow)),
+    0 0 0 3px hsl(var(--primary) / 0.08),
+    var(--glass-shadow);
 }
 
 /* 降低动效偏好 */

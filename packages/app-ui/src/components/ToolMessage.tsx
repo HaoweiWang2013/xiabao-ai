@@ -71,19 +71,14 @@ function ToolResultCard({
   }
 
   return (
-    <div
-      className={cn(
-        'border-border/40 overflow-hidden rounded-lg border text-[12px] transition-colors',
-        isError ? 'bg-destructive/5' : 'bg-secondary/20',
-      )}
-    >
+    <div className="agent-tool overflow-hidden text-[12px]">
       {/* 标题栏 */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
           'flex w-full items-center gap-2 px-2.5 py-1.5 text-left transition-colors',
-          'hover:bg-secondary/40',
+          'hover:bg-[hsl(var(--agent-tool-hover))]',
         )}
       >
         {/* 工具图标 */}
@@ -117,7 +112,7 @@ function ToolResultCard({
 
       {/* 展开体 */}
       {open && (
-        <div className="border-border/30 border-t">
+        <div className="border-t border-[hsl(var(--agent-tool-divider))]">
           <pre className="scroll-thin text-muted-foreground max-h-64 overflow-auto whitespace-pre-wrap break-all px-3 py-2 font-mono text-[11px] leading-relaxed">
             {formatted}
           </pre>

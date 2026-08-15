@@ -14,6 +14,7 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    scroll-behavior: smooth;
   }
 
   /* Keyboard-safe area — ensures content isn't hidden behind the keyboard */
@@ -32,6 +33,11 @@
     font-family: 'Inter', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* 环境光背景层 — 为玻璃折射提供色彩源（lq.md §8）
+       Web 端无 mica/vibrancy，需要 CSS radial-gradient 模拟光学引擎 */
+    background: radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, hsl(var(--iridescent-mid) / 0.03) 0%, transparent 50%),
+      hsl(var(--background));
   }
 
   input,
@@ -52,16 +58,22 @@
     background-color: hsl(var(--primary) / 0.3);
   }
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(var(--muted-foreground) / 0.25);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: padding-box;
+    transition: background 150ms ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.45);
+    background-clip: padding-box;
+    border: 2px solid transparent;
   }
 }

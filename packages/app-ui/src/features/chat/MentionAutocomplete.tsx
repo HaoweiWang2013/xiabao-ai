@@ -159,7 +159,7 @@ export const MentionAutocomplete = forwardRef<MentionAutocompleteHandle, Props>(
     return (
       <div
         className={cn(
-          'glass-strong shadow-glass border-border/30 absolute bottom-full left-2 right-2 z-50 mb-2 overflow-hidden rounded-xl border',
+          'popover-island absolute bottom-full left-2 right-2 z-50 mb-2 overflow-hidden rounded-xl',
         )}
         role="listbox"
         aria-label={t('chat.mentionAriaLabel')}

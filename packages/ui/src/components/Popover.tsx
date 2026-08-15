@@ -17,7 +17,7 @@ const PopoverContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        'z-dropdown glass-strong text-foreground animate-scale-in shadow-glass-lg w-72 rounded-lg p-2 outline-none',
+        'z-dropdown popover-island text-foreground animate-scale-in w-72 rounded-lg p-2 outline-none',
         className,
       )}
       {...props}

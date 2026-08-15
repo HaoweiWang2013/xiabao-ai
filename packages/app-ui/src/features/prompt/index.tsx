@@ -141,7 +141,7 @@ export function PromptPanel() {
                       type="button"
                       onClick={() => setSelectedId(prompt.id)}
                       className={cn(
-                        'group flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left text-xs transition-all duration-150',
+                        'group flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left text-xs transition-colors duration-150',
                         prompt.id === selectedId
                           ? 'glass-btn-active'
                           : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',

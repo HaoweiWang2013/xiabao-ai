@@ -27,6 +27,7 @@ import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
 import { cn, IconButton } from '@xiabao/ui';
 
 import { useAdaptivePerformance } from '../hooks/useAdaptivePerformance';
+import { useKeyboard } from '../hooks/useKeyboard';
 import { useScrollState } from '../hooks/useScrollState';
 import { useTranslation } from '../lib/useTranslation';
 
@@ -86,6 +87,12 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   useAdaptivePerformance();
   // 滚动状态：滚动时注入 .is-scrolling，降低 glass 模糊半径
   useScrollState();
+  // 软键盘：弹起时注入 body.keyboard-open，全局玻璃降级
+  const keyboard = useKeyboard();
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('keyboard-open', keyboard.visible);
+  }, [keyboard.visible]);
 
   // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
   useEffect(() => {
@@ -173,16 +180,24 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
     </>
   ) : null;
 
+  const isDesktop = typeof window !== 'undefined' && !!window.xiabao;
+
   const mainArea = (
     <div className="relative flex flex-1 overflow-hidden">
       <main className="flex flex-1 flex-col overflow-hidden">
-        {/* Drag strip — sidebar 布局下无原生标题栏，极窄拖拽条 */}
-        <div className="app-page-header h-1 shrink-0 bg-transparent" aria-hidden />
+        {/* 旧 h-1 拖拽条移除 —— 由全局 .desktop-drag-bar 统一覆盖
+            （全屏 fixed 层覆盖 titleBarOverlay 36px，不影响液态玻璃卡片 m-2 圆角） */}
         {children}
       </main>
       {historyOverlay}
     </div>
   );
+
+  // ── 全局全屏拖拽条（仅 Electron 桌面端渲染）
+  //    Web/移动端 window.xiabao 为 undefined → 不渲染，避免在普通浏览器中多出一块固定层
+  const desktopDragBar = isDesktop ? (
+    <div className="desktop-drag-bar" aria-hidden data-desktop-drag />
+  ) : null;
 
   // ── 移动端 (<768px) ──
   if (isMobile) {
@@ -231,6 +246,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
         >
           <IconSidebar />
         </div>
+        {desktopDragBar}
       </div>
     );
   }
@@ -243,6 +259,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
           {inlineMiddle && middle}
           {mainArea}
         </div>
+        {desktopDragBar}
       </div>
     );
   }
@@ -252,6 +269,7 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
       <IconSidebar />
       {inlineMiddle && middle}
       {mainArea}
+      {desktopDragBar}
     </div>
   );
 }

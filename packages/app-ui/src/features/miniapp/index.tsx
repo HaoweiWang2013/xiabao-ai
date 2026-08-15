@@ -253,7 +253,7 @@ export function MiniAppPage() {
               <div
                 key={tab.id}
                 onClick={() => setActiveTabId(tab.id)}
-                className={`group relative flex h-8 min-w-[70px] max-w-[160px] cursor-pointer items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-all duration-150 sm:min-w-[100px] sm:gap-2 sm:px-3.5 ${
+                className={`group relative flex h-8 min-w-[70px] max-w-[160px] cursor-pointer items-center gap-1.5 rounded-xl px-2.5 text-xs font-medium transition-colors duration-150 sm:min-w-[100px] sm:gap-2 sm:px-3.5 ${
                   isActive
                     ? 'glass-btn-active'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'

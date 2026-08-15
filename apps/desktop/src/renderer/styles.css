@@ -11,6 +11,7 @@
     padding: 0;
     /* Win11 mica + 窗口圆角：让根容器透明，使系统窗口圆角与 mica 材质可见 */
     background: transparent;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -28,22 +29,23 @@
     background-color: hsl(var(--primary) / 0.3);
   }
 
-  /* 自定义滚动条 */
+  /* 自定义滚动条 — 半透明玻璃质感 */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(var(--muted-foreground) / 0.25);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: padding-box;
+    transition: background 150ms ease;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: hsl(var(--muted-foreground) / 0.45);
     background-clip: padding-box;
     border: 2px solid transparent;
   }
@@ -60,18 +62,32 @@
    * 主进程开了 BrowserWindow.titleBarOverlay → Windows 在右上角画 minimize/maximize/close
    * 系统按钮（约 138 x 36px），但 webContents 没自动避让，导致顶部 header 被遮。
    *
-   * 这里所有顶部 header 加 `app-page-header` class，用 margin-right 避让系统按钮：
-   * 让玻璃卡片本身不延伸到系统按钮区域（旧方案用 padding-right 仍会让背景延伸到按钮下方）。
-   * 非 overlay 平台（macOS / Web）env() 返回 fallback 100vw → margin = 0，无影响。
+   * 修复：加一个全局、透明、不拦截点击的全屏级拖拽条（pointer-events:none，
+   * 只供 Electron 读 -webkit-app-region: drag），覆盖除系统按钮外的整个
+   * titleBarOverlay 高度（36px）。这样每个页面顶部的玻璃卡片可以保持 m-2 圆角样式，
+   * 不会因需要贴边而破坏液态玻璃悬浮观感。
    *
-   * 同时让 header 整个区域可拖拽（drag region），内部交互元素恢复 no-drag。
+   * 系统按钮右侧 138px：通过 env(titlebar-area-width) 精确避让。
    */
+  .desktop-drag-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: calc(100vw - env(titlebar-area-width, 100vw));
+    height: 36px;
+    z-index: 1;
+    -webkit-app-region: drag;
+    pointer-events: none; /* 纯拖拽层，不拦截下层的按钮/链接点击 */
+    background: transparent;
+  }
+
   .app-page-header {
     -webkit-app-region: drag;
     /* Windows: margin-right = 100vw - titlebar-area-width = controls 宽度（~138px） */
     /* macOS / 非 overlay：env() 返回 fallback 100vw → margin = 0 */
     margin-right: calc(100vw - env(titlebar-area-width, 100vw)) !important;
     position: relative;
+    z-index: 2; /* 确保卡片在 drag-bar 之上（虽 drag-bar 是 pointer-events-none，但堆叠层级明确） */
   }
   .app-page-header button,
   .app-page-header a,

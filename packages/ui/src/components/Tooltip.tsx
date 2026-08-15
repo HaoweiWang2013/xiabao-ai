@@ -16,7 +16,7 @@ const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-tooltip glass-strong text-foreground animate-scale-in shadow-glass pointer-events-none rounded-md px-2 py-1 text-xs',
+        'z-tooltip popover-island text-foreground animate-scale-in pointer-events-none rounded-md px-2 py-1 text-xs',
         className,
       )}
       {...props}

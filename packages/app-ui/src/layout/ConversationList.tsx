@@ -159,7 +159,7 @@ export function ConversationList({
                                 if (e.key === 'Enter' || e.key === ' ') handleClick(c);
                               }}
                               className={cn(
-                                'relative flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs transition-all duration-150',
+                                'relative flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs transition-colors duration-150',
                                 isActive ? 'glass-btn-active' : 'hover:bg-secondary/60',
                               )}
                             >

@@ -146,7 +146,7 @@ export function SettingsPage() {
                       }
                     }}
                     className={cn(
-                      'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-all duration-150',
+                      'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors duration-150',
                       section === item.id
                         ? 'glass-btn-active'
                         : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground',

@@ -71,9 +71,8 @@ function createMainWindow(): BrowserWindow {
       allowRunningInsecureContent: false,
       spellcheck: true,
       devTools: isDev,
-      // GPU 合成相关：多 tab 后台不降帧，启用 WebGL 辅助加速
+      // GPU 合成相关：多 tab 后台不降帧（WebGL 默认启用，无需额外开关）
       backgroundThrottling: false,
-      enableWebGL: true,
       experimentalFeatures: true,
     },
   });

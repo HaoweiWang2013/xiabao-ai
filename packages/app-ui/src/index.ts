@@ -8,6 +8,8 @@
  *
  * desktop（electron-trpc IPC）与 web（fastify HTTP+WS）通过自定义的 tRPC 客户端注入。
  */
+import type {} from './global.d.ts';
+
 export { ChatPanel } from './features/chat/index';
 export { SplitChatView } from './features/chat/SplitChatView';
 export { KnowledgePanel } from './features/knowledge/index';
