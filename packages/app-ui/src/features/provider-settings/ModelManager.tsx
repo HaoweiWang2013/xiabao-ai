@@ -115,10 +115,12 @@ export function ModelManager({
 
       {/* 模型列表 */}
       {sortedModels.length > 0 && (
-        <ul className="divide-border/30 flex flex-col divide-y rounded-md border">
-          {sortedModels.map((m) => (
+        <ul className="glass-subtle flex flex-col gap-0.5 overflow-hidden rounded-xl">
+          {sortedModels.map((m, i) => (
             <ModelRow
               key={m.id}
+              index={i}
+              count={sortedModels.length}
               model={m}
               busy={removeMut.isLoading || setEnabledMut.isLoading}
               onToggle={(enabled) => setEnabledMut.mutate({ id: m.id, enabled })}
@@ -185,12 +187,16 @@ export function ModelManager({
 // ─────────────────────────────────────────────
 
 function ModelRow({
+  index = 0,
+  count = 0,
   model,
   busy,
   onToggle,
   onEdit,
   onRemove,
 }: {
+  index?: number;
+  count?: number;
   model: Model;
   busy: boolean;
   onToggle: (enabled: boolean) => void;
@@ -199,7 +205,14 @@ function ModelRow({
 }) {
   const { t } = useTranslation();
   return (
-    <li className="flex items-center gap-2 px-3 py-2">
+    <li
+      className={cn(
+        'group flex items-center gap-2 px-3 py-2',
+        index + 1 < count && 'border-border/25 border-b',
+        'transition-[transform,background-color,box-shadow] duration-150 will-change-transform',
+        'hover:bg-secondary/30 hover:translate-x-0.5 hover:[box-shadow:inset_3px_0_0_hsl(var(--primary)_/_0.35)]',
+      )}
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2 text-xs font-medium">
           <span className="truncate">{model.display}</span>
@@ -226,6 +239,7 @@ function ModelRow({
             variant="ghost"
             onClick={onEdit}
             aria-label={t('providers.editModelTitle')}
+            className="opacity-60 transition-opacity duration-150 group-hover:opacity-100"
           >
             <Edit3 className="h-3.5 w-3.5" />
           </IconButton>
@@ -239,6 +253,7 @@ function ModelRow({
             variant="ghost"
             onClick={onRemove}
             aria-label={t('providers.delete')}
+            className="opacity-60 transition-opacity duration-150 group-hover:opacity-100"
           >
             <Trash2 className="text-destructive h-3.5 w-3.5" />
           </IconButton>

@@ -29,21 +29,12 @@ const SAMPLE_WINDOW_MS = 2000;
 
 /**
  * 跨平台开发模式检测：
- * - Electron / webpack 主进程 / 渲染进程注入 `__DEV__`
- * - Vite (web / 移动端 dev server) 提供 `import.meta.env.DEV`
- * - 都不存在时 fallback 为 true（兜底：至少会采样，不会 silently 跳过）
+ * - Electron / webpack（desktop）由 DefinePlugin 注入 `__DEV__`
+ * - Vite（web / mobile）由入口 main.tsx 把 `import.meta.env.DEV` 同步到 `globalThis.__DEV__`
+ * - 共享包内禁止直接访问 `import.meta`：desktop 的 tsconfig 无 vite/client 类型会 TS 报错，
+ *   且 webpack 对 import.meta 赋值给变量的写法会报 Critical dependency 警告
  */
 function getIsDev(): boolean {
-  // 1. Vite（web / mobile dev）
-  try {
-    const meta = import.meta as unknown as { env?: { DEV?: boolean } };
-    if (meta?.env?.DEV !== undefined) {
-      return Boolean(meta.env.DEV);
-    }
-  } catch {
-    /* CSP/构建环境不支持 import.meta 时忽略 */
-  }
-  // 2. Electron webpack（desktop）
   try {
     const gt = globalThis as unknown as { __DEV__?: boolean };
     if (gt.__DEV__ !== undefined) {
@@ -52,7 +43,7 @@ function getIsDev(): boolean {
   } catch {
     /* 忽略 */
   }
-  // 3. 兜底：如果所有全局都没定义，保守视为 dev（至少能触发 FPS 采样验证）
+  // 兜底：如果所有全局都没定义，保守视为 dev（至少能触发 FPS 采样验证）
   return true;
 }
 

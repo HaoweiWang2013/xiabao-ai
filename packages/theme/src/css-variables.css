@@ -542,10 +542,21 @@ body.keyboard-open .glass-pill {
 }
 
 /* 环境光背景层 — 为玻璃折射提供色彩源（lq.md §8）
-   微弱 radial-gradient，桌面端与 mica/vibrancy 叠加，Web 端作为主要光学引擎 */
+   三组 radial-gradient 叠加：左上 primary 绿光 + 右下 iridescent 蓝紫光晕
+   + 顶部大面积绿光，提供玻璃面板明确的折射色彩变化（原 4%/3% 过淡，液态感缺失）。
+   Web 端作为主要光学引擎；桌面端可叠加在 mica/vibrancy 之上但不强求。 */
 .bg-ambient {
-  background: radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, hsl(var(--iridescent-mid) / 0.03) 0%, transparent 50%),
+  background: radial-gradient(
+      ellipse 50% 40% at 15% 15%,
+      hsl(var(--primary) / 0.085) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 45% 35% at 85% 85%,
+      hsl(var(--iridescent-mid) / 0.065) 0%,
+      transparent 55%
+    ),
+    radial-gradient(ellipse 70% 50% at 50% 0%, hsl(var(--primary) / 0.055) 0%, transparent 60%),
     hsl(var(--background));
 }
 

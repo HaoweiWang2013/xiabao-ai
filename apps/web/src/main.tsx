@@ -12,6 +12,10 @@ import '@xiabao/theme/css-variables';
 import '@xiabao/theme/highlight';
 import './styles.css';
 
+// 把 Vite 的 dev 标志同步到 globalThis，供共享包（app-ui）读取；
+// 共享包内不能直接访问 import.meta（desktop tsconfig 无 vite 类型 + webpack 警告）
+(globalThis as unknown as { __DEV__?: boolean }).__DEV__ = Boolean(import.meta.env.DEV);
+
 const HTTP_URL =
   (import.meta.env?.VITE_TRPC_HTTP as string | undefined) ??
   `http://${window.location.hostname}:4317/trpc`;

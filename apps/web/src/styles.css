@@ -34,9 +34,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* 环境光背景层 — 为玻璃折射提供色彩源（lq.md §8）
-       Web 端无 mica/vibrancy，需要 CSS radial-gradient 模拟光学引擎 */
-    background: radial-gradient(ellipse at 20% 30%, hsl(var(--primary) / 0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, hsl(var(--iridescent-mid) / 0.03) 0%, transparent 50%),
+       Web 端无 mica/vibrancy，需要 CSS radial-gradient 模拟光学引擎。
+       三组不同中心的渐变叠加：左上方 primary 绿光 + 右下方 iridescent 蓝光紫晕
+       + 中央上方大面积 primary 绿光，让左中右三列玻璃面板能折射到明确的
+       色彩变化（否则玻璃层呈现均匀深灰，液态感消失）。 */
+    background: radial-gradient(
+        ellipse 50% 40% at 15% 15%,
+        hsl(var(--primary) / 0.085) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 45% 35% at 85% 85%,
+        hsl(var(--iridescent-mid) / 0.065) 0%,
+        transparent 55%
+      ),
+      radial-gradient(ellipse 70% 50% at 50% 0%, hsl(var(--primary) / 0.055) 0%, transparent 60%),
       hsl(var(--background));
   }
 

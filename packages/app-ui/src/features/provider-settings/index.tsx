@@ -150,11 +150,11 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
         {/* ── 左栏：Provider 列表 ───────────────────────────── */}
         <aside
           className={cn(
-            'glass border-border/40 flex w-64 shrink-0 flex-col rounded-2xl',
+            'glass glass-hover border-border/40 flex w-64 shrink-0 flex-col rounded-2xl',
             isMobile && (mobileActivePanel === 'list' ? 'w-full' : 'hidden'),
           )}
         >
-          <div className="border-border/40 flex items-center gap-2 border-b px-3 py-2">
+          <div className="border-border/25 flex items-center gap-2 border-b px-3 py-2">
             {onBack && (
               <IconButton
                 size="sm"
@@ -166,13 +166,15 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                 <ChevronLeft className="h-4 w-4" />
               </IconButton>
             )}
-            <Search className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-            <Input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder={t('providers.searchPh')}
-              className="h-7 border-0 bg-transparent px-0 text-xs focus-visible:ring-0"
-            />
+            <div className="glass-subtle flex flex-1 items-center gap-2 rounded-lg px-2 py-1">
+              <Search className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+              <Input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder={t('providers.searchPh')}
+                className="h-7 border-0 bg-transparent px-0 text-xs focus-visible:ring-0"
+              />
+            </div>
           </div>
           <ScrollArea className="scroll-thin flex-1">
             {list.isLoading ? (
@@ -181,7 +183,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                 <Skeleton className="h-9 w-full" />
               </div>
             ) : filteredItems.length > 0 ? (
-              <ul className="flex flex-col py-1">
+              <ul className="flex flex-col gap-0.5 px-1 py-1">
                 {filteredItems.map(({ provider }) => {
                   const active = provider.id === selectedId;
                   return (
@@ -204,9 +206,15 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                             }
                           }
                         }}
-                        className={`hover:bg-secondary/30 group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors duration-150 ${active ? 'glass-btn-active' : ''}`}
+                        className={cn(
+                          'group flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs',
+                          'transition-[transform,background-color,box-shadow] duration-150 will-change-transform',
+                          active
+                            ? 'glass-btn-active'
+                            : 'hover:bg-secondary/30 hover:translate-x-0.5 hover:[box-shadow:inset_3px_0_0_hsl(var(--primary)_/_0.3)]',
+                        )}
                       >
-                        <span className="bg-muted-foreground/20 text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-medium uppercase">
+                        <span className="bg-muted-foreground/20 text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded text-[10px] font-medium uppercase transition-colors duration-150">
                           {provider.name.slice(0, 1)}
                         </span>
                         <span className="min-w-0 flex-1 truncate font-medium">{provider.name}</span>
@@ -232,11 +240,11 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
               </div>
             )}
           </ScrollArea>
-          <div className="border-border/40 border-t p-2">
+          <div className="border-border/25 border-t p-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="w-full justify-start gap-1.5 text-xs"
+              className="glass-btn hover:border-primary/40 w-full justify-start gap-1.5 text-xs"
               onClick={() => setCreating(true)}
             >
               <Plus className="h-3.5 w-3.5" /> {t('providers.addBtn')}
@@ -324,7 +332,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
               </header>
               <ScrollArea className="scroll-thin flex-1">
                 <div className="flex flex-col gap-3 px-6 py-4">
-                  <Card>
+                  <Card className="glass-subtle border-border/30">
                     <CardHeader>
                       <CardTitle className="text-xs font-medium">
                         {t('providers.connectionInfo')}
@@ -335,13 +343,13 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                     </CardHeader>
                   </Card>
                   {selected.provider.kind === 'local-embedder' ? (
-                    <Card>
+                    <Card className="glass-subtle border-border/30">
                       <CardContent className="pt-4">
                         <LocalEmbedderCard />
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card>
+                    <Card className="glass-subtle border-border/30">
                       <CardContent className="pt-4">
                         <ModelManager
                           providerId={selected.provider.id}

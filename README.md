@@ -61,4 +61,4 @@ Detailed architecture and development docs are in the [`docs/`](./docs/) directo
 
 ## 📄 License
 
-This project is licensed under **CC-BY-NC-SA-4.0**. See `LICENSE` for details.
+See `LICENSE` for details.

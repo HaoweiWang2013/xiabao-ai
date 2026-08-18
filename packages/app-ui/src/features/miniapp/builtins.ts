@@ -124,7 +124,7 @@ export const BUILTIN_MINI_APPS: MiniApp[] = [
   {
     id: 'qwen',
     name: '通义千问',
-    url: 'https://chat.qwen.lm',
+    url: 'https://chat.qwen.ai',
     icon: 'miniapps/qwen.svg',
     color: 'bg-[#673AB7] text-white',
     desc: '阿里巴巴通义旗舰对话助手，中英文理解、逻辑编写与代码功能卓越',

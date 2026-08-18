@@ -3,13 +3,13 @@
  *
  * 见 docs/12-ui-design.md §6.2。
  *
- * - 大字标语
- * - 推荐 prompts 卡片网格
- * - 最近会话列表
+ * - 大字标语（glass 容器承载）
+ * - 推荐 prompts 卡片网格（glass + glass-hover + transform GPU 合成）
+ * - 最近会话列表（glass-subtle 容器 + 每行 transform 悬浮）
  */
 import { Code2, Languages, MessageSquare, PenLine, Sparkles } from 'lucide-react';
 
-import { Card, cn } from '@xiabao/ui';
+import { cn } from '@xiabao/ui';
 
 import { useTranslation } from '../lib/useTranslation';
 
@@ -89,7 +89,7 @@ export function EmptyState({
     <div className="scroll-thin flex h-full w-full flex-col overflow-auto px-6 py-10">
       <div className="mx-auto w-full max-w-2xl">
         <div className="text-center">
-          <div className="bg-primary/10 text-primary mx-auto flex h-12 w-12 items-center justify-center rounded-2xl">
+          <div className="bg-primary/12 text-primary ring-primary/15 mx-auto flex h-12 w-12 items-center justify-center rounded-2xl ring-1">
             <Sparkles className="h-6 w-6" />
           </div>
           <h1 className="text-foreground mt-4 text-2xl font-semibold tracking-tight">
@@ -107,8 +107,10 @@ export function EmptyState({
               type="button"
               onClick={() => onSelectPrompt?.(p)}
               className={cn(
-                'glass glass-hover group text-left transition-colors duration-150',
-                'hover:border-primary/40 rounded-xl p-3',
+                'glass glass-hover group rounded-xl p-3 text-left',
+                'hover:border-primary/40',
+                'transition-[transform,box-shadow,border-color,background-color] duration-150 will-change-transform',
+                'hover:-translate-y-0.5',
               )}
             >
               <div className="flex items-center gap-2">
@@ -127,25 +129,27 @@ export function EmptyState({
             <h2 className="text-muted-foreground mb-2 text-xs font-medium uppercase tracking-wider">
               {t('emptyState.recentTitle', { defaultValue: '最近会话' })}
             </h2>
-            <Card className="overflow-hidden">
-              <ul className="divide-border/40 divide-y">
-                {recents.slice(0, 6).map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectRecent?.(c)}
-                      className="hover:bg-secondary/40 flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors"
-                    >
-                      <MessageSquare className="text-muted-foreground h-3 w-3" />
-                      <span className="truncate">{c.title}</span>
-                      <span className="text-muted-foreground ml-auto text-[10px]">
-                        {formatRelative(c.updatedAt, t)}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
+            <ul className="glass-subtle overflow-hidden rounded-xl">
+              {recents.slice(0, 6).map((c, i) => (
+                <li key={c.id} className={cn(i > 0 && 'border-border/30 border-t')}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectRecent?.(c)}
+                    className={cn(
+                      'group flex w-full items-center gap-2 px-3 py-2 text-left text-xs',
+                      'transition-[transform,background-color] duration-150 will-change-transform',
+                      'hover:bg-secondary/40 hover:translate-x-0.5',
+                    )}
+                  >
+                    <MessageSquare className="text-muted-foreground group-hover:text-primary h-3 w-3 shrink-0 transition-colors" />
+                    <span className="truncate">{c.title}</span>
+                    <span className="text-muted-foreground group-hover:text-foreground/70 ml-auto text-[10px] transition-colors">
+                      {formatRelative(c.updatedAt, t)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

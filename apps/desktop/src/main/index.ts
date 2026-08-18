@@ -169,6 +169,30 @@ void app.whenReady().then(async () => {
     containerReady.then((c) => ({ services: c.services, repos: c.repos })),
   );
 
+  // 与 bootstrap 无依赖的 IPC handler 也要提前注册：
+  // 若放在 bootstrap 之后，bootstrap 失败/缓慢期间 renderer 的调用会报
+  // "No handler registered"（如主题切换触发的 set-titlebar-theme）
+  ipcMain.handle('dialog:openDirectory', async () => {
+    if (!mainWindow) return null;
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+      title: '选择工作目录 — Agent 将只能在此文件夹内操作文件',
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  });
+
+  // 动态更新 Windows titleBarOverlay 颜色（浅色/深色模式）
+  ipcMain.handle('xiabao:set-titlebar-theme', (_e, theme: string) => {
+    if (!mainWindow || process.platform === 'darwin') return;
+    const isLight = theme === 'light';
+    mainWindow.setTitleBarOverlay({
+      color: isLight ? '#F5F5F400' : '#00000000',
+      symbolColor: isLight ? '#1C1917' : '#F4F4F5',
+      height: 36,
+    });
+  });
+
   // 先创建窗口 → renderer 立刻开始加载（与下方 bootstrap 并行）
   mainWindow = createMainWindow();
   trpcHandle.attachWindow(mainWindow);
@@ -191,27 +215,6 @@ void app.whenReady().then(async () => {
     setupCrashReporter(container);
 
     setupProtocolHandlers(container);
-
-    ipcMain.handle('dialog:openDirectory', async () => {
-      if (!mainWindow) return null;
-      const result = await dialog.showOpenDialog(mainWindow, {
-        properties: ['openDirectory'],
-        title: '选择工作目录 — Agent 将只能在此文件夹内操作文件',
-      });
-      if (result.canceled || result.filePaths.length === 0) return null;
-      return result.filePaths[0];
-    });
-
-    // 动态更新 Windows titleBarOverlay 颜色（浅色/深色模式）
-    ipcMain.handle('xiabao:set-titlebar-theme', (_e, theme: string) => {
-      if (!mainWindow || process.platform === 'darwin') return;
-      const isLight = theme === 'light';
-      mainWindow.setTitleBarOverlay({
-        color: isLight ? '#F5F5F400' : '#00000000',
-        symbolColor: isLight ? '#1C1917' : '#F4F4F5',
-        height: 36,
-      });
-    });
   } catch (err) {
     console.error('[xiabao] bootstrap failed', err);
     rejectContainer(err);
