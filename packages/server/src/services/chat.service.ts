@@ -96,6 +96,8 @@ export interface SendMessageInput extends KnowledgeContextInput {
   conversationId: string;
   modelId: string;
   text: string;
+  /** 随消息附带的多模态图片（data URL）；与 text 一起写入 user 消息 parts */
+  images?: { mime: string; data: string }[];
   systemPrompt?: string | null;
   temperature?: number | null;
   topP?: number | null;
@@ -695,7 +697,7 @@ export function createChatService(deps: ChatServiceDeps) {
         convId: input.conversationId,
         role: 'user',
         parentId: lastMessage?.message.id ?? null,
-        parts: [{ kind: 'text', text: input.text }],
+        parts: buildUserParts(input.text, input.images),
       });
       const assistantMsg = await repos.messages.appendAssistantDraft({
         convId: input.conversationId,
@@ -1381,6 +1383,17 @@ function buildAssistantParts(
       argsJson: data.argsJson,
     });
   }
+  return parts;
+}
+
+/** 组装用户消息 parts：文本（可选）+ 多模态图片（data URL） */
+function buildUserParts(text: string, images?: { mime: string; data: string }[]): NewPart[] {
+  const parts: NewPart[] = [];
+  if (text) parts.push({ kind: 'text', text });
+  for (const img of images ?? []) {
+    parts.push({ kind: 'image', mime: img.mime, url: img.data });
+  }
+  if (parts.length === 0) parts.push({ kind: 'text', text: '' });
   return parts;
 }
 

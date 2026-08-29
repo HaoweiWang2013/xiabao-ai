@@ -36,6 +36,7 @@ export { IconSidebar } from './layout/IconSidebar';
 export { ConversationList } from './layout/ConversationList';
 export type { ConversationListItem } from './layout/ConversationList';
 export { TabBar } from './layout/TabBar';
+export { MobileTabBar } from './layout/MobileTabBar';
 
 // Components
 export { BranchSwitcher } from './components/BranchSwitcher';

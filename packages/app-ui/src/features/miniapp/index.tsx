@@ -99,11 +99,24 @@ export function MiniAppPage() {
   const [newUrl, setNewUrl] = useState('');
   const [newIcon, setNewIcon] = useState('🤖');
   const [newColor, setNewColor] = useState('bg-[#4D6BFE] text-white');
-  const [newDesc, setNewDesc] = useState('');
   const [formError, setFormError] = useState('');
 
   // 刷新 key，用于刷新 iframe
   const [reloadKeys, setReloadKeys] = useState<Record<string, number>>({});
+
+  // Electron 桌面端通过 preload 注入 window.xiabao，且 main 进程已移除 frame-ancestors，
+  // 可正常 iframe 外嵌；浏览器 / 移动端无此能力，受 X-Frame-Options / CSP frame-ancestors 限制。
+  const isDesktop = typeof window !== 'undefined' && !!window.xiabao;
+
+  // 非桌面环境不支持 iframe 外嵌：过滤掉历史遗留的 app 标签页，避免渲染 iframe 被浏览器拒绝
+  // 导致页面异常。首次渲染即生效（而非在 effect 中清理），确保不会短暂挂载 iframe。
+  const visibleTabs = useMemo(
+    () => (isDesktop ? tabs : tabs.filter((tab) => tab.type === 'market')),
+    [isDesktop, tabs],
+  );
+  const activeTab = visibleTabs.some((tab) => tab.id === activeTabId)
+    ? activeTabId
+    : (visibleTabs[0]?.id ?? 'market');
 
   // 合并内置和自定义小程序
   const allApps = useMemo(() => {
@@ -115,23 +128,20 @@ export function MiniAppPage() {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return allApps;
     return allApps.filter(
-      (app) =>
-        app.name.toLowerCase().includes(q) ||
-        app.desc?.toLowerCase().includes(q) ||
-        app.url.toLowerCase().includes(q),
+      (app) => app.name.toLowerCase().includes(q) || app.url.toLowerCase().includes(q),
     );
   }, [allApps, searchQuery]);
 
   // 关闭指定标签
   function handleCloseTab(tabId: string, e: React.MouseEvent) {
     e.stopPropagation();
-    if (tabs.length <= 1) return; // 至少保留一个
+    if (visibleTabs.length <= 1) return; // 至少保留一个
 
-    const closedIndex = tabs.findIndex((t) => t.id === tabId);
-    const newTabs = tabs.filter((t) => t.id !== tabId);
+    const closedIndex = visibleTabs.findIndex((t) => t.id === tabId);
+    const newTabs = visibleTabs.filter((t) => t.id !== tabId);
     setTabs(newTabs);
 
-    if (activeTabId === tabId) {
+    if (activeTab === tabId) {
       // 激活前一个标签，如果没有前一个则激活新列表的最后一个
       const nextActiveIndex = closedIndex > 0 ? closedIndex - 1 : 0;
       setActiveTabId(newTabs[nextActiveIndex]?.id ?? 'market');
@@ -139,7 +149,14 @@ export function MiniAppPage() {
   }
   // 新开或聚焦一个 MiniApp 网页
   function handleOpenApp(app: MiniApp) {
-    const existingTab = tabs.find((t) => t.type === 'app' && t.appId === app.id);
+    // 浏览器 / 移动端无法 iframe 外嵌第三方站点，改为新窗口打开；
+    // Electron 桌面端（main 进程已移除 frame-ancestors）走 iframe 内嵌。
+    if (!isDesktop) {
+      window.open(app.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const existingTab = visibleTabs.find((t) => t.type === 'app' && t.appId === app.id);
     if (existingTab) {
       setActiveTabId(existingTab.id);
     } else {
@@ -151,7 +168,7 @@ export function MiniAppPage() {
         title: app.name,
         url: app.url,
       };
-      setTabs([...tabs, newTab]);
+      setTabs([...visibleTabs, newTab]);
       setActiveTabId(newTabId);
     }
   }
@@ -164,7 +181,7 @@ export function MiniAppPage() {
       type: 'market',
       title: t('miniapp.tabMarket'),
     };
-    setTabs([...tabs, newTab]);
+    setTabs([...visibleTabs, newTab]);
     setActiveTabId(newId);
   }
 
@@ -183,7 +200,7 @@ export function MiniAppPage() {
       setCustomApps((prev) => prev.filter((a) => a.id !== appId));
       // 同时关闭关联的 tab
       setTabs((prev) => prev.filter((t) => !(t.type === 'app' && t.appId === appId)));
-      if (activeTabId === `app-${appId}`) {
+      if (activeTab === `app-${appId}`) {
         setActiveTabId('market');
       }
     }
@@ -211,7 +228,6 @@ export function MiniAppPage() {
       url: newUrl.trim(),
       icon: newIcon,
       color: newColor,
-      desc: newDesc.trim() || t('miniapp.customDescDefault'),
     };
 
     setCustomApps((prev) => [...prev, newApp]);
@@ -222,7 +238,6 @@ export function MiniAppPage() {
     setNewUrl('');
     setNewIcon('🤖');
     setNewColor('bg-[#4D6BFE] text-white');
-    setNewDesc('');
 
     // 自动打开新创建的小程序
     handleOpenApp(newApp);
@@ -230,7 +245,7 @@ export function MiniAppPage() {
 
   // 复制链接
   function handleCopyLink(url: string) {
-    navigator.clipboard.writeText(url);
+    void navigator.clipboard.writeText(url);
     alert(t('miniapp.copiedSuccess'));
   }
 
@@ -241,12 +256,12 @@ export function MiniAppPage() {
           降低 backdrop-filter 对 iframe 像素流的 GPU 采样负担 */}
       <div
         className={`app-page-header ${
-          tabs.find((t) => t.id === activeTabId)?.type === 'app' ? 'glass-strong' : 'glass'
+          visibleTabs.find((t) => t.id === activeTab)?.type === 'app' ? 'glass-strong' : 'glass'
         } border-border/40 m-2 flex h-12 shrink-0 items-center justify-between rounded-2xl px-3`}
       >
         <div className="no-scrollbar flex h-full flex-1 select-none items-center gap-1.5 overflow-x-auto py-1.5">
-          {tabs.map((tab, idx) => {
-            const isActive = activeTabId === tab.id;
+          {visibleTabs.map((tab, idx) => {
+            const isActive = activeTab === tab.id;
             const appInfo = tab.type === 'app' ? allApps.find((a) => a.id === tab.appId) : null;
 
             return (
@@ -268,7 +283,7 @@ export function MiniAppPage() {
                   />
                 ) : (
                   <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[11px] font-bold">
-                    {renderAppIcon(appInfo?.icon || '', tab.title, true)}
+                    {renderAppIcon(appInfo?.icon ?? '', tab.title, true)}
                   </span>
                 )}
 
@@ -310,8 +325,8 @@ export function MiniAppPage() {
 
       {/* ── 标签页内容渲染 ── */}
       <div className="relative flex-1 overflow-hidden">
-        {tabs.map((tab) => {
-          const isTabActive = activeTabId === tab.id;
+        {visibleTabs.map((tab) => {
+          const isTabActive = activeTab === tab.id;
           if (!isTabActive) return null;
 
           // ── 渲染：小程序应用市场（Grid 列表） ──
@@ -382,10 +397,10 @@ export function MiniAppPage() {
                                 app.icon.startsWith('/') ||
                                 app.icon.startsWith('http'))
                                 ? 'border-border/10 border bg-white p-1.5'
-                                : app.color || 'bg-secondary text-foreground'
+                                : (app.color ?? 'bg-secondary text-foreground')
                             }`}
                           >
-                            {renderAppIcon(app.icon || '', app.name)}
+                            {renderAppIcon(app.icon ?? '', app.name)}
                           </div>
 
                           <div className="min-w-0 flex-1">
@@ -597,20 +612,6 @@ export function MiniAppPage() {
                   );
                 })}
               </div>
-            </div>
-
-            {/* 简短描述 */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-foreground text-xs font-semibold">
-                {t('miniapp.formDescLabel')}
-              </label>
-              <Input
-                type="text"
-                placeholder={t('miniapp.formDescPlaceholder')}
-                value={newDesc}
-                onChange={(e) => setNewDesc(e.target.value)}
-                className="h-9 text-xs"
-              />
             </div>
 
             {/* 表单错误提示 */}

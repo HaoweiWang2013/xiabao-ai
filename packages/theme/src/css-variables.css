@@ -172,6 +172,13 @@
   /* 玻璃边缘渐变光（模拟光线在玻璃边缘的折射） */
   --glass-edge-peak: 255 255 255 / 0.7;
   --glass-edge-mid: 255 255 255 / 0.25;
+  /* 非对称镜面高光：顶部亮（光源在上），底部为柔和的透镜反光边（Apple Liquid Glass 特征） */
+  --glass-edge-top: 255 255 255 / 0.85;
+  --glass-edge-bottom: 255 255 255 / 0.35;
+  /* 内折射环：玻璃厚度产生的第二层内高光 */
+  --glass-inner-refraction: 255 255 255 / 0.5;
+  /* 对角镜面扫光（surface sheen），左上到右下的一道柔和高光 */
+  --glass-surface-sheen: 255 255 255 / 0.22;
 
   /* 激活态文字色（light 下用 green-600 保证对比度） */
   --glass-active-fg: 142 71% 35%;
@@ -196,6 +203,10 @@
   --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   --glass-edge-peak: 255 255 255 / 0.4;
   --glass-edge-mid: 255 255 255 / 0.12;
+  --glass-edge-top: 255 255 255 / 0.55;
+  --glass-edge-bottom: 255 255 255 / 0.16;
+  --glass-inner-refraction: 255 255 255 / 0.22;
+  --glass-surface-sheen: 255 255 255 / 0.08;
   --glass-active-fg: 142 76% 56%;
   --agent-tool-bg: 120 9% 12%;
   --agent-tool-fg: 0 0% 85%;
@@ -217,6 +228,10 @@
     --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     --glass-edge-peak: 255 255 255 / 0.4;
     --glass-edge-mid: 255 255 255 / 0.12;
+    --glass-edge-top: 255 255 255 / 0.55;
+    --glass-edge-bottom: 255 255 255 / 0.16;
+    --glass-inner-refraction: 255 255 255 / 0.22;
+    --glass-surface-sheen: 255 255 255 / 0.08;
     --glass-active-fg: 142 76% 56%;
     --agent-tool-bg: 120 9% 12%;
     --agent-tool-fg: 0 0% 85%;
@@ -242,6 +257,7 @@
 }
 
 /* 玻璃边缘渐变光 — 模拟光线在玻璃边缘的折射（WWDC 25 Liquid Glass 核心特征）
+   非对称镜面：顶部为强高光（光源在上方），两侧渐隐，底部为柔和的透镜反光边。
    z-index: 1 放在内容之上（pointer-events: none 不影响交互），
    避免 z-index:-1 与 backdrop-filter 合成层冲突导致闪烁 */
 .glass::before,
@@ -255,12 +271,12 @@
   padding: 1.4px;
   background: linear-gradient(
     180deg,
-    rgb(var(--glass-edge-peak)) 0%,
-    rgb(var(--glass-edge-mid)) 20%,
-    transparent 40%,
+    rgb(var(--glass-edge-top)) 0%,
+    rgb(var(--glass-edge-mid)) 18%,
+    transparent 42%,
     transparent 60%,
-    rgb(var(--glass-edge-mid)) 80%,
-    rgb(var(--glass-edge-peak)) 100%
+    rgb(var(--glass-edge-mid)) 82%,
+    rgb(var(--glass-edge-bottom)) 100%
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -271,9 +287,28 @@
   z-index: 1;
 }
 
+/* 内折射环 — 玻璃厚度产生的第二层内高光，紧贴顶部边缘内侧（Apple Liquid Glass 的"厚度感"）。
+   仅在强/静态玻璃容器上，避免与 ::before 叠加过亮。 */
+.glass::after,
+.glass-strong::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 1.5px rgb(var(--glass-inner-refraction));
+  pointer-events: none;
+  z-index: 1;
+}
+
 .glass {
-  background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
-    rgb(var(--glass-bg));
+  background: linear-gradient(
+      115deg,
+      rgb(var(--glass-surface-sheen)) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgb(var(--glass-surface-sheen)) 100%
+    ),
+    linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%), rgb(var(--glass-bg));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid rgb(var(--glass-border));
@@ -283,7 +318,14 @@
     var(--glass-shadow);
 }
 .glass-strong {
-  background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
+  background: linear-gradient(
+      115deg,
+      rgb(var(--glass-surface-sheen)) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgb(var(--glass-surface-sheen)) 100%
+    ),
+    linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
     rgb(var(--glass-bg-strong));
   backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
@@ -302,6 +344,14 @@
   background: rgb(var(--glass-bg-strong));
   backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
   -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
+}
+/* 动态光响应：hover 时顶部镜面高光增强（模拟玻璃随交互反射更多光） */
+.glass-hover::before {
+  transition: opacity var(--duration-slow) var(--ease);
+}
+.glass-hover:hover::before {
+  opacity: 1;
+  filter: brightness(1.35);
 }
 
 /* 液态玻璃按钮（capsule 胶囊形，Apple Liquid Glass 规范） */
@@ -324,8 +374,20 @@
   background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
     rgb(var(--glass-bg-strong));
 }
+/* 按钮镜面随交互增强：hover 顶部高光变亮，press 轻微收缩（Apple 触感反馈） */
+.glass-btn::before {
+  transition:
+    opacity var(--duration) var(--ease),
+    filter var(--duration) var(--ease);
+}
+.glass-btn:hover::before {
+  filter: brightness(1.3);
+}
 .glass-btn:active {
   transform: scale(0.97);
+}
+.glass-btn:active::before {
+  filter: brightness(0.9);
 }
 /* 激活态：品牌色玻璃 tint + 微弱虹彩渐变（侧边栏激活态） */
 .glass-btn-active {
@@ -442,6 +504,9 @@ body.keyboard-open .glass-pill {
 .safe-area-bottom {
   padding-bottom: var(--safe-area-bottom-glass-padding);
 }
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 
 /* 3.5 高密度信息浮层：不透明岛屿，隔离折射 */
 .popover-island {
@@ -462,6 +527,10 @@ body.keyboard-open .glass-pill {
   .glass-strong::before,
   .glass-btn::before,
   .glass-pill::before {
+    display: none;
+  }
+  .glass::after,
+  .glass-strong::after {
     display: none;
   }
 }
@@ -496,6 +565,10 @@ body.keyboard-open .glass-pill {
 [data-perf-mode='low'] .glass-strong::before,
 [data-perf-mode='low'] .glass-btn::before,
 [data-perf-mode='low'] .glass-pill::before {
+  display: none;
+}
+[data-perf-mode='low'] .glass::after,
+[data-perf-mode='low'] .glass-strong::after {
   display: none;
 }
 [data-perf-mode='low'] .glass {

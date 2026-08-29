@@ -12,6 +12,8 @@ import { BranchSwitcher } from './BranchSwitcher';
 
 interface Props {
   text: string;
+  /** 随消息附带的图片（data URL / url），渲染在文字上方 */
+  images?: { mime: string; url: string }[];
   /** 是否处于编辑态 */
   editing?: boolean;
   editingText?: string;
@@ -30,6 +32,7 @@ interface Props {
 
 export function MessageBubble({
   text,
+  images,
   editing,
   editingText,
   onEditingTextChange,
@@ -58,6 +61,18 @@ export function MessageBubble({
           'max-w-[75%] whitespace-pre-wrap break-words',
         )}
       >
+        {images && images.length > 0 ? (
+          <div className="-mx-1 -mt-1 mb-2 flex max-w-xs flex-wrap gap-2 pt-1">
+            {images.map((img, i) => (
+              <img
+                key={i}
+                src={img.url}
+                alt=""
+                className="max-h-40 w-auto max-w-full rounded-lg object-cover"
+              />
+            ))}
+          </div>
+        ) : null}
         {editing ? (
           <textarea
             value={editingText ?? ''}

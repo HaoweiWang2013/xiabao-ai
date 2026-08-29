@@ -57,9 +57,12 @@ const RULES: CapabilityRule[] = [
       id.includes('qwen2-vl') ||
       id.includes('qwen2.5-vl') ||
       id.includes('deepseek-vl') ||
+      id.includes('deepseek-vision') ||
       id.includes('internvl') ||
       id.includes('minicpm-v') ||
-      id.includes('pixtral'),
+      id.includes('pixtral') ||
+      // 模型名自带 "vision"（如 deepseek-v4-flash-vision-exp）→ 视为视觉模型
+      id.includes('vision'),
     capability: { vision: true },
   },
 

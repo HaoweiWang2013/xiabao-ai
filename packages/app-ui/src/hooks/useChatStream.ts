@@ -9,12 +9,21 @@ import { useCallback, useRef, useState } from 'react';
 
 import { trpc } from '../lib/trpc';
 
+export interface ComposerImage {
+  /** 客户端本地 id，用于移除时定位 */
+  id: string;
+  mime: string;
+  /** data URL（base64） */
+  dataUrl: string;
+}
+
 type StreamOperation =
   | {
       type: 'send';
       conversationId: string;
       modelId: string;
       text: string;
+      images?: ComposerImage[];
       knowledgeDocIds?: string[];
     }
   | {
@@ -117,6 +126,7 @@ export function useChatStream(convId: string, onStreamDone?: () => void): UseCha
           conversationId: activeOperation.conversationId,
           modelId: activeOperation.modelId,
           text: activeOperation.text,
+          images: activeOperation.images?.map((i) => ({ mime: i.mime, data: i.dataUrl })),
           knowledgeDocIds: activeOperation.knowledgeDocIds,
         }
       : { conversationId: '', modelId: '', text: '' },

@@ -22,7 +22,7 @@ import { MessageBubble } from '../../components/MessageBubble';
 import { MessageDocAssistant } from '../../components/MessageDocAssistant';
 import { type ModelOption } from '../../components/ModelSelector';
 import { ToolMessage } from '../../components/ToolMessage';
-import { useChatStream } from '../../hooks/useChatStream';
+import { useChatStream, type ComposerImage } from '../../hooks/useChatStream';
 import { TabBar } from '../../layout/TabBar';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
@@ -381,6 +381,7 @@ function ChatRoom({
   }
 
   const [input, setInput] = useState('');
+  const [attachments, setAttachments] = useState<ComposerImage[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
 
@@ -391,6 +392,7 @@ function ChatRoom({
     // 切换会话时清理上一会话的流式状态和编辑状态
     setEditingId(null);
     setEditingText('');
+    setAttachments([]);
     // M4 长尾 · `#` 文档级引用 state 不跨会话保留
     setSelectedDocIds([]);
 
@@ -422,7 +424,7 @@ function ChatRoom({
 
   function send(textOverride?: string) {
     const text = (textOverride ?? input).trim();
-    if (!text || streaming) return;
+    if ((!text && attachments.length === 0) || streaming) return;
     if (textOverride === undefined) {
       setInput('');
     }
@@ -431,8 +433,12 @@ function ChatRoom({
       conversationId: convId,
       modelId: selected.modelId,
       text,
+      images: attachments.length > 0 ? attachments : undefined,
       knowledgeDocIds: selectedDocIds.length > 0 ? selectedDocIds : undefined,
     });
+    if (textOverride === undefined) {
+      setAttachments([]);
+    }
   }
 
   function handleRegenerate(assistantMessageId: string) {
@@ -534,11 +540,15 @@ function ChatRoom({
               (p): p is Extract<typeof p, { kind: 'tool-call' }> => p.kind === 'tool-call',
             );
             if (m.message.role === 'user') {
+              const userImages = m.parts
+                .filter((p): p is Extract<typeof p, { kind: 'image' }> => p.kind === 'image')
+                .map((p) => ({ mime: p.mime, url: p.url }));
               return (
                 <UserBubbleWithSiblings
                   key={m.message.id}
                   message={m}
                   text={text}
+                  images={userImages.length > 0 ? userImages : undefined}
                   editing={editingId === m.message.id}
                   editingText={editingText}
                   onEditingTextChange={setEditingText}
@@ -651,6 +661,9 @@ function ChatRoom({
         models={modelOptions}
         selectedModel={composerSelectedModel}
         onSelectModel={onSelectModel}
+        images={attachments}
+        onAttachImages={(imgs) => setAttachments((prev) => [...prev, ...imgs])}
+        onRemoveImage={(id) => setAttachments((prev) => prev.filter((i) => i.id !== id))}
         extraTools={
           <>
             <KnowledgeBaseSelector
@@ -681,6 +694,7 @@ function ChatRoom({
 function UserBubbleWithSiblings({
   message,
   text,
+  images,
   editing,
   editingText,
   onEditingTextChange,
@@ -692,6 +706,7 @@ function UserBubbleWithSiblings({
 }: {
   message: ChainMessageBundle;
   text: string;
+  images?: { mime: string; url: string }[];
   editing: boolean;
   editingText: string;
   onEditingTextChange: (v: string) => void;
@@ -710,6 +725,7 @@ function UserBubbleWithSiblings({
   return (
     <MessageBubble
       text={text}
+      images={images}
       editing={editing}
       editingText={editingText}
       onEditingTextChange={onEditingTextChange}

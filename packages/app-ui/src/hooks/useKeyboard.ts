@@ -18,7 +18,6 @@ export function useKeyboard(): KeyboardInfo {
     // Try Capacitor Keyboard plugin first (dynamic import)
     const tryCapacitor = async () => {
       try {
-        // @ts-ignore — @capacitor/keyboard is a mobile-only dep
         const { Keyboard } = await import('@capacitor/keyboard');
         const showHandler = await Keyboard.addListener(
           'keyboardWillShow',
@@ -30,8 +29,8 @@ export function useKeyboard(): KeyboardInfo {
           setInfo({ visible: false, height: 0 });
         });
         return () => {
-          showHandler.remove();
-          hideHandler.remove();
+          void showHandler.remove();
+          void hideHandler.remove();
         };
       } catch {
         return null;
@@ -51,7 +50,7 @@ export function useKeyboard(): KeyboardInfo {
     };
 
     let cleanup: (() => void) | null = null;
-    tryCapacitor().then((c) => {
+    void tryCapacitor().then((c) => {
       cleanup = c ?? useVisualViewport();
     });
 

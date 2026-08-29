@@ -10,7 +10,17 @@
  *
  * 见 docs/12-ui-design.md §4.2 Composer / §5.3。
  */
-import { AudioLines, Loader2, Mic, Paperclip, Send, Slash, Square } from 'lucide-react';
+import {
+  AudioLines,
+  ImagePlus,
+  Loader2,
+  Mic,
+  Paperclip,
+  Send,
+  Slash,
+  Square,
+  X,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { detectMentionAtCursor, replaceMentionRange, type MentionMatch } from '@xiabao/core';
@@ -30,6 +40,7 @@ import {
   type MentionCandidate,
 } from '../features/chat/MentionAutocomplete';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { type ComposerImage } from '../hooks/useChatStream';
 import { trpc } from '../lib/trpc';
 import { useTranslation } from '../lib/useTranslation';
 
@@ -66,6 +77,12 @@ interface Props {
   contextUsage?: { used: number; total: number; percentage: number } | null;
   /** M5 语音：传入则启用语音录制功能 */
   voiceConfig?: { convId?: string };
+  /** 已选中的待发送图片（缩略图预览） */
+  images?: ComposerImage[];
+  /** 用户选择/拖拽/粘贴图片文件后回调（已转为 data URL） */
+  onAttachImages?: (images: ComposerImage[]) => void;
+  /** 移除某张已选图片 */
+  onRemoveImage?: (id: string) => void;
 }
 
 export function Composer({
@@ -83,11 +100,16 @@ export function Composer({
   mentionConfig,
   contextUsage,
   voiceConfig,
+  images,
+  onAttachImages,
+  onRemoveImage,
 }: Props) {
   const { t } = useTranslation();
   const finalPlaceholder = placeholder ?? t('chat.placeholder');
   const ref = useRef<HTMLTextAreaElement>(null);
   const mentionRef = useRef<MentionAutocompleteHandle>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const { state: recState, audioBlob, startRecording, stopRecording } = useAudioRecorder();
   const sttMut = trpc.voice.stt.useMutation();
@@ -195,12 +217,50 @@ export function Composer({
     });
   }
 
+  /** 把文件列表里的图片读取为 data URL，回调给父组件；非图片文件忽略 */
+  function attachFiles(files: FileList | File[]) {
+    if (!onAttachImages) return;
+    const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (list.length === 0) return;
+    void Promise.all(
+      list.map(
+        (f) =>
+          new Promise<ComposerImage>((resolve) => {
+            const reader = new FileReader();
+            const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            const mime = f.type || 'image/png';
+            reader.onload = () => resolve({ id, mime, dataUrl: String(reader.result ?? '') });
+            reader.onerror = () => resolve({ id, mime, dataUrl: '' });
+            reader.readAsDataURL(f);
+          }),
+      ),
+    ).then((imgs) => {
+      const valid = imgs.filter((i) => i.dataUrl);
+      if (valid.length > 0) onAttachImages(valid);
+    });
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files?.length) attachFiles(e.dataTransfer.files);
+  }
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="safe-area-bottom px-4 pt-2">
         <div
+          onDragOver={(e) => {
+            if (onAttachImages) {
+              e.preventDefault();
+              setDragOver(true);
+            }
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
           className={cn(
             'glass-strong composer-focus shadow-glass relative mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-2xl px-3 py-2.5',
+            dragOver && 'ring-primary/50 ring-2',
           )}
         >
           {mentionConfig ? (
@@ -213,6 +273,40 @@ export function Composer({
               onClose={() => setMatch(null)}
             />
           ) : null}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) attachFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          {images && images.length > 0 ? (
+            <div className="flex flex-wrap gap-2 px-1">
+              {images.map((img) => (
+                <div key={img.id} className="group/thumb relative">
+                  <img
+                    src={img.dataUrl}
+                    alt=""
+                    className="border-border/50 h-16 w-16 rounded-lg border object-cover"
+                  />
+                  {onRemoveImage ? (
+                    <button
+                      type="button"
+                      aria-label="移除图片"
+                      onClick={() => onRemoveImage(img.id)}
+                      className="bg-background/80 hover:bg-destructive/90 text-muted-foreground absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full shadow-sm hover:text-white"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
           <textarea
             ref={ref}
             rows={1}
@@ -222,8 +316,16 @@ export function Composer({
             onKeyUp={recomputeMention}
             onSelect={recomputeMention}
             onBlur={() => setMatch(null)}
+            onPaste={(e) => {
+              const files = Array.from(e.clipboardData.files ?? []);
+              const imgs = files.filter((f) => f.type.startsWith('image/'));
+              if (imgs.length > 0) {
+                e.preventDefault();
+                attachFiles(imgs);
+              }
+            }}
             placeholder={finalPlaceholder}
-            className="text-foreground placeholder:text-muted-foreground/80 max-h-[33vh] min-h-[24px] w-full resize-none bg-transparent px-2 py-1 text-sm leading-relaxed outline-none"
+            className="text-foreground placeholder:text-muted-foreground/80 max-h-[33vh] min-h-[24px] w-full resize-none bg-transparent px-2 py-1 text-[16px] leading-relaxed outline-none sm:text-sm"
             {...textareaProps}
           />
           <div className="border-border/30 flex items-center gap-2 border-t pt-2">
@@ -240,11 +342,25 @@ export function Composer({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <IconButton size="sm" variant="ghost" disabled className="hidden sm:inline-flex">
-                  <Paperclip className="h-3.5 w-3.5" />
+                <IconButton
+                  size="sm"
+                  variant="ghost"
+                  className="hidden sm:inline-flex"
+                  disabled={!onAttachImages || busy}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {images && images.length > 0 ? (
+                    <ImagePlus className="text-primary h-3.5 w-3.5" />
+                  ) : (
+                    <Paperclip className="h-3.5 w-3.5" />
+                  )}
                 </IconButton>
               </TooltipTrigger>
-              <TooltipContent side="top">附件（M3）</TooltipContent>
+              <TooltipContent side="top">
+                {images && images.length > 0
+                  ? `已选 ${images.length} 张图片`
+                  : '添加图片（支持拖拽 / 粘贴）'}
+              </TooltipContent>
             </Tooltip>
             {voiceConfig ? (
               <Tooltip>
@@ -340,7 +456,7 @@ export function Composer({
                 variant="primary"
                 size="sm"
                 onClick={() => onSend()}
-                disabled={!value.trim()}
+                disabled={!value.trim() && !(images && images.length > 0)}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-0 sm:w-auto sm:px-3 sm:py-1.5"
               >
                 <Send className="h-3 w-3 sm:h-3.5 sm:w-3.5" />

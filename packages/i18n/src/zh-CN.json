@@ -620,7 +620,12 @@
     "miniApp": "小程序",
     "translate": "翻译",
     "chat": "聊天",
+    "knowledge": "知识库",
+    "tools": "工具",
     "settings": "设置"
+  },
+  "mobileNav": {
+    "label": "主导航"
   },
   "emptyState": {
     "startHint": "开始一段对话",

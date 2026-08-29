@@ -1,8 +1,14 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+// ===== 国内 Maven 镜像（腾讯云 Nexus 聚合 Google + Maven Central + JCenter） =====
+// 优先从 mirrors.cloud.tencent.com 拉 AGP / AndroidX / KMP 依赖，官方仓库仅作 fallback。
+// 避免在国内网络环境下 dependency resolution 超时或卡几分钟才 fallback。
+def MAVEN_MIRROR = "https://mirrors.cloud.tencent.com/nexus/repository/maven-public"
+
 buildscript {
     
     repositories {
+        maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public' }
         google()
         mavenCentral()
     }
@@ -19,6 +25,7 @@ apply from: "variables.gradle"
 
 allprojects {
     repositories {
+        maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public' }
         google()
         mavenCentral()
     }
@@ -26,17 +33,35 @@ allprojects {
 
 // 本机 AGP 8.2.1 默认 NDK(25.1.8937393) 原先损坏，已重新安装；显式锁定该版本
 // （与 SDK 的 CMake 3.22.1 匹配，避免新版 NDK 的 lld 参数不兼容）。
-// 同时把 Java 兼容级别统一降到 17（本机仅有 JDK 17；capacitor-nodejs 默认要求 21）。
+// 同时把 Java 兼容级别统一降到 17（AGP 8.2 仅支持 JDK 17–20）。
 subprojects {
     afterEvaluate { proj ->
-        if (proj.hasProperty('android')) {
-            proj.android.ndkVersion = "25.1.8937393"
-            // 把原生 .cxx 构建目录搬到 D 盘短路径，绕开 pnpm store 的超长/特殊字符路径
-            // （否则 Windows 上 CMake/ninja 会报 "cannot be safely placed" / "build.ninja still dirty"）。
-            proj.android.externalNativeBuild.cmake.buildStagingDirectory = new File("D:/xbcxx/" + proj.name)
-            proj.android.compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
+        if (!proj.hasProperty('android')) return
+        proj.android.ndkVersion = "25.1.8937393"
+        // 把原生 .cxx 构建目录搬到短路径，绕开 pnpm store 的超长/特殊字符路径
+        // （否则 CMake/ninja 会报 "cannot be safely placed" / "build.ninja still dirty"）。
+        // Windows 用 D:/xbcxx，Linux/macOS 用 /tmp/xbcxx/<name>，都在仓库外部。
+        // 注意：仅当子项目显式声明了 externalNativeBuild.cmake 时才设置，
+        // 否则 AGP 会抛 "Cannot get property 'cmake' on null object"。
+        if (proj.android.metaClass.respondsTo(proj.android, "getExternalNativeBuild") &&
+            proj.android.externalNativeBuild != null) {
+            def enb = proj.android.externalNativeBuild
+            if (enb.metaClass.respondsTo(enb, "getCmake") && enb.cmake != null) {
+                def stagingRoot = org.gradle.internal.os.OperatingSystem.current().isWindows()
+                    ? "D:/xbcxx"
+                    : "/tmp/xbcxx"
+                enb.cmake.buildStagingDirectory = new File(stagingRoot + "/" + proj.name)
+            }
+        }
+        proj.android.compileOptions {
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
+        }
+        // Kotlin compile options (if any Capacitor plugin ships Kotlin sources).
+        if (proj.android.hasProperty('kotlinOptions')) {
+            def ko = proj.android.kotlinOptions
+            if (ko != null && ko.metaClass.respondsTo(ko, "setJvmTarget")) {
+                ko.jvmTarget = "17"
             }
         }
     }

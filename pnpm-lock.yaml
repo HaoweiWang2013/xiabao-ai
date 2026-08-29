@@ -289,10 +289,16 @@ importers:
       '@capacitor/android':
         specifier: 6.0.0
         version: 6.0.0(@capacitor/core@6.0.0)
+      '@capacitor/app':
+        specifier: 6.0.0
+        version: 6.0.0(@capacitor/core@6.0.0)
       '@capacitor/core':
         specifier: 6.0.0
         version: 6.0.0
       '@capacitor/keyboard':
+        specifier: 6.0.0
+        version: 6.0.0(@capacitor/core@6.0.0)
+      '@capacitor/status-bar':
         specifier: 6.0.0
         version: 6.0.0(@capacitor/core@6.0.0)
       capacitor-nodejs:
@@ -308,6 +314,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@capacitor/app':
+        specifier: 6.0.0
+        version: 6.0.0(@capacitor/core@6.0.0)
+      '@capacitor/core':
+        specifier: 6.0.0
+        version: 6.0.0
+      '@capacitor/keyboard':
+        specifier: 6.0.0
+        version: 6.0.0(@capacitor/core@6.0.0)
+      '@capacitor/status-bar':
+        specifier: 6.0.0
+        version: 6.0.0(@capacitor/core@6.0.0)
       '@fastify/cors':
         specifier: 9.0.1
         version: 9.0.1
@@ -1621,6 +1639,11 @@ packages:
     peerDependencies:
       '@capacitor/core': ^6.0.0
 
+  '@capacitor/app@6.0.0':
+    resolution: {integrity: sha512-X5UGd90Jh5p9rmoPyMqFyFWqOypdJgVJhYcM5X1YyDVJJGzmJ5MuYv1+ajj5DW9Qyh+5a3th9WYptdGby8jidA==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
+
   '@capacitor/cli@6.0.0':
     resolution: {integrity: sha512-6z30P0mr53l0VXPwFjzDVuKIt1991bqUSSfShTT2efWN+rBSGSAH2bPID6qSZornH1n5R5Lh/UHq/aGuW523MQ==}
     engines: {node: '>=18.0.0'}
@@ -1631,6 +1654,11 @@ packages:
 
   '@capacitor/keyboard@6.0.0':
     resolution: {integrity: sha512-pPX/PQWWjw5ce47kHEYv6IWlHzuhAxgXihqEAAAGLdwK3u3srgGWCljXrYS9juVBPi/lA1uK7UaUzYI0XrgxVQ==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
+
+  '@capacitor/status-bar@6.0.0':
+    resolution: {integrity: sha512-Wo0ILugYlmENegKDgTzVCPjbvP8h1ObgHslLdgeVG643ViMS/diausHIq8e104WIKCXtKIELmQeYVp9mX7932g==}
     peerDependencies:
       '@capacitor/core': ^6.0.0
 
@@ -2971,7 +2999,6 @@ packages:
 
   '@libsql/win32-x64-msvc@0.4.7':
     resolution: {integrity: sha512-7pJzOWzPm6oJUxml+PCDRzYQ4A1hTMHAciTAHfFK4fkbDZX33nWPVG7Y3vqdKtslcwAzwmrNDc6sXy2nwWnbiw==}
-    cpu: [x64]
     os: [win32]
 
   '@lukeed/ms@2.0.2':
@@ -7551,7 +7578,6 @@ packages:
 
   libsql@0.4.7:
     resolution: {integrity: sha512-T9eIRCs6b0J1SHKYIvD8+KCJMcWZ900iZyxdnSCdqxN12Z1ijzT+jY5nrk72Jw4B0HGzms2NgpryArlJqvc3Lw==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lie@3.3.0:
@@ -11955,6 +11981,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 6.0.0
 
+  '@capacitor/app@6.0.0(@capacitor/core@6.0.0)':
+    dependencies:
+      '@capacitor/core': 6.0.0
+
   '@capacitor/cli@6.0.0':
     dependencies:
       '@ionic/cli-framework-output': 2.2.8
@@ -11983,6 +12013,10 @@ snapshots:
       tslib: 2.8.1
 
   '@capacitor/keyboard@6.0.0(@capacitor/core@6.0.0)':
+    dependencies:
+      '@capacitor/core': 6.0.0
+
+  '@capacitor/status-bar@6.0.0(@capacitor/core@6.0.0)':
     dependencies:
       '@capacitor/core': 6.0.0
 

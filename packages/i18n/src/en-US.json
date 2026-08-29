@@ -619,7 +619,12 @@
     "miniApp": "Mini App",
     "translate": "Translate",
     "chat": "Chat",
+    "knowledge": "Knowledge",
+    "tools": "Tools",
     "settings": "Settings"
+  },
+  "mobileNav": {
+    "label": "Main navigation"
   },
   "emptyState": {
     "startHint": "Start a conversation",

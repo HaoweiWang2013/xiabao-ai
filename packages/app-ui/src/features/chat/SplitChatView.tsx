@@ -345,7 +345,7 @@ function PaneHeader({
                     e.stopPropagation();
                     onTabClose(tab.id);
                   }}
-                  className="text-muted-foreground hover:text-foreground ml-auto opacity-0 transition-opacity group-hover:opacity-100"
+                  className="text-muted-foreground hover:text-foreground ml-auto opacity-60 transition-opacity group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   aria-label="关闭 Tab"
                 >
                   <X className="h-3 w-3" />

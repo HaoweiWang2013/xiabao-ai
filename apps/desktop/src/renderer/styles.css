@@ -57,6 +57,30 @@
   }
 
   /*
+   * 环境光色彩源（桌面端）· 液态玻璃折射引擎
+   *
+   * macOS vibrancy / Win11 mica 只提供中性的桌面模糊，玻璃面板浮在其上时
+   * 往往呈现均匀灰色、缺乏可折射的色彩，液态感消失。
+   *
+   * 在 #root 上叠加一层极其克制的 radial-gradient（primary 绿 + iridescent 蓝紫），
+   * 作为玻璃背后的光学色彩源。opacity 远低于 Web 端（无 vibrancy）：
+   * 让 mica/vibrancy 依旧主导观感，仅为玻璃提供一点可折射的冷暖色变化。
+   * pointer-events 无关（背景绘制），且不遮挡窗口圆角（仅绘制在 #root 内部）。
+   */
+  #root {
+    background-image: radial-gradient(
+        ellipse 55% 45% at 12% 10%,
+        hsl(var(--primary) / 0.05) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 88% 90%,
+        hsl(var(--iridescent-mid) / 0.04) 0%,
+        transparent 55%
+      );
+  }
+
+  /*
    * Window Controls Overlay 避让 · Win11 titleBarOverlay 模式
    *
    * 主进程开了 BrowserWindow.titleBarOverlay → Windows 在右上角画 minimize/maximize/close

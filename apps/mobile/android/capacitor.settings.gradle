@@ -2,5 +2,14 @@
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../../../node_modules/.pnpm/@capacitor+android@6.0.0_@capacitor+core@6.0.0/node_modules/@capacitor/android/capacitor')
 
+include ':capacitor-app'
+project(':capacitor-app').projectDir = new File('../../../node_modules/.pnpm/@capacitor+app@6.0.0_@capacitor+core@6.0.0/node_modules/@capacitor/app/android')
+
+include ':capacitor-keyboard'
+project(':capacitor-keyboard').projectDir = new File('../../../node_modules/.pnpm/@capacitor+keyboard@6.0.0_@capacitor+core@6.0.0/node_modules/@capacitor/keyboard/android')
+
+include ':capacitor-status-bar'
+project(':capacitor-status-bar').projectDir = new File('../../../node_modules/.pnpm/@capacitor+status-bar@6.0.0_@capacitor+core@6.0.0/node_modules/@capacitor/status-bar/android')
+
 include ':capacitor-nodejs'
 project(':capacitor-nodejs').projectDir = new File('../../../node_modules/.pnpm/capacitor-nodejs@https+++github.com+hampoelz+capacitor-nodejs+releases+download+v1.0.0-beta.1_hjqjcamnaadi2o57sgldo6uhfe/node_modules/capacitor-nodejs/android')

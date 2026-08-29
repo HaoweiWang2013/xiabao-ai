@@ -47,10 +47,18 @@ const KnowledgeContextSchema = {
   knowledgeDocIds: z.array(z.string()).optional(),
 };
 
+/** 随消息附带的多模态图片（data URL，base64） */
+const ChatImageSchema = z.object({
+  mime: z.string(),
+  data: z.string(),
+});
+
 const SendInputSchema = z.object({
   conversationId: z.string(),
   modelId: z.string(),
-  text: z.string().min(1),
+  /** 允许为空：仅发图片（不带文字）时也可发送 */
+  text: z.string().default(''),
+  images: z.array(ChatImageSchema).max(10).optional(),
   systemPrompt: z.string().nullable().optional(),
   temperature: z.number().nullable().optional(),
   topP: z.number().nullable().optional(),
@@ -251,6 +259,7 @@ export const chatRouter = router({
             conversationId: input.conversationId,
             modelId: input.modelId,
             text: input.text,
+            images: input.images,
             systemPrompt: input.systemPrompt,
             temperature: input.temperature,
             topP: input.topP,

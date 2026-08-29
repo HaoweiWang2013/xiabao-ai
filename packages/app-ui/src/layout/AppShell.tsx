@@ -12,9 +12,9 @@
  *   - 左侧抽屉式会话列表
  *   - 无 Split View / 多 Tab
  */
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { History, Menu, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   accentAtom,
@@ -29,11 +29,12 @@ import { cn, IconButton } from '@xiabao/ui';
 import { useAdaptivePerformance } from '../hooks/useAdaptivePerformance';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useScrollState } from '../hooks/useScrollState';
+import { useStatusBar } from '../hooks/useStatusBar';
 import { useTranslation } from '../lib/useTranslation';
 
 import { IconSidebar } from './IconSidebar';
 import { IconTopBar } from './IconTopBar';
-import { TabBar } from './TabBar';
+import { MobileTabBar } from './MobileTabBar';
 
 import type { ReactNode } from 'react';
 
@@ -70,6 +71,7 @@ function useViewportWidth(): number {
 
 export function AppShell({ middle, children, showMiddle = true }: Props) {
   const nav = useAtomValue(primaryNavAtom);
+  const setNav = useSetAtom(primaryNavAtom);
   const theme = useAtomValue(themeAtom);
   const accent = useAtomValue(accentAtom) as AccentId;
   const [systemDark, setSystemDark] = useState<boolean>(() =>
@@ -93,6 +95,45 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
     if (typeof document === 'undefined') return;
     document.body.classList.toggle('keyboard-open', keyboard.visible);
   }, [keyboard.visible]);
+  // 沉浸式状态栏：Android 边到边 + 图标明暗自适应（仅 Capacitor 环境生效）
+  useStatusBar();
+
+  // Android 硬件返回键：抽屉优先关闭 → 非聊天页回聊天 → 否则退出
+  const drawerOpenRef = useRef(isDrawerOpen);
+  drawerOpenRef.current = isDrawerOpen;
+  const navRef = useRef(nav);
+  navRef.current = nav;
+  useEffect(() => {
+    if (!isMobile) return;
+    let remove: (() => void) | undefined;
+    let disposed = false;
+    void (async () => {
+      try {
+        const { App } = await import('@capacitor/app');
+        if (disposed) return;
+        const handle = await App.addListener('backButton', () => {
+          if (drawerOpenRef.current) {
+            setIsDrawerOpen(false);
+            return;
+          }
+          if (navRef.current !== 'chat') {
+            setNav('chat');
+            return;
+          }
+          void App.exitApp();
+        });
+        remove = () => {
+          void handle.remove();
+        };
+      } catch {
+        /* 非 Capacitor 环境：忽略 */
+      }
+    })();
+    return () => {
+      disposed = true;
+      remove?.();
+    };
+  }, [isMobile, setIsDrawerOpen, setNav]);
 
   // 监听系统主题变化（仅当 theme = 'system' 时影响 accent 取值）
   useEffect(() => {
@@ -203,29 +244,31 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   if (isMobile) {
     return (
       <div className="bg-background text-foreground relative flex h-dvh w-screen flex-col overflow-hidden font-sans">
-        {/* 移动端顶栏 */}
-        <header className="app-page-header border-border/40 bg-background/50 flex h-12 shrink-0 items-center justify-between border-b px-3 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <IconButton
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsDrawerOpen(true)}
-              aria-label="打开菜单"
-              className="h-8 w-8"
-            >
-              <Menu className="h-4 w-4" />
-            </IconButton>
-            <div className="flex items-center gap-1.5 text-xs font-semibold tracking-tight">
-              <Sparkles className="text-primary h-3.5 w-3.5" />
-              <span>XiabaoAI</span>
+        {/* 移动端顶栏（safe-area-top 适配刘海/状态栏） */}
+        <header className="app-page-header border-border/40 bg-background/50 safe-area-top shrink-0 border-b backdrop-blur-sm">
+          <div className="flex h-12 items-center justify-between px-3">
+            <div className="flex items-center gap-2">
+              <IconButton
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsDrawerOpen(true)}
+                aria-label="打开菜单"
+                className="h-8 w-8"
+              >
+                <Menu className="h-4 w-4" />
+              </IconButton>
+              <div className="flex items-center gap-1.5 text-xs font-semibold tracking-tight">
+                <Sparkles className="text-primary h-3.5 w-3.5" />
+                <span>XiabaoAI</span>
+              </div>
             </div>
+            <div className="h-8 w-8" /> {/* 左右占位平衡 */}
           </div>
-          <div className="h-8 w-8" /> {/* 左右占位平衡 */}
         </header>
 
         {/* 主内容区域 */}
         <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
-        {nav === 'chat' && <TabBar />}
+        <MobileTabBar />
 
         {/* 抽屉遮罩 (Overlay Backdrop) */}
         <div

@@ -67,10 +67,16 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['@xiabao/app-ui', '@xiabao/state', '@xiabao/ui', '@xiabao/theme'],
+    // 强制预构建这些 ESM 依赖，避免 rollup 直接打包它们的源码 .mjs
+    // （vite 5.3.x + sourcemap 下会报 "Can't resolve original location of error"）
+    include: ['jotai', '@tanstack/react-query'],
   },
   build: {
     target: 'es2022',
-    sourcemap: true,
+    // 关闭 sourcemap：vite 5.3.5 在 sourcemap 模式下打包含 `import.meta.env` 的
+    // ESM 依赖（jotai / @tanstack/react-query 的 .mjs）会抛
+    // "Can't resolve original location of error"。升级 vite 后如需 sourcemap 可恢复 true。
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
