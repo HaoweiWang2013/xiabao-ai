@@ -246,7 +246,7 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
             <Button
               variant="outline"
               size="sm"
-              className="glass-btn hover:border-primary/40 w-full justify-start gap-1.5 text-xs"
+              className="glass-btn glass-interactive hover:border-primary/40 w-full justify-start gap-1.5 text-xs"
               onClick={() => setCreating(true)}
             >
               <Plus className="h-3.5 w-3.5" /> {t('providers.addBtn')}
