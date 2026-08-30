@@ -1,5 +1,9 @@
 # P10 · Android Mobile 策略
 
+> ⚠️ **历史文档（2026-05 立项时的 RN 方案）**：M8 实际交付**未采用本文的 React Native + op-sqlite + MMKV 路线**，而是 **Capacitor WebView + 本地 Node.js 服务端（capacitor-nodejs）+ 100% 复用 web 构建产物与 @xiabao/app-ui**。
+> 实际架构见 `docs/02-architecture.md` §6 Adapter 清单与 `docs/15-incomplete-status.md` §2.10；APK 构建见 `docs/09-build-release.md` §7。本文保留作决策过程存档，其中"共享逻辑层、重写 UI 层"的判定原则仍适用（最终实现因 Capacitor 共享 WebView UI 而**零重写**）。
+> 已按新架构落地的事实：`@xiabao/state` 在移动端直接使用 localStorage（WebView 同源存储，无需 MMKV 注入）；`@xiabao/ui-native` 未投入使用。
+
 > 本文锁定 M8 Android 端实施方案。M0–M7 期间的桌面 / Web 工作必须遵循本文规范（持久化抽象、平台无关 service、UI 契约同步），避免 M8 大返工。
 
 ## 1. 现状与目标

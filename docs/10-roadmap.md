@@ -11,9 +11,12 @@ M2  聊天 MVP            ✅ 已完成
 M3  打磨与打包          ✅ 已完成
 M4  知识库 RAG          ✅ 已完成 (含 Phase 1-8 长尾)
 M5  图像 + 语音         ✅ 已完成
-M6  MCP + Agent         ✅ 已完成
+M6  MCP + 工具调用      ✅ 已完成
 M7  Web 完整版          ✅ 已完成
 M8  Android 端          ✅ 已完成
+M9  液态玻璃视觉        ✅ 已完成 (v2 折射 + 三档降级)
+M10 GPU 性能与闪烁修复  ✅ 已完成
+M11 移动端体验 + iOS 26 控件 ✅ 已完成
 ```
 
 ---
@@ -127,7 +130,7 @@ M8  Android 端          ✅ 已完成
 - [x] TranslatePage UI 已就位
 - [x] 通过 ChatService 文本翻译
 
-## M6 · MCP + Agent ✅
+## M6 · MCP + 工具调用 ✅
 
 ### MCP 协议
 
@@ -138,14 +141,15 @@ M8  Android 端          ✅ 已完成
 - [x] 工具粒度授权/撤销
 - [x] mcpServers + mcpTools DB 表 + migration
 
-### Agent 执行
+### 工具调用循环（Agent 能力并入 ChatService）
 
-- [x] AgentService（think→tool→observe→respond 循环，MAX_STEPS=20）
-- [x] 流式步骤卡片 UI（AgentWorkspace + StepCard）
+- [x] ChatService.stream 内嵌 tool-loop（tool-call → 执行 → 回填 tool-result → 续写）
 - [x] AbortController 中止
 - [x] 内置工具：web_search（多搜索引擎）、fetch_url、fetch_page_with_content、file_read、run_javascript（VM 沙箱）、shell
-- [x] agentRuns + agentSteps DB 表
-- [x] agent tRPC 路由（run/abort/list/getRun/stepsByRun）
+- [x] Agent 步骤 UI：MessageDocAssistant 三级材质（think / tool / respond）+ ToolMessage 卡片
+- [x] Provider 实例化缓存修复（新增 Provider 不再覆盖旧实例）
+
+> 注：独立 AgentService / agentRuns+agentSteps 表 / agent tRPC 路由未采用 —— 工具调用以 message parts 持久化，UI 走消息流渲染。
 
 ## M7 · Web 完整版 ✅
 
@@ -156,10 +160,44 @@ M8  Android 端          ✅ 已完成
 
 ## M8 · Android 端 ✅
 
-- [x] Capacitor 容器 + 本地 Node.js 运行时
-- [x] Android 原生工程（Gradle + APK/AAB 构建）
-- [x] 共享全部 @xiabao/app-ui 组件
-- [x] capacitor.config.ts 配置就绪
+- [x] Capacitor 容器 + 本地 Node.js 运行时（capacitor-nodejs beta.10）
+- [x] Android 原生工程（Gradle + AGP 8.2 + JDK 17，`scripts/build-apk.mjs` 一键构建）
+- [x] 共享全部 web 构建产物与 @xiabao/app-ui 组件
+- [x] capacitor.config.ts 配置就绪（androidScheme https / Keyboard resize / nodeDir）
+
+---
+
+## M9 · 液态玻璃视觉 v2 ✅（2026-08）
+
+- [x] Apple Liquid Glass 规范变体补齐（tintable / clear / identity / interactive 对应物）
+- [x] **折射（Lensing）实现**：`LiquidGlassDefs` SVG feTurbulence + feDisplacementMap（`#lg-refract`）
+- [x] **三档质量**：`glassQualityAtom`（auto / full / frosted）+ `useGlassQuality` UA/设备能力判定 + `<html data-glass-quality>`
+- [x] 设置 → 外观 → 玻璃效果 三档入口（i18n 中英文）
+- [x] 实时二次降级：滚动中 / 键盘弹起 / data-perf-mode=low 摘除折射仅留 blur
+- [x] frosted 档熄灭 ::before/::after 动态光
+- [x] 完整规范文档 `docs/ui/liquid-glass-v2.md`
+
+## M10 · GPU 性能与闪烁修复 ✅（2026-08）
+
+- [x] `isolation: isolate` + `backface-visibility: hidden` + `contain: layout` 合成策略
+- [x] transition-all → transition-colors（根除合成层重建闪烁）
+- [x] `::before z-index: 1 pointer-events:none`
+- [x] useAdaptivePerformance RAF FPS 监测 + data-perf-mode=low
+- [x] Electron 主进程 GPU 命令行开关
+- [x] Chrome DevTools 6x slowdown 下液态玻璃 ≥ 30 FPS
+
+## M11 · 移动端体验 + iOS 26 控件 ✅（2026-08）
+
+- [x] MobileTabBar 底部四 Tab（chat / knowledge / tools / settings，<640px），抽屉次级导航
+- [x] TabBar / 侧栏滚动收缩（Apple tabBarMinimizeBehavior）
+- [x] 同心圆角（内角 = 外角 − 内缩，TabBar 激活胶囊 16→10px）
+- [x] 沉浸式状态栏（@capacitor/status-bar 自适应图标）+ Android 物理返回键拦截（@capacitor/app）
+- [x] 安全区 CSS 变量 + styles.xml 适配
+- [x] Composer 移动端输入 16px（防 iOS Safari 自动缩放）
+- [x] ConfirmDialog（Promise 化）替换全部 10 处原生 window.confirm（规避 Trae CN webview React #185）
+- [x] 小程序 iframe 崩溃修复：非 Electron 环境 window.open 新窗口；builtins 精简为 id/name/url/icon
+- [x] Switch 升级 iOS 26 液态玻璃（玻璃轨道 + tinted 开启 + 白玻璃球滑块 + 按压弹性）
+- [x] packages/ui 快照测试建立（15 文件 51 用例）
 
 ---
 

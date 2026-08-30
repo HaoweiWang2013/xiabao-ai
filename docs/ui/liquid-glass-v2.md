@@ -17,13 +17,13 @@
 
 关键区别：
 
-| | 传统 Glassmorphism | Apple Liquid Glass |
-|---|---|---|
-| 光学行为 | **散射**（scatter）——均匀模糊背景 | **折射**（lens/bend）——边缘弯折光线、中心保持通透 |
-| 边缘 | 平直过渡 | 光线在弧形边缘集中、拉伸（lensing 聚光） |
-| 呈现/消失 | opacity 淡入淡出 | 通过**调制光弯曲度**物质化（materialize）出现 |
-| 动态 | 静态材质 | 随交互/移动产生 specular 高光，实时渲染 |
-| 触感 | 视觉层 | 「轻质液体」的物理手感（按压回弹、形变） |
+|           | 传统 Glassmorphism                | Apple Liquid Glass                                |
+| --------- | --------------------------------- | ------------------------------------------------- |
+| 光学行为  | **散射**（scatter）——均匀模糊背景 | **折射**（lens/bend）——边缘弯折光线、中心保持通透 |
+| 边缘      | 平直过渡                          | 光线在弧形边缘集中、拉伸（lensing 聚光）          |
+| 呈现/消失 | opacity 淡入淡出                  | 通过**调制光弯曲度**物质化（materialize）出现     |
+| 动态      | 静态材质                          | 随交互/移动产生 specular 高光，实时渲染           |
+| 触感      | 视觉层                            | 「轻质液体」的物理手感（按压回弹、形变）          |
 
 **Web 实现的唯一途径**：把 SVG 位移滤镜嵌入 `backdrop-filter`，让背景像素按噪声图偏移，模拟光线弯折：
 
@@ -50,13 +50,13 @@ backdrop-filter: blur(16px) saturate(180%) url(#lg-refract);
 
 ### 2.3 材质变体（SwiftUI `glassEffect` API）
 
-| 变体 | 用途 | 透明度 | 前置条件 |
-|---|---|---|---|
-| `.regular` | 默认，导航/按钮/工具栏 | 中 | 无 |
-| `.regular.tint(color)` | **可着色玻璃**（签名特性）：语义主操作/选中态 | 中 | tint 只用于语义，不做装饰 |
-| `.clear` | 媒体丰富背景上的小浮动控件 | 高 | 前景必须粗体亮色 |
-| `.identity` | 条件禁用玻璃 | 无 | 静态/可读性场景 |
-| `.interactive()` | 增强修饰：按压缩放+回弹+触摸点照亮+光斑 | — | 与基础变体组合 |
+| 变体                   | 用途                                          | 透明度 | 前置条件                  |
+| ---------------------- | --------------------------------------------- | ------ | ------------------------- |
+| `.regular`             | 默认，导航/按钮/工具栏                        | 中     | 无                        |
+| `.regular.tint(color)` | **可着色玻璃**（签名特性）：语义主操作/选中态 | 中     | tint 只用于语义，不做装饰 |
+| `.clear`               | 媒体丰富背景上的小浮动控件                    | 高     | 前景必须粗体亮色          |
+| `.identity`            | 条件禁用玻璃                                  | 无     | 静态/可读性场景           |
+| `.interactive()`       | 增强修饰：按压缩放+回弹+触摸点照亮+光斑       | —      | 与基础变体组合            |
 
 ### 2.4 原则（Principles，Bruno 部分）
 
@@ -95,15 +95,15 @@ backdrop-filter: blur(16px) saturate(180%) url(#lg-refract);
 
 ### 折射滤镜参数（校准值）
 
-| 参数 | 值 | 依据 |
-|---|---|---|
-| `baseFrequency` | `0.008 0.008` | 低频噪声 = 大尺度柔和弯曲；≥0.02 变磨砂颗粒 |
-| `numOctaves` | `2` | 两阶叠加，弯曲更有机 |
-| `seed` | `7` | 固定种子，保证全局一致 |
-| `stdDeviation`（软化） | `1.5` | 噪声过渡平滑，避免硬边 |
-| `scale`（位移幅度） | `26` | 社区实测 macOS 26 控制中心 ≈ 0.45/单位；>40 出现撕裂 |
-| filter 区域 | `x/y -20%, w/h 140%` | 为位移留采样余量，防边缘裁切 |
-| `colorInterpolationFilters` | `sRGB` | 避免 linearRGB 导致的色彩偏移 |
+| 参数                        | 值                   | 依据                                                 |
+| --------------------------- | -------------------- | ---------------------------------------------------- |
+| `baseFrequency`             | `0.008 0.008`        | 低频噪声 = 大尺度柔和弯曲；≥0.02 变磨砂颗粒          |
+| `numOctaves`                | `2`                  | 两阶叠加，弯曲更有机                                 |
+| `seed`                      | `7`                  | 固定种子，保证全局一致                               |
+| `stdDeviation`（软化）      | `1.5`                | 噪声过渡平滑，避免硬边                               |
+| `scale`（位移幅度）         | `26`                 | 社区实测 macOS 26 控制中心 ≈ 0.45/单位；>40 出现撕裂 |
+| filter 区域                 | `x/y -20%, w/h 140%` | 为位移留采样余量，防边缘裁切                         |
+| `colorInterpolationFilters` | `sRGB`               | 避免 linearRGB 导致的色彩偏移                        |
 
 ---
 
@@ -145,22 +145,22 @@ frosted/full 档下：
 
 ### 4.1 实现文件映射
 
-| 层 | 文件 | 说明 |
-|---|---|---|
-| 用户偏好 | `packages/state/src/index.ts` → `glassQualityAtom` | 持久化 `ui.glassQuality`，`'auto' \| 'full' \| 'frosted'` |
-| 解析与注入 | `packages/app-ui/src/hooks/useGlassQuality.ts` | auto → full/frosted 判定，写 `<html data-glass-quality>` |
-| 折射滤镜 | `packages/app-ui/src/components/LiquidGlassDefs.tsx` | 全局 SVG defs，`id="lg-refract"` |
-| 样式降级 | `packages/theme/src/css-variables.css` 末尾 | `html[data-glass-quality='full'/'frosted']` 规则组 |
-| 设置入口 | `packages/app-ui/src/features/settings/AppearanceSettings.tsx` | 「玻璃效果」卡片三选 |
+| 层         | 文件                                                           | 说明                                                      |
+| ---------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| 用户偏好   | `packages/state/src/index.ts` → `glassQualityAtom`             | 持久化 `ui.glassQuality`，`'auto' \| 'full' \| 'frosted'` |
+| 解析与注入 | `packages/app-ui/src/hooks/useGlassQuality.ts`                 | auto → full/frosted 判定，写 `<html data-glass-quality>`  |
+| 折射滤镜   | `packages/app-ui/src/components/LiquidGlassDefs.tsx`           | 全局 SVG defs，`id="lg-refract"`                          |
+| 样式降级   | `packages/theme/src/css-variables.css` 末尾                    | `html[data-glass-quality='full'/'frosted']` 规则组        |
+| 设置入口   | `packages/app-ui/src/features/settings/AppearanceSettings.tsx` | 「玻璃效果」卡片三选                                      |
 
 ### 4.2 浏览器兼容矩阵
 
-| 引擎 | 折射 url() | 结果 |
-|---|---|---|
-| Chromium（Electron/Chrome/Edge） | ✅ 真实渲染 | full 档成立 |
-| Android WebView（Capacitor APK） | ✅ 引擎支持 | auto 档因触屏降 frosted，可手动选 full |
-| Safari / iOS 全系（所有 iOS 浏览器内壳都是 WebKit） | ❌ 静默忽略 | 只剩 blur，auto 直接 frosted |
-| Firefox | ❌ 静默忽略 | 同上 |
+| 引擎                                                | 折射 url()  | 结果                                   |
+| --------------------------------------------------- | ----------- | -------------------------------------- |
+| Chromium（Electron/Chrome/Edge）                    | ✅ 真实渲染 | full 档成立                            |
+| Android WebView（Capacitor APK）                    | ✅ 引擎支持 | auto 档因触屏降 frosted，可手动选 full |
+| Safari / iOS 全系（所有 iOS 浏览器内壳都是 WebKit） | ❌ 静默忽略 | 只剩 blur，auto 直接 frosted           |
+| Firefox                                             | ❌ 静默忽略 | 同上                                   |
 
 **陷阱**：`CSS.supports('backdrop-filter', 'url(#f)')` 在 Safari 也返回 true（解析支持 ≠ 渲染支持），必须用 UA 引擎判定，不能用特性查询。
 
@@ -168,32 +168,32 @@ frosted/full 档下：
 
 ## 5. 按钮动态规范（SwiftUI `.interactive()`）
 
-| 动态 | 规范 | 本项目实现 |
-|---|---|---|
-| 按压缩放 | 轻微收缩，模拟液体受压 | `.glass-btn:active { scale(0.97) }`、`.glass-interactive:active { scale(0.96) + brightness(1.06) }` |
-| 回弹 | 释放时弹性 overshoot | `--ease-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1)` |
-| 触摸点照亮 | 触点发亮辐射到邻近玻璃 | `.glass-interactive:active` inset 18px 内发光（近似） |
-| shimmer 微光 | 表面柔和流光 | `.btn-iridescent:hover` 虹彩 box-shadow（克制，仅 hover） |
-| 手势响应 | tap + drag | 移动端 TabBar `active:scale-95`、列表 `will-change-transform` |
+| 动态         | 规范                   | 本项目实现                                                                                          |
+| ------------ | ---------------------- | --------------------------------------------------------------------------------------------------- |
+| 按压缩放     | 轻微收缩，模拟液体受压 | `.glass-btn:active { scale(0.97) }`、`.glass-interactive:active { scale(0.96) + brightness(1.06) }` |
+| 回弹         | 释放时弹性 overshoot   | `--ease-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1)`                                                   |
+| 触摸点照亮   | 触点发亮辐射到邻近玻璃 | `.glass-interactive:active` inset 18px 内发光（近似）                                               |
+| shimmer 微光 | 表面柔和流光           | `.btn-iridescent:hover` 虹彩 box-shadow（克制，仅 hover）                                           |
+| 手势响应     | tap + drag             | 移动端 TabBar `active:scale-95`、列表 `will-change-transform`                                       |
 
 ---
 
 ## 6. 现有工具类速查
 
-| 类名 | 对应 Apple 概念 | 用途 |
-|---|---|---|
-| `.glass` / `.glass-strong` | `.regular` | 面板/导航/模态（strong = thick） |
-| `.glass-subtle` | thin 材质 | 轻量背景装饰 |
-| `.glass-btn` | capsule 按钮 | 胶囊形玻璃按钮 |
-| `.glass-pill` | 选中指示器 | 品牌色玻璃胶囊（TabBar 激活态） |
-| `.glass-tint` | `.regular.tint(color)` | 可着色玻璃（语义主操作/选中） |
-| `.glass-clear` | `.clear` | 媒体背景浮动控件（前景必须粗体亮色） |
-| `.glass-identity` | `.identity` | 条件禁用玻璃（静态实体） |
-| `.glass-interactive` | `.interactive()` | 交互增强修饰（按压发光） |
-| `.glass-frozen` | 流式冻结 | 生成中冻结为稳定半透明，防重绘抖动 |
-| `.opaque-island` | 内容隔离 | 代码/公式/图表不受折射影响 |
-| `.agent-think/tool/respond` | 工作流材质分级 | Think 65% / Tool 75% / Respond 88% 透明度 |
-| `.bg-ambient` | Content as Light Source | 环境光背景，为折射提供色彩源 |
+| 类名                        | 对应 Apple 概念         | 用途                                      |
+| --------------------------- | ----------------------- | ----------------------------------------- |
+| `.glass` / `.glass-strong`  | `.regular`              | 面板/导航/模态（strong = thick）          |
+| `.glass-subtle`             | thin 材质               | 轻量背景装饰                              |
+| `.glass-btn`                | capsule 按钮            | 胶囊形玻璃按钮                            |
+| `.glass-pill`               | 选中指示器              | 品牌色玻璃胶囊（TabBar 激活态）           |
+| `.glass-tint`               | `.regular.tint(color)`  | 可着色玻璃（语义主操作/选中）             |
+| `.glass-clear`              | `.clear`                | 媒体背景浮动控件（前景必须粗体亮色）      |
+| `.glass-identity`           | `.identity`             | 条件禁用玻璃（静态实体）                  |
+| `.glass-interactive`        | `.interactive()`        | 交互增强修饰（按压发光）                  |
+| `.glass-frozen`             | 流式冻结                | 生成中冻结为稳定半透明，防重绘抖动        |
+| `.opaque-island`            | 内容隔离                | 代码/公式/图表不受折射影响                |
+| `.agent-think/tool/respond` | 工作流材质分级          | Think 65% / Tool 75% / Respond 88% 透明度 |
+| `.bg-ambient`               | Content as Light Source | 环境光背景，为折射提供色彩源              |
 
 ---
 

@@ -4,7 +4,7 @@
 
 ## 1. 设计原则
 
-1. **平台无关**：schema 在 `packages/core/src/models/` + `packages/core/src/repo/` 定义，桌面/Web/RN 共用
+1. **平台无关**：schema 在 `packages/core/src/models/`（Zod）+ `packages/server/src/db/schema/`（Drizzle）定义，桌面/Web/Mobile 共用
 2. **纯粹**：不存原始 API Key（走 SecretPort）、不存 UI 态（走 Jotai 本地）
 3. **可迁移**：Drizzle migrations 管理 DDL，所有变更走迁移脚本
 4. **同步友好**：所有主表含 `updated_at` + `deleted_at`（软删）+ `device_id`，便于 LWW 合并
@@ -12,6 +12,8 @@
 6. **UUID 主键**：使用 `nanoid(21)`，跨设备永不冲突
 
 ## 2. ER 图（核心域）
+
+> 2026-08-30 校对：`agent_runs / agent_steps / tool_calls / conversation_presets / message_attachments` 为**早期设计占位，未建表**。实际 16 张表：providers、models、conversations、messages、message_parts、prompts、settings、knowledge_bases、knowledge_docs、knowledge_chunks、mcp_servers、mcp_tools、image_generations、sync_state、audit_log、voice_syntheses、voice_transcriptions（+ messages_fts 虚拟表）。工具调用与结果以 `message_parts`（type=tool-call / tool-result）持久化。
 
 ```
 providers ──┐
@@ -23,28 +25,11 @@ providers ──┐
                    messages ─────────┘
                      │ 1..N
                      ▼
-                message_parts (多模态)
+                message_parts (多模态：text/image/file/tool-call/tool-result)
 
-conversations ──┐       ┌── presets
-                │       │
-                ▼       ▼
-          conversation_presets  (M:N)
-
-messages ──┐              ┌── knowledge_chunks
-           │              │
-           ▼              ▼
-   message_attachments   knowledge_docs
-                              │ 1..N
-                              ▼
-                         knowledge_bases
-
-agent_runs ──┐
-             │ 1..N
-             ▼
-          agent_steps
-             │ 1..N
-             ▼
-          tool_calls
+knowledge_chunks ──► knowledge_docs ──► knowledge_bases
+prompts / settings / mcp_servers ──► mcp_tools
+image_generations / sync_state / audit_log / voice_syntheses / voice_transcriptions
 ```
 
 ## 3. 主流程表
@@ -376,7 +361,12 @@ CREATE TABLE image_generations (
 CREATE INDEX idx_img_created ON image_generations(created_at DESC) WHERE deleted_at IS NULL;
 ```
 
-## 7. 扩展域：Agent / MCP
+## 7. 扩展域：MCP（+ Agent 设计占位）
+
+> 2026-08-30 校对：`agent_runs / agent_steps` **未实装**（早期设计）。实际工具调用循环跑在 `ChatService.stream` 内，tool-call 与 tool-result 作为 `message_parts` 行持久化（type = tool-call / tool-result）。下列 agent 表保留作未来独立 Agent 服务的设计参考。
+
+<details>
+<summary>agent_runs / agent_steps（设计占位，未建表）</summary>
 
 ```sql
 CREATE TABLE agent_runs (
@@ -409,7 +399,11 @@ CREATE TABLE agent_steps (
   created_at   INTEGER NOT NULL
 );
 CREATE INDEX idx_steps_run ON agent_steps(run_id, seq);
+```
 
+</details>
+
+```sql
 CREATE TABLE mcp_servers (
   id            TEXT PRIMARY KEY,
   name          TEXT NOT NULL,
@@ -533,11 +527,11 @@ export const ConversationSchema = z.object({
 export type Conversation = z.infer<typeof ConversationSchema>;
 ```
 
-## 10. 迁移策略
+## 10. 迁移策略（实际）
 
-- `drizzle-kit generate:sqlite` 生成 SQL migration
-- 文件放 `apps/desktop/src/main/db/migrations/0000_init.sql`、`0001_xxx.sql`
-- 启动时用 `drizzle-orm/better-sqlite3/migrator.migrate()` 自动应用
+- `drizzle-kit generate` 生成 SQL migration（`packages/server/drizzle.config.ts`）
+- 文件放 `packages/server/src/db/migrations/0000_*.sql` … `0011_*.sql`（含 meta snapshot + journal）
+- 启动时用 `createAppDb(client, MIGRATIONS_DIR)` 自动应用（libsql client，三端同一套迁移）
 - 每次 schema 变更必须附带一份迁移文件 + 在 `tests/migrations/` 加快照测试（迁移前后数据校验）
 
 ### 破坏性变更流程

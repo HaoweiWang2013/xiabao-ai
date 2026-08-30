@@ -178,9 +178,24 @@ green (默认) · blue · purple · orange · pink · gray
 
 Dark 模式阴影透明度更高（`0.35` 等），配合微发光边。
 
-### 2.6 液态玻璃（2026-08 升级至 Apple Liquid Glass 光学语法）
+### 2.6 液态玻璃（2026-08-30 升级至 v2：折射 Lensing + 三档质量）
 
-> 参考 `docs/ui/liquid-glass-strategy.md` v2.0，完整 token / GPU 合成策略 / 降级机制见该文。
+> 完整规范：`docs/ui/liquid-glass-v2.md`（折射原理 / 四层材质 / 参数 / 兼容矩阵 / 陷阱 / 性能预算）。
+> v1 策略（blur + 渐变边框）见 `docs/ui/liquid-glass-strategy.md`。
+
+#### 三档质量（用户可在 设置 → 外观 → 玻璃效果 切换）
+
+| 档位      | 效果                                                             | 判定                                       |
+| --------- | ---------------------------------------------------------------- | ------------------------------------------ |
+| `auto`    | 自动检测（默认）：桌面 Chromium + 设备能力足够 → full            | `useGlassQuality` UA + 能力判定            |
+| `full`    | 完整液态玻璃：SVG 折射 + 边缘渐变光 + specular 交互高光          | 仅 Chromium 真实渲染折射                   |
+| `frosted` | 普通毛玻璃：blur + saturate，熄灭动态光，`::before/::after` 摘除 | 弱设备 / Safari / Firefox / 触屏自动落此档 |
+
+- 持久化：`glassQualityAtom`（localStorage 键 `ui.glassQuality`）
+- 解析结果写入 `<html data-glass-quality="full|frosted">`，CSS 据此切换
+- **折射实现**：`LiquidGlassDefs` 全局 SVG `feTurbulence fractalNoise`(baseFrequency 0.008, numOctaves 2, seed 7) + `feGaussianBlur`(stdDeviation 1.5) + `feDisplacementMap`(scale 26)，经 `backdrop-filter: blur() saturate() url(#lg-refract)` 引用
+- **兼容陷阱**：`CSS.supports('backdrop-filter','url(#)')` 在 Safari 返回 true 但不渲染 → 必须 UA 判定（iPad/iPhone/iPod + 纯 Safari → 非 Chromium）
+- 实时二次降级：滚动中（`.is-scrolling`）/ 键盘弹起 / `data-perf-mode='low'` 时**摘除折射 url()**，仅保留 blur
 
 #### 分级 blur
 
@@ -367,13 +382,13 @@ body {
 
 | 触发                                                    | 机制                         | 效果                                                          |
 | ------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------- |
-| `useAdaptivePerformance`（RAF FPS 监测）                | `html[data-perf-mode='low']` | blur 2px + 高不透明 bg，隐藏 `::before`                       |
-| `.is-scrolling`（`useScrollState`）                     | 滚动期间 body 加 class       | blur 8px saturate 150%（低于默认 16px）                       |
-| `keyboard.visible`（`useKeyboard`）                     | `body.keyboard-open`         | blur 8px + 实体降级背景                                       |
+| 设置 → 外观 → 玻璃效果（`glassQualityAtom`）            | `<html data-glass-quality>`  | auto / full / frosted 三档（见 §2.6）                         |
+| `useAdaptivePerformance`（RAF FPS 监测）                | `html[data-perf-mode='low']` | blur 2px + 高不透明 bg，隐藏 `::before`，摘除折射             |
+| `.is-scrolling`（`useScrollState`）                     | 滚动期间 body 加 class       | 摘除折射 url()，blur 8px saturate 150%                        |
+| `keyboard.visible`（`useKeyboard`）                     | `body.keyboard-open`         | 摘除折射，blur 8px + 实体降级背景                             |
 | `prefers-reduced-transparency: reduce`                  | 系统媒体查询                 | backdrop-filter none + 实体卡片                               |
 | `prefers-reduced-motion: reduce`                        | 系统媒体查询                 | blur 4px + 动效统一 0.01ms，`scroll-behavior: auto`           |
 | `@media (prefers-color-scheme: dark)` 无 `[data-theme]` | 系统跟随显式 fallback        | 所有玻璃 token 显式覆盖两套值，防国产 ROM Force Dark 破坏层级 |
-| 设置 → 外观 → 毛玻璃效果                                | 用户手动开关                 | 同 reduced-transparency                                       |
 
 > Electron 主进程已配置 GPU 命令行开关（`enable-gpu-rasterization`、`enable-oop-rasterization` 等），不禁用 software rasterizer（保留低端机回退路径）。详情见 `apps/desktop/src/main/index.ts`。
 
@@ -490,37 +505,41 @@ Tab 右键 → "拖出为独立窗口"：
 
 ---
 
-## 5. 组件清单（`packages/ui`）
+## 5. 组件清单
 
-### 5.1 基础（shadcn/ui 源码复用）
+### 5.1 基础（`packages/ui/src/components/`，实际交付 15 个 + 快照测试）
 
-Button / IconButton / Input / Textarea / Select / Combobox / Checkbox / Radio / Switch / Slider / Label / Form / Card / Dialog / AlertDialog / Drawer / Popover / DropdownMenu / ContextMenu / Tooltip / Tabs / Accordion / Collapsible / Separator / Avatar / Badge / Progress / Skeleton / Toast / Toaster / ScrollArea / AspectRatio / HoverCard / NavigationMenu
+Button / IconButton / Input / Textarea / Card / Dialog / DropdownMenu / Popover / Tooltip / Tabs / Switch / Badge / Separator / Skeleton / ScrollArea
 
-### 5.2 专用
+> **Switch 为 iOS 26 液态玻璃规格**（2026-08-30 重写）：玻璃轨道（关闭态中性玻璃 + 内阴影环带，开启态 tinted glass `bg-primary/75`）、按压 `active:scale-95` 液态受压形变、滑块为通透白玻璃球（`bg-white/95` + inset 弧面内阴影 + 斜向径向高光斑 `mixBlendMode:screen` + 底部环境反光条）、按压 `active:scale-112`、位移 `ease-emphasis` 弹性曲线。
 
-| 组件                  | 用途                               |
-| --------------------- | ---------------------------------- |
-| `TitleBar`            | frameless 标题栏（平台自适应）     |
-| `IconSidebar`         | 左侧 48px 导航栏                   |
-| `ConversationList`    | 会话列表（分组 + 搜索）            |
-| `TabBar`              | IDE Tab 栏                         |
-| `TabPane`             | Tab 内容容器                       |
-| `SplitView`           | 横向/纵向分屏，比例可拖            |
-| `MessageList`         | 虚拟滚动消息流                     |
-| `MessageBubbleUser`   | 用户气泡（混合式右侧）             |
-| `MessageDocAssistant` | AI 文档流消息                      |
-| `StreamingIndicator`  | 流式光标 + 思考点                  |
-| `CodeBlock`           | Shiki + 行号 + 复制 + diff 切换    |
-| `MarkdownRenderer`    | 受控 Markdown（含 KaTeX、Mermaid） |
-| `ToolCallCard`        | 折叠的工具调用卡片                 |
-| `BranchSwitcher`      | `‹ 2/3 ›` 兄弟切换                 |
-| `Composer`            | 输入框区（见 5.3）                 |
-| `CommandPalette`      | `Cmd+K` 面板                       |
-| `ModelSelector`       | 模型下拉 + 能力 badges             |
-| `ProviderCard`        | Provider 管理卡                    |
-| `PresetCard`          | 提示词卡                           |
-| `EmptyState`          | 推荐提示词 + 最近会话              |
-| `Onboarding`          | 首次启动引导                       |
+### 5.2 专用（`packages/app-ui`，实际交付）
+
+| 组件                  | 用途                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `AppShell`            | 三端布局壳（桌面三栏 / 移动底部导航）                                              |
+| `IconSidebar`         | 左侧 48px 导航栏（nav=left）                                                       |
+| `IconTopBar`          | 顶部横向导航（nav=top，参 CherryStudio）                                           |
+| `MobileTabBar`        | 移动端（<640px）底部 Tab + 滚动收缩                                                |
+| `ConversationList`    | 会话列表（分组 + 搜索）                                                            |
+| `TabBar`              | IDE Tab 栏（滚动收缩 + 同心圆角胶囊）                                              |
+| `SplitChatView`       | 分屏聊天（拖拽比例）                                                               |
+| `MessageBubble`       | 用户气泡（混合式右侧）                                                             |
+| `MessageDocAssistant` | AI 文档流消息（Agent 三级材质）                                                    |
+| `ToolMessage`         | 工具调用消息卡片                                                                   |
+| `MarkdownRenderer`    | 受控 Markdown（含 KaTeX、Mermaid）                                                 |
+| `BranchSwitcher`      | `‹ 2/3 ›` 兄弟切换                                                                 |
+| `Composer`            | 输入框区（见 5.3，移动端 16px 防缩放）                                             |
+| `CommandPalette`      | `Cmd+K` 面板                                                                       |
+| `ModelSelector`       | 模型下拉 + 能力 badges                                                             |
+| `ConfirmDialog`       | Promise 化确认框（**禁止原生 window.confirm**，Trae CN webview 会触发 React #185） |
+| `LiquidGlassDefs`     | 全局 SVG 折射滤镜 defs（`#lg-refract`）                                            |
+| `ErrorBoundary`       | 渲染错误兜底                                                                       |
+| `EmptyState`          | 推荐提示词 + 最近会话                                                              |
+| `Onboarding`          | 首次启动引导                                                                       |
+| `SplashScreen`        | 桌面启动过渡                                                                       |
+
+**关键 Hooks**（`packages/app-ui/src/hooks/`）：`useChatStream`、`useGlassQuality`、`useAdaptivePerformance`、`useScrollState`、`useTabBarMinimize`、`useKeyboard`、`useStatusBar`、`useAudioRecorder`、`useShortcuts`、`useTranslation`
 
 ### 5.3 Composer 细节
 
@@ -962,6 +981,9 @@ Firefox 等价：`scrollbar-width: thin; scrollbar-color: <thumb> transparent`�
 
 ### 液态玻璃专项
 
+- [ ] **三档质量**：设置 → 外观 → 玻璃效果 切 auto/full/frosted 后 `<html data-glass-quality>` 正确切换；frosted 档无折射且无 `::before/::after` 高光
+- [ ] **折射（full 档）**：Chromium 下 `.glass` 系有 `url(#lg-refract)` 位移折射；Safari/Firefox 静默回退毛玻璃（UA 判定，非 CSS.supports）
+- [ ] **确认弹窗**：所有删除/危险操作走 `ConfirmDialog`，全仓无 `window.confirm(` 调用
 - [ ] **闪烁**：密集玻璃区（设置页 5+ 个玻璃面板）切换/hover 时无 1-2px 边缘抖动；切 Tab/导航激活态无 1-2 帧空白
 - [ ] **不透明岛屿**：代码块/公式/表格 `.opaque-island`；Tooltip/Popover/DropdownMenu/Mention `.popover-island`
 - [ ] **Agent 无玻璃叠玻璃**：Think（弱玻璃）/Tool（实体终端）/Respond（标准玻璃）三级明确，折叠态释放 GPU
@@ -977,22 +999,28 @@ Firefox 等价：`scrollbar-width: thin; scrollbar-color: <thumb> transparent`�
 
 ## 15. 已决议与未决议
 
-### 已决议（锁定 · 2026-08 全量更新）
+### 已决议（锁定 · 2026-08-30 全量更新）
 
 - 主色 `#22C55E`（light `#16A34A` 当 CTA 底色，green-600 达 AA 对比度）
-- **液态玻璃**：Apple WWDC 25 光学语法 × 原配色（只借效果语法，不借紫黑底 + 荧光绿值）
-  - blur 分级：8 / 16 / 24 + 实体
-  - 渐变边框 `::before mask-composite`（第一视觉特征）
+- **液态玻璃 v2：折射（Lensing）是灵魂，blur 只是底色**
+  - SVG `feTurbulence + feDisplacementMap` 真折射（`#lg-refract`），仅 Chromium 渲染
+  - 三档质量 auto/full/frosted，设置入口 + `useGlassQuality` UA 判定
+  - blur 分级：8 / 16 / 24 + 实体；渐变边框 `::before mask-composite`
+  - 滚动中 / 键盘弹起 / 低性能模式实时摘除折射（保留 blur）
   - `.agent-think-opacity = 0.65`（WCAG AA）
   - 虹彩 4 处：主按钮 hover + 激活态 + 环境晕染 + 侧边栏激活态（极度克制）
+- **确认弹窗一律走 `ConfirmDialog`**（Promise 化），禁用原生 `window.confirm`（Trae CN webview 拦截 bug → React #185 无限重渲染）
+- **Switch / 控件玻璃语言**：iOS 26 规范——玻璃轨道 + tinted 开启态 + 按压缩放形变 + 白玻璃球滑块（斜向高光 + 底部反光）
 - 视觉方向：**绿主蓝辅 + 全面克制**（非 lq.md 风格的药丸/荧光浮夸）
   - Dialog 圆角 20px（WWDC 规范近值），按钮维持 IDE 风格小圆角（非药丸）
-- 三栏 IDE 多 Tab + Split + 独立窗口
+  - 同心圆角：内层圆角 = 外层圆角 − 内缩距离（TabBar 激活胶囊 16→10px 等）
+- 三栏 IDE 多 Tab + Split + 独立窗口；移动端 <640px 底部 MobileTabBar + 抽屉次级导航
 - 混合消息样式
 - Lucide 图标
 - Framer Motion + <200ms
 - 3 种密度、3 档字号、6 种强调色
 - 字体：DM Sans（正文）、JetBrains Mono（代码）
+- 小程序外站：非 Electron 环境 `window.open` 新窗口（iframe 被 X-Frame-Options/CSP 拦截）
 
 ### 未决议（设计实施时敲）
 

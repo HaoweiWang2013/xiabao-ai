@@ -25,13 +25,13 @@ XiabaoAI 的解决方案：
 
 ## 3. 竞品定位
 
-| 产品          | 定位                | 我们的差异                                                            |
-| ------------- | ------------------- | --------------------------------------------------------------------- |
-| ChatBox       | 桌面多服务商客户端  | 我们更强调 Monorepo 三端一体、更现代的 Provider 抽象（Vercel AI SDK） |
-| Cherry Studio | 多服务商 + 知识库   | 我们在架构上更干净（Port/Adapter、端到端类型安全）                    |
-| LobeChat      | Web 为主 + 插件生态 | 我们桌面优先、本地优先                                                |
-| NextChat      | Web + 自部署        | 我们定位客户端而非 Web 服务                                           |
-| Raycast AI    | 效率工具            | 我们定位"聚合客户端"而非快捷工具                                      |
+| 产品          | 定位                | 我们的差异                                                  |
+| ------------- | ------------------- | ----------------------------------------------------------- |
+| ChatBox       | 桌面多服务商客户端  | 我们更强调 Monorepo 三端一体、Port/Adapter 式 Provider 抽象 |
+| Cherry Studio | 多服务商 + 知识库   | 我们在架构上更干净（Port/Adapter、端到端类型安全）          |
+| LobeChat      | Web 为主 + 插件生态 | 我们桌面优先、本地优先                                      |
+| NextChat      | Web + 自部署        | 我们定位客户端而非 Web 服务                                 |
+| Raycast AI    | 效率工具            | 我们定位"聚合客户端"而非快捷工具                            |
 
 ## 4. 核心概念术语
 
@@ -98,9 +98,9 @@ XiabaoAI 的解决方案：
                         │  Port 接口
 ┌───────────────────────┴────────────────────────────────┐
 │  L1  Adapter（平台特定）                               │
-│  Desktop: better-sqlite3 / safeStorage / node-fetch    │
+│  Desktop: libsql / safeStorage / node-fetch            │
 │  Web:     fastify server / libsql / fetch              │
-│  Mobile:  better-sqlite3 (local Node server) / fetch   │
+│  Mobile:  libsql（本地 Node 服务） / fetch             │
 └───────────────────────┬────────────────────────────────┘
                         │
 ┌────────────┬──────────┴──────────┬──────────────────┐
@@ -133,9 +133,9 @@ XiabaoAI 的解决方案：
    │   ├─ 从 SecretPort 取回 API Key
    │   ├─ 从 StoragePort 读历史消息
    │   ├─ 调用 ChatService.stream(...)
-   │   │      └─ 调用 Provider.stream(...)（Vercel AI SDK）
+   │   │      └─ 调用 Provider.chat(...)（自研 SSE 流式实现）
    │   │             └─ HTTPS SSE → OpenAI / Anthropic ...
-   │   ├─ 逐 chunk emit → subscription
+   │   ├─ 逐 chunk emit → subscription（含 tool-call / tool-result 事件）
    │   └─ 流结束后 StoragePort.write(assistantMessage)
    ▼
 [Renderer] subscription 接收 chunk
@@ -147,19 +147,19 @@ XiabaoAI 的解决方案：
 
 ## 9. 三端对比
 
-| 维度           | Desktop                         | Web                                   | Android（Capacitor）             |
-| -------------- | ------------------------------- | ------------------------------------- | -------------------------------- |
-| 运行容器       | Electron 30+                    | 浏览器 + fastify server               | Capacitor + 本地 Node.js 服务    |
-| 主导航         | 三栏 IDE Tab + Split + 独立窗口 | 同桌面（<768px 自动降级为移动布局）   | 底部 Tab + 左抽屉                |
-| 本地存储       | better-sqlite3 + sqlite-vec     | libsql                                | better-sqlite3（本地 Node 服务） |
-| API Key 存储   | Electron safeStorage            | 加密存储                              | 加密存储                         |
-| AI 调用        | 直连（Node fetch）              | 过 fastify server / Cloudflare Worker | 直连（Node fetch）               |
-| 流式           | tRPC subscription (IPC)         | SSE / Fetch ReadableStream            | Fetch ReadableStream             |
-| 文件系统       | 完全访问                        | 服务端文件访问                        | Scoped storage                   |
-| 云同步         | libsql 客户端                   | libsql HTTP                           | libsql HTTP                      |
-| 打包产物       | NSIS / dmg / AppImage / deb     | PWA 静态 + Cloudflare Pages           | APK / AAB                        |
-| 功能完整度     | 100%                            | 90%                                   | 85%                              |
-| 核心代码共享率 | —                               | ~85%                                  | ~75%                             |
+| 维度           | Desktop                            | Web                                   | Android（Capacitor）          |
+| -------------- | ---------------------------------- | ------------------------------------- | ----------------------------- |
+| 运行容器       | Electron 30+                       | 浏览器 + fastify server               | Capacitor + 本地 Node.js 服务 |
+| 主导航         | 三栏 IDE Tab + Split + 独立窗口    | 同桌面（<768px 自动降级为移动布局）   | 底部 Tab + 左抽屉             |
+| 本地存储       | libsql（@libsql/client file 模式） | libsql                                | libsql（本地 Node 服务）      |
+| API Key 存储   | Electron safeStorage               | 加密存储                              | 加密存储                      |
+| AI 调用        | 直连（Node fetch）                 | 过 fastify server / Cloudflare Worker | 直连（Node fetch）            |
+| 流式           | tRPC subscription (IPC)            | SSE / Fetch ReadableStream            | Fetch ReadableStream          |
+| 文件系统       | 完全访问                           | 服务端文件访问                        | Scoped storage                |
+| 云同步         | libsql 客户端                      | libsql HTTP                           | libsql HTTP                   |
+| 打包产物       | NSIS / dmg / AppImage / deb        | PWA 静态 + Cloudflare Pages           | APK / AAB                     |
+| 功能完整度     | 100%                               | 90%                                   | 85%                           |
+| 核心代码共享率 | —                                  | ~85%                                  | ~75%                          |
 
 ## 10. 质量属性
 
@@ -180,10 +180,13 @@ XiabaoAI 已完成全部核心功能交付。已交付的主要模块包括：
 - **M1 Provider + IPC**：OpenAI / Anthropic / Google / Ollama 接入 + electron-trpc 流式通信
 - **M2 聊天 MVP**：IDE Tab + 会话管理 + 提示词库 + FTS5 全局搜索 + 设置
 - **M3 打磨与打包**：主题/快捷键/命令面板/自动更新/崩溃上报/系统托盘
-- **M4 知识库 RAG**：PDF/DOCX/PPTX/XLSX/图像 OCR + sqlite-vec 向量检索 + Token 预算裁剪 + 后台队列 + 本地 bge-m3 Embedder
+- **M4 知识库 RAG**：PDF/DOCX/PPTX/XLSX/图像 OCR + libsql 向量检索 + Token 预算裁剪 + 后台队列 + 本地 bge-m3 Embedder
 - **M5 图像 + 语音**：图像生成工作区 + STT/TTS 语音交互
-- **M6 MCP + Agent**：MCP 全协议支持 + Agent 执行循环 + 内置工具 + 流式步骤卡片
+- **M6 MCP + 工具调用**：MCP 全协议支持 + ChatService 工具调用循环 + 内置工具 + 三级材质步骤渲染
 - **M7 Web 端**：SPA + Fastify 服务端 + Cloudflare Worker 代理
 - **M8 Android 端**：Capacitor + 本地 Node.js 服务端
+- **M9 UI 视觉**：液态玻璃 v2 —— SVG 折射（Lensing）+ 三档质量降级 + 设置入口
+- **M10 性能**：GPU 合成策略 + 运行时降级 + 闪烁全修复
+- **M11 移动体验**：MobileTabBar + 沉浸式状态栏 + 安全区 + ConfirmDialog + iOS 26 液态玻璃控件
 
 详细实现状态见 [`docs/15-incomplete-status.md`](./15-incomplete-status.md)。

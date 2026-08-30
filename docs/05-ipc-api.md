@@ -4,8 +4,10 @@
 
 1. **Port 接口**（Core ↔ 平台 Adapter）—— 三端通用
 2. **electron-trpc 路由**（Desktop Renderer ↔ Main）
-3. **Web 端直接调用**（Browser → Core → CF Worker）
-4. **RN 原生桥接**（RN → 原生 Module → Core）
+3. **Web / Mobile 端调用**（Browser/WebView → Fastify 本地服务 → tRPC HTTP+WS）
+4. **Mobile 桥接**（Capacitor WebView + capacitor-nodejs 本地 Node 服务，tRPC over HTTP/WS）
+
+> 2026-08-30 校对：appRouter 实际 14 个子路由 —— provider / chat / image / tool / system / knowledge / localEmbedder / prompt / search / settings / mcp / audit / voice / sync（无独立 agent 路由，Agent/工具调用并入 chat）。流式经 chat.sendMessage subscription（WS）。
 
 ## 1. Port 接口契约
 
@@ -614,29 +616,20 @@ export default {
 
 白名单 `isAllowlisted` 硬编码主流 Provider 域名。**Worker 永远不记录 body/auth**，只是透明转发。
 
-## 8. RN 端的 IPC 等价物
+## 8. Mobile（Capacitor）端的 IPC 等价物
 
-RN 与 Web 类似：Core 跑在 JS 线程，直接调用。
-
-例外：一些操作（如调用原生 MCP 工具服务器 via stdio）需要 Native Module：
+> 2026-08-30 校对：移动端**不是 RN**。实际为 Capacitor WebView + capacitor-nodejs 本地 Node 服务：WebView 内 SPA 通过 HTTP/WS 访问本机 Fastify 服务（`apps/web/server/index.ts` 同一套代码打包进 Node 运行时），tRPC 走 `httpLink`/`wsLink`。
 
 ```ts
-// apps/mobile/src/adapters/mcp.ts
-import { NativeModules } from 'react-native';
-const { McpStdioModule } = NativeModules;
-
-export class RnMcpAdapter implements McpTransport {
-  async connect(cmd: string, args: string[]): Promise<string /* handleId */> {
-    return McpStdioModule.spawn(cmd, args);
-  }
-  async send(handleId: string, msg: unknown): Promise<void> {
-    return McpStdioModule.send(handleId, JSON.stringify(msg));
-  }
-  // ...
-}
+// 移动端 trpc client（与 Web 端一致）
+const trpc = createTRPCReact<AppRouter>();
+// httpLink → http://127.0.0.1:<port>/trpc
+// 流式 subscription → ws://127.0.0.1:<port>/trpc-ws
 ```
 
-**移动端 MCP 暂时仅支持 HTTP / SSE 传输**，stdio 需要原生 expo module，放 M6+。
+原生能力（返回键 / 状态栏 / 键盘）经 Capacitor 插件桥接：`@capacitor/app`（Android 返回键拦截）、`@capacitor/status-bar`（沉浸式状态栏图标自适应）、`@capacitor/keyboard`（resize）。
+
+**移动端 MCP 暂时仅支持 HTTP / SSE 传输**（本地 Node 服务可跑 stdio，但受进程管理稳定性限制默认不开启）。
 
 ## 9. Rate Limit 与并发控制
 

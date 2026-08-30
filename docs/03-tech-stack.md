@@ -37,45 +37,47 @@ app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRast
 
 ### 为什么不是 Tauri 2？
 
-| 维度     | Electron                            | Tauri 2                                       |
-| -------- | ----------------------------------- | --------------------------------------------- |
-| 语言生态 | Node.js 全量                        | Rust + Webview                                |
-| 打包体积 | ~100 MB                             | ~10 MB                                        |
-| 原生模块 | better-sqlite3 等 Node 模块开箱即用 | 需 Rust 封装                                  |
-| IPC      | electron-trpc 端到端类型            | 自写 invoke/emit                              |
-| Webview  | Chromium（一致）                    | 各平台 webview（Win 用 WebView2，行为不一致） |
-| 成熟度   | 10+ 年                              | 2024 才出 2.0                                 |
+| 维度     | Electron                                  | Tauri 2                                       |
+| -------- | ----------------------------------------- | --------------------------------------------- |
+| 语言生态 | Node.js 全量                              | Rust + Webview                                |
+| 打包体积 | ~100 MB                                   | ~10 MB                                        |
+| 原生模块 | libsql / onnxruntime 等 Node 模块开箱即用 | 需 Rust 封装                                  |
+| IPC      | electron-trpc 端到端类型                  | 自写 invoke/emit                              |
+| Webview  | Chromium（一致）                          | 各平台 webview（Win 用 WebView2，行为不一致） |
+| 成熟度   | 10+ 年                                    | 2024 才出 2.0                                 |
 
 **选 Electron**：生态、原生模块、跨端一致性、Node 全量可用更重要。体积换稳定；Chromium 124+ 对 `backdrop-filter` 合成路径优化好。
 
 ## 3. UI 框架与组件
 
-| 项                                   | 版本                                         | 说明                                                                      |
-| ------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------- |
-| **React**                            | **18.3+**                                    | 函数式组件 + hooks；React 19 发布后评估迁移                               |
-| **React DOM**                        | 18.3+                                        | —                                                                         |
-| **React Router**                     | **6.x**（data router）或 **TanStack Router** | **TanStack Router** 更现代、类型更强，首选                                |
-| **Tailwind CSS**                     | **3.4+**                                     | JIT 模式；未来评估 v4                                                     |
-| **shadcn/ui**                        | 非 npm 包，**源码复制**                      | 与 Radix Primitives 组合；所有组件在 `packages/ui/src/components/`        |
-| **Radix Primitives**                 | 最新                                         | shadcn 依赖的 headless 原语                                               |
-| **Lucide React**                     | 最新                                         | 2400+ 图标                                                                |
-| **Framer Motion**                    | **11.x**                                     | 动效；Desktop/Web 通用，RN 用 Reanimated                                  |
-| **class-variance-authority** (`cva`) | 最新                                         | 变体样式管理                                                              |
-| **clsx** + **tailwind-merge**        | 最新                                         | className 合并                                                            |
-| **Apple Liquid Glass**               | WWDC 25 光学语法                             | 自实现 CSS（`::before mask-composite` 渐变边框 + 分级 blur + 光学 token） |
+| 项                                   | 版本                                         | 说明                                                                                                                                |
+| ------------------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **React**                            | **18.3+**                                    | 函数式组件 + hooks；React 19 发布后评估迁移                                                                                         |
+| **React DOM**                        | 18.3+                                        | —                                                                                                                                   |
+| **React Router**                     | **6.x**（data router）或 **TanStack Router** | **TanStack Router** 更现代、类型更强，首选                                                                                          |
+| **Tailwind CSS**                     | **3.4+**                                     | JIT 模式；未来评估 v4                                                                                                               |
+| **shadcn/ui**                        | 非 npm 包，**源码复制**                      | 与 Radix Primitives 组合；所有组件在 `packages/ui/src/components/`                                                                  |
+| **Radix Primitives**                 | 最新                                         | shadcn 依赖的 headless 原语                                                                                                         |
+| **Lucide React**                     | 最新                                         | 2400+ 图标                                                                                                                          |
+| **Framer Motion**                    | **11.x**                                     | 动效；Desktop/Web/Mobile 通用                                                                                                       |
+| **class-variance-authority** (`cva`) | 最新                                         | 变体样式管理                                                                                                                        |
+| **clsx** + **tailwind-merge**        | 最新                                         | className 合并                                                                                                                      |
+| **Apple Liquid Glass**               | WWDC 25 光学语法                             | 自实现 v2：SVG feTurbulence+feDisplacementMap 折射 + `::before mask-composite` 渐变边框 + 分级 blur + 三档质量（auto/full/frosted） |
 
 ### 3.1 液态玻璃依赖（2026-08）
 
 没有 npm 包能直接给我们需要的「克制 IDE + Apple 光学」液态玻璃，完全自研：
 
-| 层              | 文件                                        | 职责                                                    |
-| --------------- | ------------------------------------------- | ------------------------------------------------------- |
-| 主题 token      | `packages/theme/src/css-variables.css`      | ~70 个 CSS 变量（玻璃/岛屿/Agent/移动端）               |
-| Tailwind preset | `packages/theme/src/preset.ts`              | 注入 CSS 变量、扩展色板                                 |
-| highlight CSS   | `packages/theme/src/highlight.css`          | Shiki 在 `.opaque-island` 上的语法配色                  |
-| 桌面全局样式    | `apps/desktop/src/renderer/styles.css`      | 滚动条玻璃化、scroll-behavior、root→transparent（Mica） |
-| Web 全局样式    | `apps/web/src/styles.css`                   | `.bg-ambient` 环境光、滚动条、scroll smooth             |
-| 字体            | `DM Sans`（正文）、`JetBrains Mono`（代码） | iOS 风格圆润字体，配液态玻璃                            |
+| 层              | 文件                                                 | 职责                                                                      |
+| --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------- |
+| 主题 token      | `packages/theme/src/css-variables.css`               | ~70 个 CSS 变量（玻璃/岛屿/Agent/移动端）+ 三档折射规则                   |
+| Tailwind preset | `packages/theme/src/tailwind-preset.ts`              | 注入 CSS 变量、扩展色板                                                   |
+| highlight CSS   | `packages/theme/src/highlight.css`                   | Shiki 在 `.opaque-island` 上的语法配色                                    |
+| **折射滤镜**    | `packages/app-ui/src/components/LiquidGlassDefs.tsx` | SVG feTurbulence + feDisplacementMap（`#lg-refract`，v2 新增）            |
+| **质量解析**    | `packages/app-ui/src/hooks/useGlassQuality.ts`       | auto → full/frosted 判定（UA + 设备能力），写 `<html data-glass-quality>` |
+| 桌面全局样式    | `apps/desktop/src/renderer/styles.css`               | 滚动条玻璃化、scroll-behavior、root→transparent（Mica）                   |
+| Web 全局样式    | `apps/web/src/styles.css`                            | `.bg-ambient` 环境光、滚动条、scroll smooth                               |
+| 字体            | `DM Sans`（正文）、`JetBrains Mono`（代码）          | iOS 风格圆润字体，配液态玻璃                                              |
 
 ### 聊天 UI
 
@@ -123,47 +125,43 @@ app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,CanvasOopRast
 
 Jotai 的 `atomFamily`、`atomWithStorage`、`loadable` 对聊天场景（按会话派生、流式中间态）天然合适。
 
-## 5. 本地存储
+## 5. 本地存储（实际实现：三端统一 libsql）
 
-| 端              | 项                                                                                    | 版本      | 说明                                                                                                                                                  |
-| --------------- | ------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Desktop         | **better-sqlite3**                                                                    | **11.x**  | 同步 API，主进程使用                                                                                                                                  |
-| Desktop 向量    | **sqlite-vec**                                                                        | 最新      | SQLite 向量扩展（小巧、性能够）                                                                                                                       |
-| Desktop 全文    | **FTS5**（SQLite 内置）                                                               | —         | 零额外依赖                                                                                                                                            |
-| Web             | **Dexie**                                                                             | **4.x**   | IndexedDB 封装                                                                                                                                        |
-| Web 向量        | 自建 IVF / HNSW JS 或 `sqlite-wasm` + `wa-sqlite`                                     | 评估后定  | 初期可用简单 cosine 计算                                                                                                                              |
-| RN              | **op-sqlite**                                                                         | 最新      | 目前 RN SQLite 性能最好                                                                                                                               |
-| RN 向量         | **op-sqlite vec extension**                                                           | 按需      | —                                                                                                                                                     |
-| ORM             | **Drizzle ORM**                                                                       | **0.30+** | TS-first schema，轻量，迁移工具 `drizzle-kit`                                                                                                         |
-| 嵌入模型 (云)   | **OpenAI text-embedding-3-small / large** 等                                          | —         | 通过 `embedding-provider` kind 配置                                                                                                                   |
-| 嵌入模型 (本地) | **`@huggingface/transformers@4.x`** + **`onnxruntime-node@1.24.x`**（desktop 已交付） | —         | `local-embedder` kind；模型默认 `Xenova/bge-small-zh-v1.5` (512d) / `bge-base-zh-v1.5` (768d) / `bge-m3` (1024d)；详见 `docs/p5pro-local-embedder.md` |
+| 端                     | 项                                                                                    | 版本       | 说明                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Desktop / Web / Mobile | **@libsql/client**                                                                    | **0.10.0** | 三端统一本地 `file:` 模式 + Drizzle ORM（2026-08-30 校对：better-sqlite3 已不在依赖中）                                                               |
+| 向量                   | **libsql native vector index**                                                        | —          | `LibsqlVecStore`（packages/server/src/vec）                                                                                                           |
+| 全文                   | **FTS5**（SQLite 内置）                                                               | —          | messages_fts 虚拟表                                                                                                                                   |
+| ORM                    | **Drizzle ORM**                                                                       | **0.33.0** | TS-first schema，轻量，迁移工具 `drizzle-kit`                                                                                                         |
+| 嵌入模型 (云)          | OpenAI text-embedding-3-small 等                                                      | —          | 通过 embedding provider 配置                                                                                                                          |
+| 嵌入模型 (本地)        | **`@huggingface/transformers@4.x`** + **`onnxruntime-node@1.24.x`**（desktop 已交付） | —          | `local-embedder` kind；模型默认 `Xenova/bge-small-zh-v1.5` (512d) / `bge-base-zh-v1.5` (768d) / `bge-m3` (1024d)；详见 `docs/p5pro-local-embedder.md` |
 
 ### 为什么 Drizzle 不是 Prisma？
 
 - Prisma 的 engine（Rust 二进制）对 Electron 打包不友好
-- Prisma 在 RN 上不可用
 - Drizzle 是纯 TS，跨端一致
 - Drizzle Query Builder API 更接近 SQL，学习成本低
 
-### 为什么 better-sqlite3 不是 LibSQL 本地版？
+### 为什么最终统一 libsql（历史决策变更）？
 
-- `better-sqlite3` 同步 API 在主进程中最顺（避免 await 满天飞）
-- LibSQL 是 SQLite fork，未来要切远端同步时无痛
-- `@libsql/client` 可用作"云同步"通道，不替换本地 `better-sqlite3`
+- 最初计划桌面 better-sqlite3 + Web libsql，实际落地**三端统一 `@libsql/client` 本地 file 模式**
+- 单一存储栈 = 单一 SQL 方言、单一向量方案（libsql vector）、迁移脚本三端通用
+- `@libsql/client` 同时是未来"云同步"通道，本地/远端切换零成本
 
-## 6. AI 抽象层
+## 6. AI 抽象层（实际实现：自研 Provider，非 Vercel AI SDK）
 
-| 项                            | 版本 | 说明                                            |
-| ----------------------------- | ---- | ----------------------------------------------- |
-| **Vercel AI SDK v5** (`ai`)   | 最新 | 核心 streamText / generateObject / generateText |
-| `@ai-sdk/openai`              | 最新 | OpenAI + 兼容端点                               |
-| `@ai-sdk/anthropic`           | 最新 | Claude                                          |
-| `@ai-sdk/google`              | 最新 | Gemini                                          |
-| `@ai-sdk/deepseek`            | 最新 | DeepSeek                                        |
-| `ollama-ai-provider`          | 最新 | Ollama（社区包）                                |
-| `@openrouter/ai-sdk-provider` | 最新 | OpenRouter（社区）                              |
+> 2026-08-30 校对：`@xiabao/core` 的运行时依赖仅 `zod` + `nanoid`，**未引入 Vercel AI SDK**。Provider 层为自研实现（`packages/core/src/providers/impl/`），基于 `HttpPort` 直连各家 REST API + 自研 SSE 流式解析（`sse.ts`）。
 
-Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`），方便未来替换或加自研适配。
+| 实现                | 覆盖                                               | 说明                                                                                 |
+| ------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `openai.ts`         | openai / deepseek / openrouter / openai-compatible | 一个 factory 注册多 kind；DeepSeek 兼容处理（不传 stream_options、content 字符串化） |
+| `anthropic.ts`      | anthropic                                          | Claude Messages API                                                                  |
+| `google.ts`         | google                                             | Gemini                                                                               |
+| `ollama.ts`         | ollama                                             | 本地模型                                                                             |
+| `local-embedder.ts` | local-embedder                                     | ONNX Runtime 本地嵌入                                                                |
+| `capabilities.ts`   | —                                                  | 按 modelId 推断 tools/vision/reasoning/jsonMode 默认值                               |
+
+设计取舍：客户端场景要精控流式事件（tool-call 增量、reasoning delta、用量统计）与超轻依赖，自研薄层比引 AI SDK 更可控（当初评估过 Vercel AI SDK，因包体与抽象耦合放弃，见 §18）。
 
 ## 7. IPC 与跨进程
 
@@ -176,22 +174,22 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 
 ## 8. 网络与 HTTP
 
-| 项      | 说明                                                  |
-| ------- | ----------------------------------------------------- |
-| Desktop | Node 原生 `fetch`（Node 20+）/ `undici` 直连          |
-| Web     | 浏览器 `fetch` → Cloudflare Worker                    |
-| RN      | RN 内置 `fetch`（走 OkHttp）                          |
-| 流式    | 统一用 `ReadableStream` / `AsyncIterable<Uint8Array>` |
+| 项      | 说明                                                                   |
+| ------- | ---------------------------------------------------------------------- |
+| Desktop | Node 原生 `fetch`（Node 22+）/ `undici` 直连                           |
+| Web     | 服务端 Node `fetch` → Cloudflare Worker（浏览器侧经本地 Fastify 服务） |
+| Mobile  | 本地 Node 服务 `fetch`（WebView 不直连 AI）                            |
+| 流式    | 统一用 `ReadableStream` / `AsyncIterable<Uint8Array>`（自研 SSE 解析） |
 
 ## 9. 加密与密钥
 
-| 项                                           | 版本 | 用途                             |
-| -------------------------------------------- | ---- | -------------------------------- |
-| **Electron safeStorage**                     | —    | 桌面 API Key 加密（OS Keychain） |
-| **@noble/ciphers**                           | 最新 | AES-256-GCM（跨端）              |
-| **@noble/hashes**                            | 最新 | Argon2id / SHA-256               |
-| **argon2-browser** 或 `@noble/hashes/argon2` | 最新 | PBKDF passphrase → key           |
-| **expo-secure-store**                        | 最新 | RN Android Keystore              |
+| 项                        | 版本 | 用途                                        |
+| ------------------------- | ---- | ------------------------------------------- |
+| **Electron safeStorage**  | —    | 桌面 API Key 加密（OS Keychain）            |
+| **@noble/ciphers**        | 最新 | AES-256-GCM（跨端）                         |
+| **@noble/hashes**         | 最新 | Argon2id / SHA-256                          |
+| **argon2**（node-native） | 最新 | KDF passphrase → key（desktop externalize） |
+| Web/Mobile SecretPort     | —    | 加密存储（服务端实现）                      |
 
 ## 10. 云同步
 
@@ -288,8 +286,8 @@ Core 在 Vercel AI SDK 上包一层薄 `Provider` 接口（见 `07-providers.md`
 ## 17. 版本锁定策略
 
 - **所有依赖版本精确锁定**（无 `^` / `~`），由 Dependabot 统一升级
-- 关键库（Electron、React、Jotai、better-sqlite3、Vercel AI SDK）major 版本跳转走 RFC
-- 原生模块（better-sqlite3、op-sqlite）必须有 prebuilds 覆盖 **Node 22.21.1** + Win/Mac/Linux x64 + Mac arm64 + Linux arm64
+- 关键库（Electron、React、Jotai、@libsql/client、onnxruntime-node）major 版本跳转走 RFC
+- 原生依赖（@libsql/client、onnxruntime-node、sharp、argon2）依赖官方 prebuilds 覆盖 **Node 22.21.1** + Win/Mac/Linux x64 + Mac arm64 + Linux arm64
 - **开发环境硬约束**：任何本地脚本 / CI / 发布命令必须 `nvm use 22` 或等价显式指定 Node 22，**禁止使用系统 Node 10**（原生模块 esbuild/sharp/electron 编译必须 ABI 匹配）
 
 ## 18. 不选 / 曾考虑

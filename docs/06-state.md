@@ -364,24 +364,24 @@ export function makeWebTrpcLike(core: Core): TrpcClient {
 
 UI 代码一行不变。
 
-### RN
+### Mobile（Capacitor）
 
-RN 也用 Jotai，但 `packages/ui-native` 提供 RN 版组件。核心原子依然复用 `packages/state`。
+Mobile 与 Web 完全同一套代码（WebView 渲染同一 SPA），`packages/state` 100% 共享，`createPersistedAtom` 直接使用 WebView 的 localStorage（同源持久化，无需 MMKV 注入）。
 
 **差异点**：
 
-- Tab 系统在 RN 上**不使用**（降级为单屏 + 抽屉导航），所以 `layoutAtom` 在 RN 初始化时设成 `single` 并禁用 split
-- `atomWithStorage` 的 storage adapter 由 op-sqlite KV 提供
+- Tab 系统在移动端**不使用**（降级为 MobileTabBar + 抽屉导航）
+- 布局原子 `splitLayoutAtom` 在移动端不生效（无分屏）
 
 ## 8. 持久化矩阵
 
-| 原子类型                 | Desktop                     | Web          | RN           |
-| ------------------------ | --------------------------- | ------------ | ------------ |
-| UI 偏好（主题/密度）     | better-sqlite3 KV           | IndexedDB KV | op-sqlite KV |
-| 布局（layout, tab 打开） | 同上（加密）                | 同上         | 同上         |
-| 最近打开                 | 同上                        | 同上         | 同上         |
-| 搜索历史                 | 同上                        | 同上         | 同上         |
-| Conversation / Message   | 通过 tRPC query + atom 缓存 | 直接 core    | 直接 core    |
+| 原子类型                      | Desktop                             | Web                    | Mobile（Capacitor）      |
+| ----------------------------- | ----------------------------------- | ---------------------- | ------------------------ |
+| UI 偏好（主题/密度/玻璃三档） | localStorage（createPersistedAtom） | localStorage           | localStorage（WebView）  |
+| 布局（tab 打开/分屏）         | 同上                                | 同上                   | 同上（仅 chat.\* 生效）  |
+| 最近打开                      | 同上                                | 同上                   | 同上                     |
+| 搜索历史                      | 同上                                | 同上                   | 同上                     |
+| Conversation / Message        | libsql（tRPC query + atom 缓存）    | libsql（本地 Fastify） | libsql（本地 Node 服务） |
 
 Jotai 端缓存不承担"真相源"角色；真相在 SQLite。atom 只是内存镜像，**刷新/重启需要重新拉取**（由 bridge effect 负责）。
 
@@ -458,44 +458,31 @@ test('groupedConversations', () => {
 });
 ```
 
-## 12. 全量原子清单（速查）
+## 12. 全量原子清单（实际实现速查 · 2026-08-30 校对）
 
-| 领域          | 原子                            | 类型                            | 持久化     |
-| ------------- | ------------------------------- | ------------------------------- | ---------- | --------- | --- |
-| **UI**        | `themeAtom`                     | `'light'                        | 'dark'     | 'system'` | ✅  |
-|               | `accentAtom`                    | `'green'                        | ...`       | ✅        |
-|               | `densityAtom`                   | `'comfortable'                  | 'compact'` | ✅        |
-|               | `fontSizeAtom`                  | `'sm'                           | 'md'       | 'lg'`     | ✅  |
-|               | `localeAtom`                    | `string`                        | ✅         |
-|               | `sidebarCollapsedAtom`          | `boolean`                       | ✅         |
-|               | `commandPaletteOpenAtom`        | `boolean`                       | —          |
-| **Tabs**      | `layoutAtom`                    | `SplitLayout`                   | ✅         |
-|               | `dragTabAtom`                   | `TabItem                        | null`      | —         |
-| **Conv**      | `conversationsAtom`             | `Conversation[]`                | —          |
-|               | `activeConvIdAtom`              | `string                         | null`      | ✅        |
-|               | `activeConversationAtom`        | derived                         | —          |
-|               | `groupedConversationsAtom`      | derived                         | —          |
-| **Msg**       | `messagesFamily(convId)`        | `Message[]`                     | —          |
-|               | `branchPathFamily(convId)`      | `Record<string, number>`        | —          |
-|               | `displayMessagesFamily(convId)` | derived                         | —          |
-| **Stream**    | `streamingAtom`                 | `Record<msgId, StreamingState>` | —          |
-| **Providers** | `providersLoadableAtom`         | loadable                        | —          |
-|               | `modelsByProviderFamily(id)`    | async                           | —          |
-|               | `currentModelIdAtom`            | `string`                        | ✅         |
-| **Presets**   | `presetsAtom`                   | `Preset[]`                      | —          |
-| **Search**    | `searchQueryAtom`               | `string`                        | —          |
-|               | `searchResultsAtom`             | async                           | —          |
-|               | `searchScopeAtom`               | `'current'                      | 'all'`     | ✅        |
-| **KB**        | `knowledgeBasesAtom`            | `KnowledgeBase[]`               | —          |
-|               | `activeKbIdAtom`                | `string                         | null`      | ✅        |
-| **Translate** | `translateSourceAtom`           | `string`                        | —          |
-|               | `translateTargetAtom`           | `string`                        | —          |
-|               | `translateLangsAtom`            | `[from,to]`                     | ✅         |
-| **Image**     | `imageHistoryAtom`              | `ImageGeneration[]`             | —          |
-| **Agent**     | `activeAgentRunIdAtom`          | `string                         | null`      | —         |
-|               | `agentStepsFamily(runId)`       | `AgentStep[]`                   | —          |
-|               | `agentPanelModeAtom`            | `'cards'                        | 'split'    | 'canvas'` | ✅  |
-| **MCP**       | `mcpServersAtom`                | `McpServer[]`                   | —          |
-| **Sync**      | `syncEnabledAtom`               | `boolean`                       | ✅         |
-|               | `syncStatusAtom`                | `SyncStatus`                    | —          |
-| **Shortcuts** | `shortcutMapAtom`               | `Record<string, Keybinding>`    | ✅         |
+> 实际全部定义在 `packages/state/src/index.ts`（单文件 barrel），持久化统一 `createPersistedAtom`（localStorage 键 `ui.*` / `chat.*` / `voice.*` / `sync.*` / `miniapp.*`）。
+
+| 领域       | 原子                                                                                        | 类型                                       | 持久化                                  |
+| ---------- | ------------------------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------- |
+| **UI**     | `themeAtom`                                                                                 | `'light' \| 'dark' \| 'system'`            | ✅ `ui.theme`                           |
+|            | `accentAtom`                                                                                | `'green' \| 'blue' \| ...`                 | ✅ `ui.accent`                          |
+|            | `densityAtom`                                                                               | `'comfortable' \| 'compact'`               | ✅ `ui.density`                         |
+|            | `fontSizeAtom`                                                                              | `'sm' \| 'md' \| 'lg'`                     | ✅ `ui.fontSize`                        |
+|            | `localeAtom`                                                                                | `'zh-CN' \| 'en-US'`                       | ✅ `ui.locale`                          |
+|            | `sidebarCollapsedAtom`                                                                      | `boolean`                                  | ✅ `ui.sidebarCollapsed`                |
+|            | `commandPaletteOpenAtom`                                                                    | `boolean`                                  | —                                       |
+|            | `navBarPositionAtom`                                                                        | `'left' \| 'top'`                          | ✅ `ui.navBarPosition`                  |
+|            | **`glassQualityAtom`**                                                                      | `'auto' \| 'full' \| 'frosted'`            | ✅ `ui.glassQuality`（液态玻璃三档）    |
+|            | `onboardingDoneAtom` / `onboardingStepAtom` / `onboardingProviderKindAtom`                  | `boolean` / `number` / kind                | ✅ / — / —                              |
+|            | `crashReportingEnabledAtom`                                                                 | `boolean`                                  | ✅ `ui.crashReportingEnabled`           |
+|            | `primaryNavAtom`                                                                            | `PrimaryNav`（home/chat/...）              | —                                       |
+|            | `settingsSectionAtom`                                                                       | `SettingsSection`                          | —                                       |
+| **快捷键** | `shortcutBindingsAtom`                                                                      | `Record<ShortcutId, string>`               | ✅ `ui.shortcuts`                       |
+| **Tabs**   | `openTabsAtom` / `activeTabIdAtom`                                                          | `OpenTab[]` / `string \| null`             | ✅ `chat.openTabs` / `chat.activeTabId` |
+|            | `splitLayoutAtom` / `focusedPaneIdAtom`                                                     | `SplitLayoutState` / `string \| null`      | ✅ `chat.splitLayout` / —               |
+| **MCP**    | `mcpServersAtom` / `mcpToolsAtom`                                                           | `McpServerState[]` / `McpToolState[]`      | —                                       |
+| **语音**   | `sttModelIdAtom` / `ttsModelIdAtom` / `ttsVoiceAtom` / `ttsSpeedAtom` / `voiceAutoSendAtom` | 模型/音色/语速                             | ✅ `voice.*`                            |
+| **图像**   | `imageHistoryAtom`                                                                          | `ImageGeneration[]`（内存态）              | —                                       |
+| **同步**   | `syncEnabledAtom` / `syncConfiguredAtom`                                                    | `boolean`                                  | ✅ `sync.*`                             |
+| **小程序** | `customMiniAppsAtom` / `miniAppTabsAtom` / `activeMiniAppTabIdAtom`                         | `MiniApp[]` / `MiniAppTab[]` / `string`    | ✅ `miniapp.*`                          |
+| **重置**   | `SETTINGS_STORAGE_KEYS`                                                                     | 外观/引导 storage 键集合（重置全部设置用） | —                                       |

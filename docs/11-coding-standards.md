@@ -11,6 +11,7 @@
 - **不要追求 clever**：宁可多写 3 行明白代码，也不要 1 行绝活
 - **小函数**：单个函数 < 40 行为目标
 - **Dependency Injection**：不要 `new XxxClient()` 直接在业务层；由组装点传入
+- **确认弹窗一律 `ConfirmDialog`**（Promise 化组件）：**禁止原生 `window.confirm()` / `window.alert()`** —— Trae CN webview 对同步 confirm 的拦截有缺陷，会触发 React #185（Maximum update depth exceeded）无限重渲染（2026-08 实测教训）
 
 ## 2. 命名
 

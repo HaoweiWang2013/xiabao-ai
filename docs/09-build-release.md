@@ -13,7 +13,7 @@
 | **Desktop · Linux arm64**     | —                    | 同上                                     | arm64 变体                                                                |
 | **Web**                       | 浏览器               | Vite + Workbox PWA                       | `dist/` 静态站点 + `sw.js`                                                |
 | **Web Proxy**                 | Cloudflare Workers   | Wrangler                                 | Worker script                                                             |
-| **Android**                   | API 26+              | Gradle + RN                              | `app-release.apk`, `app-release.aab`                                      |
+| **Android**                   | API 26+              | Gradle + Capacitor（AGP 8.2 + JDK 17）   | `app-debug.apk` / `app-release.apk`                                       |
 
 ## 2. Desktop · Webpack 三份配置
 
@@ -50,9 +50,12 @@ export default <Configuration>{
     ],
   },
   externals: {
-    // 原生模块不 bundle
-    'better-sqlite3': 'commonjs better-sqlite3',
-    'sqlite-vec': 'commonjs sqlite-vec',
+    // 原生/重依赖模块不 bundle（实际配置）
+    '@libsql/client': 'commonjs @libsql/client',
+    'onnxruntime-node': 'commonjs onnxruntime-node',
+    '@huggingface/transformers': 'commonjs @huggingface/transformers',
+    sharp: 'commonjs sharp',
+    argon2: 'commonjs argon2',
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -145,110 +148,74 @@ export default <Configuration>{
 
 实际用 `concurrently` + `electronmon` 自动重启主进程。
 
-## 3. electron-builder 配置
+## 3. electron-builder 配置（实际）
 
 ```yaml
 # apps/desktop/electron-builder.yml
 appId: ai.xiabao.app
 productName: XiabaoAI
 copyright: Copyright © 2026 XiabaoAI Authors
-asar: true
-asarUnpack:
-  - '**/*.node'
-  - 'node_modules/better-sqlite3/**'
-  - 'node_modules/sqlite-vec/**'
-  - '**/node_modules/@libsql/client/**'
-  - '**/node_modules/@libsql/core/**'
-
-files:
-  - 'dist/**/*'
-  - 'package.json'
-  - '!node_modules/**/*'
-  - 'node_modules/better-sqlite3/build/Release/better_sqlite3.node'
-  - 'node_modules/sqlite-vec/**/*'
 
 directories:
   output: release
   buildResources: build
 
-# 自动更新
-publish:
-  provider: github
-  owner: xiabaoai
-  repo: xiabaoai
-  releaseType: release
+asar: false # 当前未启 asar（node_modules 直拷，便于原生依赖解析）
+npmRebuild: false # 不在打包机重编原生模块
 
-# macOS
+files:
+  - 'dist/**/*'
+  - 'package.json'
+  - 'node_modules/**/*'
+  - '!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}'
+  - '!node_modules/**/{test,__tests__,tests,powered-test,example,examples}'
+  - '!node_modules/**/.bin'
+
 mac:
   category: public.app-category.developer-tools
-  target:
-    - target: dmg
-      arch: [universal]
-    - target: zip
-      arch: [universal]
   icon: build/icon.icns
+  target:
+    - { target: dmg, arch: [universal] }
+    - { target: zip, arch: [universal] }
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   notarize: true
 
-dmg:
-  icon: build/icon.icns
-  background: build/dmg-background.png
-  contents:
-    - x: 140
-      y: 220
-    - x: 400
-      y: 220
-      type: link
-      path: /Applications
-
-# Windows
 win:
-  target:
-    - target: nsis
-      arch: [x64, arm64]
-    - target: portable
-      arch: [x64]
   icon: build/icon.ico
+  target:
+    - { target: nsis, arch: [x64, arm64] }
+    - { target: portable, arch: [x64] }
   artifactName: '${productName}-Setup-${version}-${arch}.${ext}'
-  certificateFile: '${env.WIN_CSC_LINK}'
-  certificatePassword: '${env.WIN_CSC_KEY_PASSWORD}'
-  signingHashAlgorithms: [sha256]
-  signDlls: true
+  publisherName: XiabaoAI Authors
 
 nsis:
   oneClick: false
   perMachine: false
   allowElevation: true
   allowToChangeInstallationDirectory: true
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
-  installerHeaderIcon: build/icon.ico
   createDesktopShortcut: always
   createStartMenuShortcut: true
   shortcutName: XiabaoAI
-  include: build/installer.nsh
 
-# Linux
 linux:
-  target:
-    - target: AppImage
-      arch: [x64, arm64]
-    - target: deb
-      arch: [x64, arm64]
-  icon: build/icons/
+  icon: build/icons
   category: Development
-  synopsis: Aggregated AI client
-  desktop:
-    Name: XiabaoAI
-    Comment: Aggregated AI client
-    Categories: 'Development;Utility;'
+  target:
+    - { target: AppImage, arch: [x64, arm64] }
+    - { target: deb, arch: [x64, arm64] }
+  desktop: { Name: XiabaoAI, Comment: 'Aggregated AI client', Categories: 'Development;Utility;' }
 
-appImage:
-  license: ../LICENSE
+publish:
+  provider: github
+  owner: xiabaoai
+  repo: xiabaoai
+  releaseType: release
 ```
+
+另有无签名变体 `electron-builder.unsigned.yml`（本地侧载/CI 无证书时用）。
 
 ### macOS 公证环境变量
 
@@ -266,9 +233,9 @@ CSC_KEY_PASSWORD=...
 - Standard 证书也可用，但首次需用户点"仍要运行"
 - SignPath / DigiCert / GlobalSign 等 CA
 
-## 4. 原生模块预编译
+## 4. 原生依赖说明
 
-`better-sqlite3` / `sqlite-vec` / `op-sqlite` 都是 native addon。通过 `prebuild-install` 或自行 CI 编译：
+当前**无自编 native addon**：三端存储统一走 `@libsql/client`（平台预编译二进制），本地嵌入走 `onnxruntime-node`（prebuilds），因此 `npmRebuild: false`、`asar: false` 即可打包。若未来引入需 node-gyp 的模块（如 better-sqlite3），再启用 prebuildify 矩阵：
 
 ```yaml
 # .github/workflows/prebuild.yml
@@ -406,15 +373,27 @@ pnpm --filter @xiabao/web-proxy deploy       # wrangler deploy
 
 Worker 代码见 `05-ipc-api.md` 第 7 节。
 
-## 7. RN Android 构建
+## 7. Android（Capacitor）构建
+
+实际链路：**build:web（Vite 产物）→ cap sync（拷入 android assets + 本地 Node 服务）→ gradle assemble**，由脚本一键完成：
 
 ```bash
 # apps/mobile/
-pnpm android                        # 开发 APK 到模拟器
-pnpm build:android:release          # 生成签名 AAB
+pnpm build:apk              # debug APK（node scripts/build-apk.mjs）
+pnpm build:apk:release      # release APK
+pnpm sync                   # 仅 cap sync（web 产物已构建时）
+pnpm open:android           # Android Studio 打开工程
 ```
 
-`android/app/build.gradle`：
+`scripts/build-apk.mjs` 关键约束：
+
+- **JDK 17 强制**（AGP 8.2 要求，脚本启动即校验；本机路径 `local.properties` 已写 `sdk.dir=/home/u/Android/Sdk`）
+- Android SDK 由 `android/local.properties` 的 `sdk.dir` 指定
+- Capacitor telemetry 已关闭（`npx cap telemetry off`，避免交互阻塞）
+- 产物：`apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`（debug 约 62MB）
+- 内网分发：任意静态服务器指向产物目录（如 `python -m http.server 8080` → `http://<内网IP>:8080/app-debug.apk`）
+
+`android/app/build.gradle`（Capacitor 生成 + 项目定制）：
 
 ```groovy
 android {
@@ -442,8 +421,6 @@ android {
     }
 }
 ```
-
-CI 用 GitHub Actions + `reactnativecommunity/react-native-android-ci` 镜像。
 
 ## 8. 自动更新
 
@@ -549,14 +526,14 @@ jobs:
 
 ## 11. 产物大小预算
 
-| 产物                | 目标          |
-| ------------------- | ------------- |
-| Windows NSIS        | < 120 MB      |
-| macOS dmg universal | < 200 MB      |
-| Linux AppImage      | < 150 MB      |
-| Web 首屏 JS         | < 300 KB gzip |
-| Web 总资源          | < 3 MB        |
-| APK                 | < 50 MB       |
+| 产物                | 目标          | 现状（2026-08-30）                           |
+| ------------------- | ------------- | -------------------------------------------- |
+| Windows NSIS        | < 120 MB      | 待实测（未配证书）                           |
+| macOS dmg universal | < 200 MB      | 待实测（未配证书）                           |
+| Linux AppImage      | < 150 MB      | 待实测                                       |
+| Web 首屏 JS         | < 300 KB gzip | 接近达标                                     |
+| Web 总资源          | < 3 MB        | 达标                                         |
+| APK                 | < 50 MB       | **debug 62MB 超预算**，待 minify/shrink 收紧 |
 
 超预算的依赖需 RFC 说明。
 

@@ -5,32 +5,34 @@
 ## 1. 抽象原则
 
 - 上层（Service / UI）只面对**统一的 ChatService API**，不认具体 Provider
-- 具体 Provider 基于 **Vercel AI SDK v5** 实现，但 Core 在外面包一层 `Provider` 接口，方便未来替换
-- 模型能力声明化（`capability.vision`、`capability.tools` 等），UI 根据能力动态启用/禁用入口
+- 具体 Provider 为**自研实现**（`packages/core/src/providers/impl/`，基于 `HttpPort` + 自研 SSE 解析 `sse.ts`），Core 外面包一层 `Provider` 接口，方便未来替换（2026-08-30 校对：未使用 Vercel AI SDK）
+- 模型能力声明化（`capability.vision`、`capability.tools` 等），UI 根据能力动态启用/禁用入口；能力默认值由 `capabilities.ts` 按 modelId 推断
 
 ## 2. 接口层次
 
 ```
 ┌────────────────────────────────────────────┐
 │  UI                                        │
-│  useChat().send(parts, options)            │
+│  useChatStream().send(parts, options)      │
 └────────────┬───────────────────────────────┘
              ▼
 ┌────────────────────────────────────────────┐
-│  ChatService（Core）                       │
+│  ChatService（@xiabao/server）             │
 │  · 持久化消息 · 组装上下文 · 选 Provider   │
-│  · 工具注入 · 重试/中断 · 事件流           │
+│  · 工具注入 · 工具循环 · 重试/中断 · 事件流│
 └────────────┬───────────────────────────────┘
              ▼
 ┌────────────────────────────────────────────┐
-│  Provider Adapter（Core 内，每家一个）    │
+│  Provider Adapter（@xiabao/core，每家一个）│
+│  · openai.ts（含 deepseek/openrouter 复用）│
+│  · anthropic.ts / google.ts / ollama.ts    │
+│  · local-embedder.ts（ONNX 本地嵌入）      │
 │  · 翻译成各家 API 需要的参数               │
-│  · 底层走 Vercel AI SDK                   │
 └────────────┬───────────────────────────────┘
              ▼
 ┌────────────────────────────────────────────┐
-│  Vercel AI SDK                            │
-│  streamText / generateObject / ...         │
+│  自研 SSE 解析（core/providers/impl/sse.ts）│
+│  流式 delta / tool-call / usage 事件       │
 └────────────┬───────────────────────────────┘
              ▼
          HttpPort → 真实 HTTP/SSE
@@ -247,9 +249,11 @@ export class OpenAIProvider implements Provider {
     this.id = opts.id ?? 'openai';
     this.name = opts.name ?? 'OpenAI';
 
-    this.client = createOpenAI({
+    // 实际实现：openai.ts 直接持有 HttpPort，POST {baseUrl}/chat/completions + 自研 SSE 读取
+    // （下例为接口示意）
+    this.client = {
       baseURL: opts.baseURL ?? 'https://api.openai.com/v1',
-      // 适配：Vercel AI SDK 接受 fetch 函数
+      // HttpPort.fetch 适配：注入 Authorization 头
       fetch: async (url, init) =>
         opts.http.fetch(url, {
           ...init,
@@ -259,7 +263,7 @@ export class OpenAIProvider implements Provider {
             ...(opts.organization ? { 'OpenAI-Organization': opts.organization } : {}),
           },
         }),
-    });
+    };
   }
 
   async listModels(): Promise<Model[]> {
@@ -520,10 +524,25 @@ async buildTools(conv, options): Promise<ToolDefinition[]> {
 }
 ```
 
-## 11. Agent 循环
+## 11. 工具调用循环（实际：内嵌 ChatService，无独立 AgentService）
+
+> 2026-08-30 校对：下述独立 `AgentService` 为早期设计，**未实装**。实际工具循环在 `packages/server/src/services/chat.service.ts` 的 `stream()` 内：`tools = toolService.list() + mcp 授权工具` → provider 流式返回 `tool-call` 增量 → `toolCalls` Map 聚合 → 执行 → 回填 `tool-result` → `toolLoopContinue` 续写下一轮 → 全部以 message parts 持久化。UI 由 MessageDocAssistant 三级材质渲染。
 
 ```ts
-// packages/core/src/services/agent/index.ts
+// packages/server/src/services/chat.service.ts（实际逻辑示意）
+const tools = toolService.list();
+const mcpToolSpecs = await mcpService.getAuthorizedToolSpecs(mcpServerIds);
+const toolCalls = new Map<string, { toolName: string; argsJson: string; done: boolean }>();
+let toolLoopContinue = false;
+// provider.chat({ tools: tools.length > 0 ? tools : undefined, ... })
+//   chunk.toolCall → toolCalls.set(...)，emit { type: 'tool-call' }
+//   循环结束若有未完成 tool-call → 执行 → emit { type: 'tool-result' } → toolLoopContinue 续写
+```
+
+<details>
+<summary>早期独立 AgentService 设计（未采用，留档）</summary>
+
+```ts
 export class AgentService {
   async run(input: AgentRunInput, onEvent: (e: AgentEvent) => void): Promise<void> {
     const run = await this.repos.agents.create({ goal: input.goal, ... });
@@ -535,12 +554,13 @@ export class AgentService {
       // 调 provider.stream，允许 tool calls
       // 收到 tool-call → 执行 → 填回 tool-result → 下一轮
       // 收到 finish && 无 tool-call → 结束
-      // ...
     }
     onEvent({ kind: 'run-ended', runId: run.id });
   }
 }
 ```
+
+</details>
 
 ## 12. 成本估算
 
