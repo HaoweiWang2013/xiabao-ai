@@ -56,5 +56,8 @@ export { ToolMessage } from './components/ToolMessage';
 export { SplashScreen } from './components/SplashScreen';
 export type { SplashScreenProps } from './components/SplashScreen';
 export { ErrorBoundary } from './components/ErrorBoundary';
+export { LiquidGlassDefs } from './components/LiquidGlassDefs';
 export { useKeyboard } from './hooks/useKeyboard';
 export type { KeyboardInfo } from './hooks/useKeyboard';
+export { useGlassQuality } from './hooks/useGlassQuality';
+export type { ResolvedGlassQuality } from './hooks/useGlassQuality';

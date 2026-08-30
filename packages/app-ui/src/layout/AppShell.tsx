@@ -26,7 +26,9 @@ import {
 import { ACCENT_HSL, type AccentId } from '@xiabao/theme';
 import { cn, IconButton } from '@xiabao/ui';
 
+import { LiquidGlassDefs } from '../components/LiquidGlassDefs';
 import { useAdaptivePerformance } from '../hooks/useAdaptivePerformance';
+import { useGlassQuality } from '../hooks/useGlassQuality';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useScrollState } from '../hooks/useScrollState';
 import { useStatusBar } from '../hooks/useStatusBar';
@@ -87,6 +89,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
 
   // GPU 性能自适应：移动端/低电量/低帧率时注入 data-perf-mode="low"
   useAdaptivePerformance();
+  // 玻璃效果质量：解析 auto/full/frosted → 注入 <html data-glass-quality>
+  useGlassQuality();
   // 滚动状态：滚动时注入 .is-scrolling，降低 glass 模糊半径
   useScrollState();
   // 软键盘：弹起时注入 body.keyboard-open，全局玻璃降级
@@ -244,6 +248,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   if (isMobile) {
     return (
       <div className="bg-background text-foreground relative flex h-dvh w-screen flex-col overflow-hidden font-sans">
+        {/* 液态玻璃折射滤镜（SVG defs，全局一次；auto 档移动端默认 frosted 不引用） */}
+        <LiquidGlassDefs />
         {/* 移动端顶栏（safe-area-top 适配刘海/状态栏） */}
         <header className="app-page-header border-border/40 bg-background/50 safe-area-top shrink-0 border-b backdrop-blur-sm">
           <div className="flex h-12 items-center justify-between px-3">
@@ -297,6 +303,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
   if (navPosition === 'top') {
     return (
       <div className="bg-background text-foreground relative flex h-screen w-screen flex-col gap-2 overflow-hidden p-2 font-sans">
+        {/* 液态玻璃折射滤镜（SVG defs，全局一次） */}
+        <LiquidGlassDefs />
         <IconTopBar />
         <div className="flex flex-1 gap-2 overflow-hidden">
           {inlineMiddle && middle}
@@ -309,6 +317,8 @@ export function AppShell({ middle, children, showMiddle = true }: Props) {
 
   return (
     <div className="bg-background text-foreground relative flex h-screen w-screen gap-2 overflow-hidden p-2 font-sans">
+      {/* 液态玻璃折射滤镜（SVG defs，全局一次） */}
+      <LiquidGlassDefs />
       <IconSidebar />
       {inlineMiddle && middle}
       {mainArea}

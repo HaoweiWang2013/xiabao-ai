@@ -40,6 +40,19 @@ export const densityAtom = createPersistedAtom<'comfortable' | 'compact'>(
 export const fontSizeAtom = createPersistedAtom<'sm' | 'md' | 'lg'>('ui.fontSize', 'md');
 
 /**
+ * 玻璃效果质量（液态玻璃降级链，Apple Liquid Glass 对齐）
+ *
+ * - `'auto'`：自动检测 —— 桌面 Chromium 且设备能力足够 → full；
+ *   移动端 / Safari / Firefox / 弱设备 → frosted（SVG 折射仅 Chromium 支持）
+ * - `'full'`：完整液态玻璃（SVG 折射 + 边缘渐变光 + specular 交互高光）
+ * - `'frosted'`：普通毛玻璃（blur + saturate，无折射、无动态光）
+ *
+ * 由 useGlassQuality 解析后注入 <html data-glass-quality="...">，CSS 据此切换。
+ */
+export type GlassQuality = 'auto' | 'full' | 'frosted';
+export const glassQualityAtom = createPersistedAtom<GlassQuality>('ui.glassQuality', 'auto');
+
+/**
  * 导航栏位置（P9 · 9-4）
  *
  * - `'left'`：纵向 IconSidebar（默认，保留现状）

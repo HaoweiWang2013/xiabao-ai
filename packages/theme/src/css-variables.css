@@ -868,3 +868,83 @@ body.keyboard-open .glass-pill {
     scroll-behavior: auto !important;
   }
 }
+
+/* =====================================================================
+   玻璃效果质量三档（data-glass-quality 由 useGlassQuality 注入 <html>）
+   Apple Liquid Glass 的核心是折射（Lensing）而非模糊：
+   full    = blur + saturate + SVG 位移折射（feTurbulence + feDisplacementMap）
+   frosted = 普通 glassmorphism（仅 blur + saturate，无折射/边缘光/动态高光）
+   降级链：full →（弱设备/Safari/Firefox/reduced-transparency）→ frosted →（reduced-transparency）→ 实体色
+   注：SVG url() 滤镜仅在 Chromium 引擎的 backdrop-filter 中真实渲染，
+   WebKit/Firefox 会静默忽略 url() 只剩 blur（等同 frosted）。
+   ===================================================================== */
+
+/* full：在原有玻璃上叠加折射滤镜（弱性能 perf-mode=low 时自动摘除） */
+@media (prefers-reduced-transparency: no-preference) {
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass,
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass-btn,
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass-pill,
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass-subtle {
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%) url(#lg-refract);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) url(#lg-refract);
+  }
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass-strong,
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .agent-respond {
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) url(#lg-refract);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) url(#lg-refract);
+  }
+  /* hover 增强态保留折射（复刻 .glass-hover:hover 的模糊提升） */
+  html[data-glass-quality='full']:not([data-perf-mode='low']) .glass-hover:hover {
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(190%) url(#lg-refract);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(190%) url(#lg-refract);
+  }
+  /* 瞬时降级态（滚动中/软键盘弹起）摘除折射，回到低模糊，避免持续重绘抖动 */
+  html[data-glass-quality='full'] body.is-scrolling .glass,
+  html[data-glass-quality='full'] body.is-scrolling .glass-strong,
+  html[data-glass-quality='full'] body.keyboard-open .glass,
+  html[data-glass-quality='full'] body.keyboard-open .glass-strong,
+  html[data-glass-quality='full'] body.keyboard-open .glass-btn,
+  html[data-glass-quality='full'] body.keyboard-open .glass-pill {
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+  }
+}
+
+/* frosted：普通毛玻璃 —— 保留分级模糊与着色，熄灭边缘光与 specular 动态高光 */
+@media (prefers-reduced-transparency: no-preference) {
+  html[data-glass-quality='frosted'] .glass,
+  html[data-glass-quality='frosted'] .glass-btn,
+  html[data-glass-quality='frosted'] .glass-pill,
+  html[data-glass-quality='frosted'] .glass-tint {
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  }
+  html[data-glass-quality='frosted'] .glass-strong,
+  html[data-glass-quality='frosted'] .agent-respond {
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(150%);
+  }
+  html[data-glass-quality='frosted'] .glass-subtle,
+  html[data-glass-quality='frosted'] .agent-think {
+    backdrop-filter: blur(var(--glass-blur-subtle)) saturate(130%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-subtle)) saturate(130%);
+  }
+  /* 摘除边缘渐变光（::before）与 specular 交互高光（::after） */
+  html[data-glass-quality='frosted'] .glass::before,
+  html[data-glass-quality='frosted'] .glass::after,
+  html[data-glass-quality='frosted'] .glass-strong::before,
+  html[data-glass-quality='frosted'] .glass-strong::after,
+  html[data-glass-quality='frosted'] .glass-btn::before,
+  html[data-glass-quality='frosted'] .glass-btn::after,
+  html[data-glass-quality='frosted'] .glass-pill::before,
+  html[data-glass-quality='frosted'] .glass-pill::after,
+  html[data-glass-quality='frosted'] .glass-tint::before,
+  html[data-glass-quality='frosted'] .glass-tint::after {
+    display: none;
+  }
+  /* hover 不再提模糊（普通毛玻璃无动态光响应） */
+  html[data-glass-quality='frosted'] .glass-hover:hover {
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  }
+}

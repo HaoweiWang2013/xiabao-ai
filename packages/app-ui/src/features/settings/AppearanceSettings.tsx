@@ -15,9 +15,11 @@ import {
   accentAtom,
   densityAtom,
   fontSizeAtom,
+  glassQualityAtom,
   localeAtom,
   navBarPositionAtom,
   themeAtom,
+  type GlassQuality,
   type NavBarPosition,
 } from '@xiabao/state';
 import {
@@ -53,6 +55,7 @@ export function AppearanceSettings({ onBack }: { onBack?: () => void } = {}) {
   const [fontSize, setFontSize] = useAtom(fontSizeAtom);
   const [navBarPosition, setNavBarPosition] = useAtom(navBarPositionAtom);
   const [locale, setLocale] = useAtom(localeAtom);
+  const [glassQuality, setGlassQuality] = useAtom(glassQualityAtom);
 
   return (
     <div className="flex h-full flex-col">
@@ -152,6 +155,35 @@ export function AppearanceSettings({ onBack }: { onBack?: () => void } = {}) {
                   onClick={() => setNavBarPosition('top' satisfies NavBarPosition)}
                 >
                   {t('settings.appearance.navBarTop', { defaultValue: '顶部' })}
+                </SegBtn>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('settings.appearance.glass')}</CardTitle>
+              <CardDescription>{t('settings.appearance.glassDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                <SegBtn
+                  active={glassQuality === 'auto'}
+                  onClick={() => setGlassQuality('auto' satisfies GlassQuality)}
+                >
+                  {t('settings.appearance.glassAuto')}
+                </SegBtn>
+                <SegBtn
+                  active={glassQuality === 'full'}
+                  onClick={() => setGlassQuality('full' satisfies GlassQuality)}
+                >
+                  {t('settings.appearance.glassFull')}
+                </SegBtn>
+                <SegBtn
+                  active={glassQuality === 'frosted'}
+                  onClick={() => setGlassQuality('frosted' satisfies GlassQuality)}
+                >
+                  {t('settings.appearance.glassFrosted')}
                 </SegBtn>
               </div>
             </CardContent>
