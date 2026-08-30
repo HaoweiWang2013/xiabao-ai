@@ -35,6 +35,7 @@ import {
   TooltipTrigger,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
@@ -64,6 +65,7 @@ export function ModelManager({
   onChanged,
 }: ModelManagerProps) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Model | null>(null);
   const [probing, setProbing] = useState(false);
@@ -126,13 +128,16 @@ export function ModelManager({
               onToggle={(enabled) => setEnabledMut.mutate({ id: m.id, enabled })}
               onEdit={() => setEditing(m)}
               onRemove={() => {
-                if (
-                  confirm(
-                    t('providers.deleteModelConfirm', { provider: providerName, model: m.display }),
-                  )
-                ) {
-                  removeMut.mutate({ id: m.id });
-                }
+                void confirm({
+                  title: t('providers.deleteModelTitle', { defaultValue: '删除模型' }),
+                  message: t('providers.deleteModelConfirm', {
+                    provider: providerName,
+                    model: m.display,
+                  }),
+                  danger: true,
+                }).then((ok) => {
+                  if (ok) removeMut.mutate({ id: m.id });
+                });
               }}
             />
           ))}

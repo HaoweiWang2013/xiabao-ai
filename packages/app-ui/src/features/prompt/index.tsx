@@ -31,6 +31,7 @@ import {
   cn,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
@@ -48,6 +49,7 @@ const CATEGORIES: { value: PromptCategory; label: string }[] = [
 
 export function PromptPanel() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const promptsQ = trpc.prompt.listPrompts.useQuery();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -182,15 +184,14 @@ export function PromptPanel() {
                 void utils.prompt.listPrompts.invalidate();
               }}
               onDelete={async () => {
-                if (
-                  !confirm(
-                    t('prompt.confirmDelete', {
-                      defaultValue: '删除此提示词？此操作不可撤销。',
-                    }),
-                  )
-                ) {
-                  return;
-                }
+                const ok = await confirm({
+                  title: t('prompt.deleteTitle', { defaultValue: '删除提示词' }),
+                  message: t('prompt.confirmDelete', {
+                    defaultValue: '删除此提示词？此操作不可撤销。',
+                  }),
+                  danger: true,
+                });
+                if (!ok) return;
                 await deletePrompt.mutateAsync({ id: selected.id });
                 setSelectedId(null);
               }}

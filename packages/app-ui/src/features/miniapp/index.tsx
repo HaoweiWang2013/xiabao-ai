@@ -34,6 +34,7 @@ import {
   ScrollArea,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { useTranslation } from '../../lib/useTranslation';
 
 import { BUILTIN_MINI_APPS } from './builtins';
@@ -87,6 +88,7 @@ const PRESET_COLORS = [
 
 export function MiniAppPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [customApps, setCustomApps] = useAtom(customMiniAppsAtom);
   const [tabs, setTabs] = useAtom(miniAppTabsAtom);
   const [activeTabId, setActiveTabId] = useAtom(activeMiniAppTabIdAtom);
@@ -194,15 +196,19 @@ export function MiniAppPage() {
   }
 
   // 删除自定义小程序
-  function handleDeleteCustomApp(appId: string, e: React.MouseEvent) {
+  async function handleDeleteCustomApp(appId: string, e: React.MouseEvent) {
     e.stopPropagation();
-    if (confirm(t('miniapp.deleteConfirm'))) {
-      setCustomApps((prev) => prev.filter((a) => a.id !== appId));
-      // 同时关闭关联的 tab
-      setTabs((prev) => prev.filter((t) => !(t.type === 'app' && t.appId === appId)));
-      if (activeTab === `app-${appId}`) {
-        setActiveTabId('market');
-      }
+    const ok = await confirm({
+      title: t('miniapp.deleteTitle', { defaultValue: '删除小程序' }),
+      message: t('miniapp.deleteConfirm'),
+      danger: true,
+    });
+    if (!ok) return;
+    setCustomApps((prev) => prev.filter((a) => a.id !== appId));
+    // 同时关闭关联的 tab
+    setTabs((prev) => prev.filter((t) => !(t.type === 'app' && t.appId === appId)));
+    if (activeTab === `app-${appId}`) {
+      setActiveTabId('market');
     }
   }
 

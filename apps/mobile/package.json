@@ -7,7 +7,8 @@
   "scripts": {
     "sync": "cap sync",
     "open:android": "cap open android",
-    "build:apk": "cap sync && cd android && gradlew assembleDebug",
+    "build:apk": "node scripts/build-apk.mjs",
+    "build:apk:release": "node scripts/build-apk.mjs assembleRelease",
     "typecheck": "echo 'No TypeScript source in mobile wrapper' && exit 0",
     "build": "echo 'Capacitor is ready to sync' && exit 0",
     "clean": "rimraf .turbo"

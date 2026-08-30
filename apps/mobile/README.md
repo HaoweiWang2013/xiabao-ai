@@ -35,8 +35,27 @@ apps/mobile/                    Capacitor 壳容器
 ```bash
 pnpm build:web          # 先构建 Web
 pnpm dev:mobile         # 同步 + 打开 Android Studio
-pnpm build:apk          # 同步 + 构建 APK
+pnpm build:apk          # 同步 + 构建 APK（debug）
+pnpm --filter @xiabao/mobile build:apk:release   # release 包
 ```
+
+### 构建要求（CLI 直接构建）
+
+`pnpm build:apk` 走 [scripts/build-apk.mjs](scripts/build-apk.mjs)，会自动探测并注入
+JDK / SDK 路径，无需手改任何配置文件：
+
+| 依赖        | 版本                                      | 说明                                                         |
+| ----------- | ----------------------------------------- | ------------------------------------------------------------ |
+| JDK         | **17**（AGP 8.2 要求）                    | 探测顺序：`JAVA_HOME` → `~/.jdks` → `~/local/jdk17` → PATH   |
+| Android SDK | platforms;android-34 / build-tools;34.0.0 | 探测顺序：`ANDROID_HOME` → `ANDROID_SDK_ROOT` → 平台默认位置 |
+| NDK         | 25.1.8937393                              | capacitor-nodejs 原生编译需要                                |
+| CMake       | 3.22.1                                    | 同上                                                         |
+
+- `local.properties`（sdk.dir）是机器私有文件，已 gitignore，脚本会在缺失时自动生成
+- `gradle.properties` **不含** `org.gradle.java.home`（机器私有路径不进库），JDK 由脚本注入
+- Gradle Wrapper 与 Maven 依赖已配置腾讯云镜像（`gradle-wrapper.properties` / 根
+  `build.gradle`），国内网络可直接构建
+- 用 Android Studio 打开 `apps/mobile/android` 构建时无需上述环境变量（IDE 自带 JBR 17）
 
 ## 原生启动画面
 

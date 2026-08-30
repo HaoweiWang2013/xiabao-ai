@@ -20,11 +20,13 @@ import {
   ScrollArea,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
 export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const conversationsQ = trpc.chat.listConversations.useQuery();
   const deleteConversation = trpc.chat.deleteConversation.useMutation();
@@ -161,17 +163,17 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
     }
   }
 
-  function resetAllSettings() {
+  async function resetAllSettings() {
     if (resetting) return;
-    if (
-      !confirm(
-        t('settings.data.resetConfirm', {
-          defaultValue:
-            '将清除主题、强调色、密度、字号、引导状态等本地偏好，不会删除会话与 API Key。确定重置吗？',
-        }),
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: t('settings.data.resetTitle', { defaultValue: '重置设置' }),
+      message: t('settings.data.resetConfirm', {
+        defaultValue:
+          '将清除主题、强调色、密度、字号、引导状态等本地偏好，不会删除会话与 API Key。确定重置吗？',
+      }),
+      danger: true,
+    });
+    if (!ok) return;
     setResetting(true);
     try {
       for (const key of SETTINGS_STORAGE_KEYS) {
@@ -184,28 +186,28 @@ export function DataSettings({ onBack }: { onBack?: () => void } = {}) {
     } finally {
       setResetting(false);
     }
-    if (
-      confirm(
-        t('settings.data.resetReload', {
-          defaultValue: '设置已重置，需重载页面才能生效。现在重载？',
-        }),
-      )
-    ) {
+    const reload = await confirm({
+      title: t('settings.data.reloadTitle', { defaultValue: '重载页面' }),
+      message: t('settings.data.resetReload', {
+        defaultValue: '设置已重置，需重载页面才能生效。现在重载？',
+      }),
+    });
+    if (reload) {
       window.location.reload();
     }
   }
 
   async function clearAllConversations() {
     if (conversations.length === 0 || deleteConversation.isLoading) return;
-    if (
-      !confirm(
-        t('settings.data.clearConfirm', {
-          count: String(conversations.length),
-          defaultValue: `确定要清空 ${conversations.length} 个会话吗？此操作不可撤销。`,
-        }),
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: t('settings.data.clearTitle', { defaultValue: '清空会话' }),
+      message: t('settings.data.clearConfirm', {
+        count: String(conversations.length),
+        defaultValue: `确定要清空 ${conversations.length} 个会话吗？此操作不可撤销。`,
+      }),
+      danger: true,
+    });
+    if (!ok) return;
 
     for (const conversation of conversations) {
       await deleteConversation.mutateAsync({ id: conversation.id });

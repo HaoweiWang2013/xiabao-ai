@@ -4,7 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import superjson from 'superjson';
 
-import { setTrpcClientFactory, trpc, TrpcProvider } from '@xiabao/app-ui';
+import { setTrpcClientFactory, ConfirmProvider, trpc, TrpcProvider } from '@xiabao/app-ui';
 
 import { App } from './App';
 
@@ -74,7 +74,9 @@ createRoot(container).render(
   <StrictMode>
     <TrpcProvider>
       <JotaiProvider>
-        <App />
+        <ConfirmProvider>
+          <App />
+        </ConfirmProvider>
       </JotaiProvider>
     </TrpcProvider>
   </StrictMode>,

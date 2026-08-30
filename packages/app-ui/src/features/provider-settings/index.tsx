@@ -51,6 +51,7 @@ import {
   TooltipTrigger,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
@@ -102,6 +103,7 @@ function useIsMobile() {
  */
 export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const list = trpc.provider.listWithModels.useQuery();
   const utils = trpc.useUtils();
   const isMobile = useIsMobile();
@@ -316,11 +318,17 @@ export function ProviderSettings({ onBack }: { onBack?: () => void } = {}) {
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          if (
-                            confirm(t('providers.confirmDelete', { name: selected.provider.name }))
-                          ) {
-                            remove.mutate({ id: selected.provider.id });
-                          }
+                          void confirm({
+                            title: t('providers.deleteProviderTitle', {
+                              defaultValue: '删除服务商',
+                            }),
+                            message: t('providers.confirmDelete', {
+                              name: selected.provider.name,
+                            }),
+                            danger: true,
+                          }).then((ok) => {
+                            if (ok) remove.mutate({ id: selected.provider.id });
+                          });
                         }}
                       >
                         <Trash2 className="text-destructive h-3.5 w-3.5" />

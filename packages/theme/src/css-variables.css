@@ -34,7 +34,7 @@
   --glass-bg: 255 255 255 / 0.72;
   --glass-bg-strong: 255 255 255 / 0.88;
   --glass-border: 0 0 0 / 0.06;
-  --glass-highlight: 255 255 255 / 0.4;
+  --glass-highlight: 255 255 255 / 0.28;
   --glass-sheen: 255 255 255 / 0.18;
   --glass-edge-shadow: 0 0 0 / 0.04;
   --glass-blur-subtle: 8px;
@@ -169,16 +169,16 @@
   --popover-island-border: 240 6% 90%;
   --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
-  /* 玻璃边缘渐变光（模拟光线在玻璃边缘的折射） */
-  --glass-edge-peak: 255 255 255 / 0.7;
-  --glass-edge-mid: 255 255 255 / 0.25;
-  /* 非对称镜面高光：顶部亮（光源在上），底部为柔和的透镜反光边（Apple Liquid Glass 特征） */
-  --glass-edge-top: 255 255 255 / 0.85;
-  --glass-edge-bottom: 255 255 255 / 0.35;
-  /* 内折射环：玻璃厚度产生的第二层内高光 */
-  --glass-inner-refraction: 255 255 255 / 0.5;
-  /* 对角镜面扫光（surface sheen），左上到右下的一道柔和高光 */
-  --glass-surface-sheen: 255 255 255 / 0.22;
+  /* 玻璃边缘光 — Apple Liquid Glass 静止时只保留一条极柔和的顶部边光，
+     其余交给 backdrop-filter 的模糊 + 饱和去"取"背景色（材质不自己画高光）。
+     交互/移动时才增亮为 specular highlight（见 .glass-hover / .glass-btn）。 */
+  --glass-edge-peak: 255 255 255 / 0.5;
+  --glass-edge-mid: 255 255 255 / 0.1;
+  /* 顶部柔光（不再是 0.85 的硬白描边），底部近乎无 */
+  --glass-edge-top: 255 255 255 / 0.42;
+  --glass-edge-bottom: 255 255 255 / 0.12;
+  /* specular 峰值：仅 hover/active 交互时用到（静止不显） */
+  --glass-specular: 255 255 255 / 0.7;
 
   /* 激活态文字色（light 下用 green-600 保证对比度） */
   --glass-active-fg: 142 71% 35%;
@@ -201,12 +201,11 @@
   --popover-island-bg: 120 9% 10%;
   --popover-island-border: 240 4% 20%;
   --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --glass-edge-peak: 255 255 255 / 0.4;
-  --glass-edge-mid: 255 255 255 / 0.12;
-  --glass-edge-top: 255 255 255 / 0.55;
-  --glass-edge-bottom: 255 255 255 / 0.16;
-  --glass-inner-refraction: 255 255 255 / 0.22;
-  --glass-surface-sheen: 255 255 255 / 0.08;
+  --glass-edge-peak: 255 255 255 / 0.28;
+  --glass-edge-mid: 255 255 255 / 0.06;
+  --glass-edge-top: 255 255 255 / 0.28;
+  --glass-edge-bottom: 255 255 255 / 0.06;
+  --glass-specular: 255 255 255 / 0.5;
   --glass-active-fg: 142 76% 56%;
   --agent-tool-bg: 120 9% 12%;
   --agent-tool-fg: 0 0% 85%;
@@ -226,12 +225,11 @@
     --popover-island-bg: 120 9% 10%;
     --popover-island-border: 240 4% 20%;
     --popover-island-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --glass-edge-peak: 255 255 255 / 0.4;
-    --glass-edge-mid: 255 255 255 / 0.12;
-    --glass-edge-top: 255 255 255 / 0.55;
-    --glass-edge-bottom: 255 255 255 / 0.16;
-    --glass-inner-refraction: 255 255 255 / 0.22;
-    --glass-surface-sheen: 255 255 255 / 0.08;
+    --glass-edge-peak: 255 255 255 / 0.28;
+    --glass-edge-mid: 255 255 255 / 0.06;
+    --glass-edge-top: 255 255 255 / 0.28;
+    --glass-edge-bottom: 255 255 255 / 0.06;
+    --glass-specular: 255 255 255 / 0.5;
     --glass-active-fg: 142 76% 56%;
     --agent-tool-bg: 120 9% 12%;
     --agent-tool-fg: 0 0% 85%;
@@ -256,8 +254,8 @@
   isolation: isolate;
 }
 
-/* 玻璃边缘渐变光 — 模拟光线在玻璃边缘的折射（WWDC 25 Liquid Glass 核心特征）
-   非对称镜面：顶部为强高光（光源在上方），两侧渐隐，底部为柔和的透镜反光边。
+/* 玻璃边缘光 — Apple Liquid Glass 思路：静止时只是一条极柔和的顶部边光，
+   材质本身"取"背景色（靠 backdrop-filter），不自己画多层高光。
    z-index: 1 放在内容之上（pointer-events: none 不影响交互），
    避免 z-index:-1 与 backdrop-filter 合成层冲突导致闪烁 */
 .glass::before,
@@ -268,14 +266,12 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1.4px;
+  padding: 1px;
   background: linear-gradient(
     180deg,
     rgb(var(--glass-edge-top)) 0%,
-    rgb(var(--glass-edge-mid)) 18%,
-    transparent 42%,
-    transparent 60%,
-    rgb(var(--glass-edge-mid)) 82%,
+    rgb(var(--glass-edge-mid)) 35%,
+    transparent 65%,
     rgb(var(--glass-edge-bottom)) 100%
   );
   -webkit-mask:
@@ -287,28 +283,27 @@
   z-index: 1;
 }
 
-/* 内折射环 — 玻璃厚度产生的第二层内高光，紧贴顶部边缘内侧（Apple Liquid Glass 的"厚度感"）。
-   仅在强/静态玻璃容器上，避免与 ::before 叠加过亮。 */
+/* Specular highlight — Apple 的高光只在移动/交互时出现（realtime rendering）。
+   静止时完全透明（opacity: 0），hover/active 时才从内部亮起一道顶部反光。
+   ::after 复用为这条交互高光层，避免静态叠加造成"斜面浮雕"感。 */
 .glass::after,
-.glass-strong::after {
+.glass-strong::after,
+.glass-btn::after,
+.glass-pill::after {
   content: '';
   position: absolute;
-  inset: 1px;
+  inset: 0;
   border-radius: inherit;
-  box-shadow: inset 0 1px 1.5px rgb(var(--glass-inner-refraction));
+  background: linear-gradient(180deg, rgb(var(--glass-specular)) 0%, transparent 45%);
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease);
   pointer-events: none;
   z-index: 1;
 }
 
 .glass {
-  background: linear-gradient(
-      115deg,
-      rgb(var(--glass-surface-sheen)) 0%,
-      transparent 30%,
-      transparent 70%,
-      rgb(var(--glass-surface-sheen)) 100%
-    ),
-    linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%), rgb(var(--glass-bg));
+  background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 55%),
+    rgb(var(--glass-bg));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid rgb(var(--glass-border));
@@ -318,14 +313,7 @@
     var(--glass-shadow);
 }
 .glass-strong {
-  background: linear-gradient(
-      115deg,
-      rgb(var(--glass-surface-sheen)) 0%,
-      transparent 30%,
-      transparent 70%,
-      rgb(var(--glass-surface-sheen)) 100%
-    ),
-    linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
+  background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 55%),
     rgb(var(--glass-bg-strong));
   backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%);
@@ -342,16 +330,12 @@
 }
 .glass-hover:hover {
   background: rgb(var(--glass-bg-strong));
-  backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
-  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(190%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(190%);
 }
-/* 动态光响应：hover 时顶部镜面高光增强（模拟玻璃随交互反射更多光） */
-.glass-hover::before {
-  transition: opacity var(--duration-slow) var(--ease);
-}
-.glass-hover:hover::before {
-  opacity: 1;
-  filter: brightness(1.35);
+/* 动态光响应：静止无高光，hover 时 specular（::after）柔和亮起，模拟移动/交互反射光 */
+.glass-hover:hover::after {
+  opacity: 0.6;
 }
 
 /* 液态玻璃按钮（capsule 胶囊形，Apple Liquid Glass 规范） */
@@ -374,20 +358,15 @@
   background: linear-gradient(180deg, rgb(var(--glass-sheen)) 0%, transparent 50%),
     rgb(var(--glass-bg-strong));
 }
-/* 按钮镜面随交互增强：hover 顶部高光变亮，press 轻微收缩（Apple 触感反馈） */
-.glass-btn::before {
-  transition:
-    opacity var(--duration) var(--ease),
-    filter var(--duration) var(--ease);
-}
-.glass-btn:hover::before {
-  filter: brightness(1.3);
+/* specular 反馈：hover 顶部反光亮起，active 时更亮 + 轻微收缩（材质"从内部发光"） */
+.glass-btn:hover::after {
+  opacity: 0.7;
 }
 .glass-btn:active {
   transform: scale(0.97);
 }
-.glass-btn:active::before {
-  filter: brightness(0.9);
+.glass-btn:active::after {
+  opacity: 1;
 }
 /* 激活态：品牌色玻璃 tint + 微弱虹彩渐变（侧边栏激活态） */
 .glass-btn-active {
@@ -530,12 +509,14 @@ body.keyboard-open .glass-pill {
     display: none;
   }
   .glass::after,
-  .glass-strong::after {
+  .glass-strong::after,
+  .glass-btn::after,
+  .glass-pill::after {
     display: none;
   }
 }
 
-/* prefers-reduced-motion: 降低模糊半径（不直接关闭，避免透明像素层突变闪烁） */
+/* prefers-reduced-motion: 降低模糊半径 + 关闭 specular 交互高光的动画（Apple：减动时移除动态高光） */
 @media (prefers-reduced-motion: reduce) {
   .glass,
   .glass-strong,
@@ -546,6 +527,12 @@ body.keyboard-open .glass-pill {
   .agent-respond {
     backdrop-filter: blur(4px) saturate(120%);
     -webkit-backdrop-filter: blur(4px) saturate(120%);
+  }
+  .glass::after,
+  .glass-strong::after,
+  .glass-btn::after,
+  .glass-pill::after {
+    display: none;
   }
 }
 
@@ -568,7 +555,9 @@ body.keyboard-open .glass-pill {
   display: none;
 }
 [data-perf-mode='low'] .glass::after,
-[data-perf-mode='low'] .glass-strong::after {
+[data-perf-mode='low'] .glass-strong::after,
+[data-perf-mode='low'] .glass-btn::after,
+[data-perf-mode='low'] .glass-pill::after {
   display: none;
 }
 [data-perf-mode='low'] .glass {

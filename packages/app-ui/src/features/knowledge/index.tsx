@@ -47,6 +47,7 @@ import {
   cn,
 } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
@@ -56,6 +57,7 @@ type ImportMode = { kind: 'file'; kbId: string } | { kind: 'url'; kbId: string }
 
 export function KnowledgePanel() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const basesQ = trpc.knowledge.listBases.useQuery();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -149,15 +151,14 @@ export function KnowledgePanel() {
               kb={selected}
               onEdit={() => setEditing({ kind: 'edit', kb: selected })}
               onDelete={async () => {
-                if (
-                  !confirm(
-                    t('knowledge.confirmDelete', {
-                      defaultValue: '删除此知识库及其全部文档？此操作不可撤销。',
-                    }),
-                  )
-                ) {
-                  return;
-                }
+                const ok = await confirm({
+                  title: t('knowledge.deleteKbTitle', { defaultValue: '删除知识库' }),
+                  message: t('knowledge.confirmDelete', {
+                    defaultValue: '删除此知识库及其全部文档？此操作不可撤销。',
+                  }),
+                  danger: true,
+                });
+                if (!ok) return;
                 await deleteBase.mutateAsync({ id: selected.id });
                 setSelectedId(null);
               }}
@@ -281,6 +282,7 @@ function KbDetail({ kb, onEdit, onDelete, deleting }: KbDetailProps) {
 
 function DocsCard({ kb }: { kb: KnowledgeBase }) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const utils = trpc.useUtils();
   const [importing, setImporting] = useState<ImportMode>(null);
 
@@ -366,14 +368,14 @@ function DocsCard({ kb }: { kb: KnowledgeBase }) {
                   await reembedDoc.mutateAsync({ id: doc.id });
                 }}
                 onDelete={async () => {
-                  if (
-                    !confirm(
-                      t('knowledge.confirmDeleteDoc', {
-                        defaultValue: '删除此文档及其全部 chunk？',
-                      }),
-                    )
-                  )
-                    return;
+                  const ok = await confirm({
+                    title: t('knowledge.deleteDocTitle', { defaultValue: '删除文档' }),
+                    message: t('knowledge.confirmDeleteDoc', {
+                      defaultValue: '删除此文档及其全部 chunk？',
+                    }),
+                    danger: true,
+                  });
+                  if (!ok) return;
                   await deleteDoc.mutateAsync({ id: doc.id });
                 }}
               />

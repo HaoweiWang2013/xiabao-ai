@@ -113,6 +113,65 @@ describe('M1-F e2e', () => {
     expect(models.map((m) => m.display).sort()).toEqual(['gpt-test-mini', 'gpt-test-pro']);
   });
 
+  it('添加多个同 kind Provider：各自独立，不覆盖旧配置、不融合模型', async () => {
+    const { services } = await setup();
+
+    // 第一个 OpenAI provider
+    const p1 = await services.provider.create({
+      name: 'OpenAI A',
+      kind: 'openai',
+      baseUrl: 'http://fake-a/v1',
+      apiKey: 'sk-a',
+      extra: {},
+    });
+    const models1 = await services.provider.listModelsRemote(p1.id);
+    expect(models1.map((m) => m.display).sort()).toEqual(['gpt-test-mini', 'gpt-test-pro']);
+
+    // 第二个同 kind OpenAI provider —— 不应覆盖 p1
+    const p2 = await services.provider.create({
+      name: 'OpenAI B',
+      kind: 'openai',
+      baseUrl: 'http://fake-b/v1',
+      apiKey: 'sk-b',
+      extra: {},
+    });
+
+    expect(p2.id).not.toBe(p1.id); // id 唯一，不再复用 kind 名作单例
+
+    const all = await services.provider.list();
+    expect(all).toHaveLength(2);
+    expect(all.map((p) => p.id).sort()).toEqual([p1.id, p2.id].sort());
+
+    // p1 配置与模型保持原样（未被 p2 覆盖 / 融合）
+    const p1Reloaded = await services.provider.get(p1.id);
+    expect(p1Reloaded?.name).toBe('OpenAI A');
+    expect(p1Reloaded?.baseUrl).toBe('http://fake-a/v1');
+    expect(await services.provider.listLocalModels(p1.id)).toHaveLength(2);
+  });
+
+  it('软删模型后重新拉取：恢复而非撞主键（SQLITE_CONSTRAINT_PRIMARYKEY 回归）', async () => {
+    const { services } = await setup();
+    const p = await services.provider.create({
+      name: 'OpenAI Fake',
+      kind: 'openai',
+      baseUrl: 'http://fake/v1',
+      apiKey: 'sk-fake-123',
+      extra: {},
+    });
+    const models = await services.provider.listModelsRemote(p.id);
+    expect(models).toHaveLength(2);
+
+    // 软删其中一个
+    await services.provider.removeModel(models[0]!.id);
+    expect(await services.provider.listLocalModels(p.id)).toHaveLength(1);
+
+    // 再次整库拉取：不应抛 UNIQUE constraint，且软删的模型被恢复
+    const refreshed = await services.provider.listModelsRemote(p.id);
+    expect(refreshed).toHaveLength(2);
+    expect(await services.provider.listLocalModels(p.id)).toHaveLength(2);
+    expect(refreshed.find((m) => m.id === models[0]!.id)?.enabled).toBe(true);
+  });
+
   it('chat.sendMessage 拼出完整文本 + 持久化 assistant 消息', async () => {
     const { services, repos } = await setup();
     const provider = await services.provider.create({

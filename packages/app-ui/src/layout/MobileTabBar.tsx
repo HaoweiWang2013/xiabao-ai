@@ -15,6 +15,7 @@ import { Library, MessageSquare, Settings, Wrench } from 'lucide-react';
 import { primaryNavAtom, settingsSectionAtom, type PrimaryNav } from '@xiabao/state';
 import { cn } from '@xiabao/ui';
 
+import { useTabBarMinimize } from '../hooks/useTabBarMinimize';
 import { useTranslation } from '../lib/useTranslation';
 
 import type { LucideIcon } from 'lucide-react';
@@ -35,6 +36,8 @@ export function MobileTabBar() {
   const [nav, setNav] = useAtom(primaryNavAtom);
   const [section, setSection] = useAtom(settingsSectionAtom);
   const { t } = useTranslation();
+  // 滚动收缩（Apple tabBarMinimizeBehavior）：向下滚→紧凑形态聚焦内容，向上滚/回顶→展开
+  const minimized = useTabBarMinimize();
 
   function activate(id: PrimaryNav) {
     if (id === 'tools') {
@@ -58,9 +61,23 @@ export function MobileTabBar() {
   }
 
   return (
-    <nav aria-label={t('mobileNav.label')} className="safe-area-bottom shrink-0 px-3 pb-2 pt-1.5">
-      {/* Liquid Glass 悬浮胶囊底部栏：玻璃容器 + 激活项品牌色玻璃胶囊高亮 */}
-      <div className="glass-strong border-border/40 shadow-glass-lg flex h-14 items-stretch gap-1 rounded-2xl border px-1.5">
+    <nav
+      aria-label={t('mobileNav.label')}
+      className={cn(
+        'safe-area-bottom ease-emphasis shrink-0 px-3 pt-1.5 transition-[padding] duration-300',
+        minimized ? 'pb-1.5' : 'pb-2',
+      )}
+    >
+      {/* Liquid Glass 悬浮胶囊底部栏：玻璃容器 + 激活项品牌色玻璃胶囊高亮。
+          同心圆角（Apple ConcentricRectangle）：外层 rounded-2xl(16px) − 内缩 6px =
+          激活胶囊 rounded-[10px]，圆心同轴。滚动收缩：h-14 → h-11，标签收起只留图标。 */}
+      <div
+        className={cn(
+          'glass-strong border-border/40 shadow-glass-lg ease-emphasis flex items-stretch gap-1 border px-1.5 transition-[height] duration-300',
+          minimized ? 'h-11' : 'h-14',
+          'rounded-2xl',
+        )}
+      >
         {TABS.map(({ id, icon: Icon }) => {
           const active = isActive(id);
           return (
@@ -70,16 +87,18 @@ export function MobileTabBar() {
               onClick={() => activate(id)}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'group relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium',
-                'transition-transform duration-150 active:scale-95',
+                'group relative flex flex-1 flex-col items-center justify-center text-[10px] font-medium',
+                'ease-emphasis transition-all duration-300 active:scale-95',
+                minimized ? 'gap-0' : 'gap-0.5',
                 active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {/* 激活胶囊高亮（品牌色玻璃，Apple 液态玻璃选中态） */}
+              {/* 激活胶囊高亮（品牌色玻璃，Apple 液态玻璃选中态）。
+                  同心圆角：16px − inset-y-1.5(6px) = 10px */}
               <span
                 aria-hidden
                 className={cn(
-                  'glass-btn-active absolute inset-x-0 inset-y-1.5 rounded-xl transition-opacity duration-200',
+                  'glass-btn-active ease-emphasis absolute inset-x-0 inset-y-1.5 rounded-[10px] transition-opacity duration-200',
                   active ? 'opacity-100' : 'opacity-0',
                 )}
               />
@@ -90,7 +109,15 @@ export function MobileTabBar() {
                 )}
                 strokeWidth={active ? 2.5 : 2}
               />
-              <span className="relative leading-none">
+              {/* 标签随收缩收起（保留 DOM，屏幕阅读器仍可读） */}
+              <span
+                className={cn(
+                  'ease-emphasis relative overflow-hidden leading-none transition-all duration-300',
+                  minimized
+                    ? 'max-h-0 -translate-y-1 opacity-0'
+                    : 'max-h-3.5 translate-y-0 opacity-100',
+                )}
+              >
                 {t(`iconNav.${id}`, { defaultValue: id })}
               </span>
             </button>

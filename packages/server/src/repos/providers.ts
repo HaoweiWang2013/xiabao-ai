@@ -8,7 +8,6 @@ import {
   type Provider,
   type ProviderCreateInput,
   type ProviderExtra,
-  type ProviderKind,
   type ProviderUpdateInput,
   ProviderExtraSchema,
   ProviderSchema,
@@ -47,7 +46,10 @@ export function createProviderRepo({ db, now, deviceId = null }: ProviderRepoDep
 
     async create(input: ProviderCreateInput, apiKeyRef: string | null): Promise<Provider> {
       const ts = now();
-      const id = providerIdForKind(input.kind);
+      // 每次创建都生成唯一 id（custom-xxx）。
+      // 之前内置 kind 用 kind 名作 id（单例），导致"添加第二个同 kind Provider 时
+      // 静默覆盖老配置 + models 表新旧模型融合"。现在每个 Provider 独立实例。
+      const id = newCustomProviderId();
 
       const existing = await db
         .select()
@@ -136,24 +138,9 @@ export function createProviderRepo({ db, now, deviceId = null }: ProviderRepoDep
 
 export type ProviderRepo = ReturnType<typeof createProviderRepo>;
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // helpers
-// ─────────────────────────────────────────────
-
-function providerIdForKind(kind: ProviderKind): string {
-  // 已知 kind 直接用名字作 id（单例）；其他 kind 生成 custom-XXX
-  switch (kind) {
-    case 'openai':
-    case 'anthropic':
-    case 'google':
-    case 'deepseek':
-    case 'ollama':
-    case 'openrouter':
-      return kind;
-    default:
-      return newCustomProviderId();
-  }
-}
+// ─────────────────────────────────────────
 
 function rowToProvider(row: ProviderRow): Provider {
   const extra = safeParseExtra(row.extra);

@@ -772,6 +772,28 @@ Tab 选项：
 - 代码块支持横向滚动
 - 长按消息 = hover 操作（Menu）
 
+### 7.3 Tab Bar 滚动收缩（Apple tabBarMinimizeBehavior）
+
+对应 iOS 26「滚动时 TabBar 收缩聚焦内容，回滚即展开」：
+
+- `useTabBarMinimize`（app-ui hooks）捕获阶段监听全局滚动，按方向切换形态：
+  **向下滚 > 6px → 收缩**（`h-14 → h-11`，标签 `max-h-0 + opacity-0` 收起只留图标）；**向上滚 / 回到顶部 → 展开**
+- 多滚动容器用 WeakMap 独立记录位置，互不干扰
+- `prefers-reduced-motion: reduce` 用户禁用（Apple：减动时移除形变）
+- 标签仅视觉收起（DOM 保留），屏幕阅读器不受影响
+
+### 7.4 同心圆角（Apple ConcentricRectangle）
+
+嵌套元素圆角 = 外层圆角 − 内缩距离，圆心同轴：
+
+| 外层容器                        | 圆角 | 内层元素                | 内缩 | 圆角 |
+| ------------------------------- | ---- | ----------------------- | ---- | ---- |
+| 移动端 TabBar 容器              | 16px | 激活胶囊 `inset 6px`    | 6px  | 10px |
+| IconSidebar / IconTopBar 栏容器 | 16px | 导航按钮（36 in 48px）  | 6px  | 10px |
+| IconSidebar 栏容器              | 16px | Logo 图标（32 in 48px） | 8px  | 8px  |
+
+新增嵌套玻璃元素时按此公式取值（Tailwind 任意值如 `rounded-[10px]`），胶囊形（`rounded-full`）天然同心。
+
 ---
 
 ## 8. Web 端

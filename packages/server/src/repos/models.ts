@@ -47,6 +47,8 @@ export function createModelRepo({ db, now, deviceId = null }: ModelRepoDeps) {
      * 批量 upsert：按 provider 自报的 listed models 同步到本地 models 表。
      * - 新模型：insert，enabled=true
      * - 已存在：更新 display / capability / pricing（保留用户的 enabled / sortIndex）
+     * - 已存在但被软删（deletedAt 非空）：**恢复**该行（deletedAt=null、enabled=true），
+     *   而非 insert —— 否则会撞 models.id 主键（SQLITE_CONSTRAINT_PRIMARYKEY）。
      */
     async upsertFromProvider(providerId: string, listed: ProviderListedModel[]): Promise<Model[]> {
       const ts = now();
@@ -57,17 +59,26 @@ export function createModelRepo({ db, now, deviceId = null }: ModelRepoDeps) {
         const capability = JSON.stringify(item.capability ?? {});
         const pricing = item.pricing ? JSON.stringify(item.pricing) : null;
 
-        const existing = await this.findById(id);
-        if (existing) {
+        // 查含软删的行（不过滤 deletedAt），避免"软删后重新出现"撞主键
+        const existingRow = await db
+          .select()
+          .from(models)
+          .where(eq(models.id, id))
+          .limit(1)
+          .then((r) => r[0]);
+
+        if (existingRow) {
           await db
             .update(models)
             .set({
-              display: item.display ?? existing.display,
-              family: item.family ?? existing.family ?? null,
-              contextTokens: item.contextTokens ?? existing.contextTokens ?? null,
-              maxOutput: item.maxOutput ?? existing.maxOutput ?? null,
+              display: item.display ?? existingRow.display,
+              family: item.family ?? existingRow.family ?? null,
+              contextTokens: item.contextTokens ?? existingRow.contextTokens ?? null,
+              maxOutput: item.maxOutput ?? existingRow.maxOutput ?? null,
               capability,
               pricing,
+              enabled: existingRow.deletedAt == null ? existingRow.enabled : true,
+              deletedAt: null, // 软删的模型重新出现时恢复
               deprecatedAt: item.deprecated ? ts : null,
               updatedAt: ts,
             })

@@ -2,7 +2,7 @@
  * LocalEmbedderCard · 本地 Embedder 模型管理卡片（M4 长尾 Phase 5-Pro · 5p-5）
  *
  * 在 ProviderSettings 页面里，当 Provider.kind === 'local-embedder' 时插入此卡片。
- *
+ * 写了4天，fu*k Manager
  * 功能：
  * - 引擎能力探测（capability.managementSupported）
  * - 已安装模型列表（model id / 维度 / 大小 / 删除按钮）
@@ -19,6 +19,7 @@ import { useState } from 'react';
 
 import { Badge, Button, cn } from '@xiabao/ui';
 
+import { useConfirm } from '../../components/ConfirmDialog';
 import { trpc } from '../../lib/trpc';
 import { useTranslation } from '../../lib/useTranslation';
 
@@ -33,6 +34,7 @@ interface InstallProgress {
 
 export function LocalEmbedderCard() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
 
   const capabilityQ = trpc.localEmbedder.capability.useQuery();
   const availableQ = trpc.localEmbedder.listAvailable.useQuery();
@@ -104,16 +106,15 @@ export function LocalEmbedderCard() {
   }
 
   async function handleRemove(modelId: string, label: string) {
-    if (
-      !confirm(
-        t('localEmbedder.confirmRemove', {
-          defaultValue: '删除本地模型 "{model}"？磁盘空间会被释放。',
-          model: label,
-        }),
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: t('localEmbedder.removeTitle', { defaultValue: '删除本地模型' }),
+      message: t('localEmbedder.confirmRemove', {
+        defaultValue: '删除本地模型 "{model}"？磁盘空间会被释放。',
+        model: label,
+      }),
+      danger: true,
+    });
+    if (!ok) return;
     await removeMut.mutateAsync({ modelId });
   }
 

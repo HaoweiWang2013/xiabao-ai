@@ -43,6 +43,8 @@ export { BranchSwitcher } from './components/BranchSwitcher';
 export { CommandPalette } from './components/CommandPalette';
 export type { CommandConversationItem } from './components/CommandPalette';
 export { Composer } from './components/Composer';
+export { ConfirmProvider, useConfirm } from './components/ConfirmDialog';
+export type { ConfirmFn, ConfirmOptions } from './components/ConfirmDialog';
 export { EmptyState } from './components/EmptyState';
 export type { RecentConversation, RecommendedPrompt } from './components/EmptyState';
 export { MarkdownRenderer, CodeBlock } from './components/MarkdownRenderer';
